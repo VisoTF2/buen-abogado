@@ -1,4 +1,3 @@
-
 let codigoActual = {}
 let articulos = JSON.parse(localStorage.getItem("articulosGuardados") || "[]")
   .map(a => ({ ...a, contenidoHTML: a.contenidoHTML ?? null }))
@@ -873,7 +872,12 @@ function cargarNormativa() {
   sincronizarEdiciones()
 
   const val = document.getElementById("normativa").value
-  const archivo = val === "civil" ? "codigo_civil_pdf.json" : "codigo_penal_pdf.json" ; "codigo_procedimiento_civil_pdf.json"
+  const archivoMap = {
+    civil: "codigo_civil_pdf.json",
+    penal: "codigo_penal_pdf.json",
+    procedimiento: "codigo_procedimiento_civil_pdf.json"
+  }
+  const archivo = archivoMap[val] || archivoMap.civil
 
   fetch(archivo)
     .then(r => r.json())
@@ -896,6 +900,31 @@ function mostrarError(msg) {
 function obtenerColorMateria(nombre) {
   const art = articulos.find(a => a.materia === nombre && a.color)
   return art ? art.color : "#1e3a8a"
+}
+
+// Mapea cada normativa a su archivo JSON correspondiente
+function rutaDocumentoPara(normativa) {
+  const mapa = {
+    civil: "/docs/codigo_civil.json",
+    penal: "/docs/codigo_penal.json",
+    procedimiento: "/docs/codigo_de_procedimiento_civil.json"
+  }
+  return mapa[normativa] || mapa.civil
+}
+
+// Reemplaza cargas específicas por una función genérica
+async function cargarDocumentoNormativa(normativa, opciones = {}) {
+  const ruta = rutaDocumentoPara(normativa)
+  try {
+    const res = await fetch(ruta)
+    if (!res.ok) throw new Error("Error al cargar " + ruta + " : " + res.status)
+    const datos = await res.json()
+    return datos
+  } catch (err) {
+    console.error(err)
+    mostrarError && mostrarError("No se pudo cargar el documento: " + err.message)
+    return null
+  }
 }
 
 function agregarArticulo() {
@@ -936,8 +965,21 @@ function agregarArticulo() {
   document.getElementById("numeroArticulo").value = ""
   document.getElementById("materiaArticulo").value = ""
   document.getElementById("numeroArticulo").focus()
+
+  // Antes: fetch("/docs/codigo_penal.json")  (o llamada fija a penal)
+  // Ahora: usar la ruta según la normativa seleccionada
+  (async () => {
+    const norma = normativaSeleccionada || "civil"
+    const datos = await cargarDocumentoNormativa(norma)
+    if (datos) {
+      // ejemplo: buscar plantilla por número o por id según la estructura del JSON
+      // const plantilla = datos.find(d => d.numero === numeroBuscado) || datos[0]
+      // usar plantilla para llenar el nuevo artículo
+    }
+  })()
 }
 
+// ...existing code...
 function ordenarYMostrar() {
   sincronizarEdiciones()
 
@@ -997,7 +1039,7 @@ function ordenarYMostrar() {
 
   renderizarCarpetasSidebar(listaCarpetas, agrupado, sidebar)
 
-  const ordenNormativas = ["civil", "penal"]
+  const ordenNormativas = ["civil", "penal", "procedimiento"]
   ordenNormativas.forEach(norm => {
     const materiasObj = agrupado[norm]
     const nombresMaterias = Object.keys(materiasObj || {})
@@ -1008,7 +1050,7 @@ function ordenarYMostrar() {
 
     const tituloGrupo = document.createElement("div")
     tituloGrupo.className = "sidebarGroupTitle"
-    tituloGrupo.textContent = norm === "civil" ? "Código Civil" : "Código Penal" ; "Código de Procedimiento Civil"
+    tituloGrupo.textContent = norm === "civil" ? "Código Civil" : norm === "penal" ? "Código Penal" : "Código de Procedimiento Civil"
     grupo.appendChild(tituloGrupo)
 
     const listaMaterias = document.createElement("div")
@@ -1431,7 +1473,12 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
     const norm = document.createElement("div")
     norm.style.fontSize = "13px"
     norm.style.color = "#6b7280"
-    norm.textContent = a.normativa === "civil" ? "Normativa Código Civil" : "Normativa Código Penal" ; "Normativa Código de Procedimiento Civil"
+    const _etiquetasNormativa = {
+      civil: "Normativa Código Civil",
+      penal: "Normativa Código Penal",
+      procedimiento: "Normativa Código de Procedimiento Civil"
+    }
+    norm.textContent = _etiquetasNormativa[a.normativa] || a.normativa
 
     const contenido = document.createElement("div")
     contenido.className = "articulo-contenido"
@@ -1673,6 +1720,23 @@ function toggleCarpetaColapsada(id) {
   )
   guardarCarpetas()
   ordenarYMostrar()
+}
+
+// Función para cargar un JSON con artículos del Código de Procedimiento Civil
+async function cargarDocumentoProcedimiento(ruta = "/docs/codigo_de_procedimiento_civil.json") {
+  try {
+    const res = await fetch(ruta)
+    if (!res.ok) throw new Error("No se pudo cargar el documento: " + res.status)
+    const nuevos = await res.json() // esperar array de artículos { id, numero, materia, normativa: "procedimiento", tituloPersonalizado?, contenido? ... }
+    // evitar duplicados por id
+    const existentesIds = new Set(articulos.map(a => a.id))
+    nuevos.forEach(n => { if (!existentesIds.has(n.id)) articulos.push(n) })
+    guardarLocal()
+    ordenarYMostrar()
+  } catch (err) {
+    console.error(err)
+    mostrarError("Error cargando el documento de procedimiento: " + err.message)
+  }
 }
 
 inicializarMenuContextual()

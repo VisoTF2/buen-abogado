@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Buen abogao</title>
+  <title>Buen abogado</title>
 
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,10 +13,40 @@
   <div class="zoom-canvas">
   <header id="appBanner">
     <div class="banner-top">
-      <h1 class="app-title">Buen abogao</h1>
+      <h1 class="app-title">Buen abogado</h1>
       <button class="modo" id="botonConfiguracion" type="button" onclick="abrirModalConfiguracion()">Configuración</button>
     </div>
   </header>
+
+  <!-- Horario semanal: aparece bajo el banner y encima del contenido principal -->
+  <section class="weekly-schedule" id="weeklySchedule" aria-label="Horario semanal">
+    <div class="weekly-schedule-head">
+      <h3>Horario semanal</h3>
+    </div>
+
+    <div class="schedule-grid" id="scheduleGrid">
+      <div class="schedule-day" data-day="0">
+        <div class="schedule-day-head">Lunes <button class="day-add" data-day-index="0" aria-label="Agregar clase">+</button></div>
+        <ul class="schedule-list" data-day-index="0"></ul>
+      </div>
+      <div class="schedule-day" data-day="1">
+        <div class="schedule-day-head">Martes <button class="day-add" data-day-index="1" aria-label="Agregar clase">+</button></div>
+        <ul class="schedule-list" data-day-index="1"></ul>
+      </div>
+      <div class="schedule-day" data-day="2">
+        <div class="schedule-day-head">Miércoles <button class="day-add" data-day-index="2" aria-label="Agregar clase">+</button></div>
+        <ul class="schedule-list" data-day-index="2"></ul>
+      </div>
+      <div class="schedule-day" data-day="3">
+        <div class="schedule-day-head">Jueves <button class="day-add" data-day-index="3" aria-label="Agregar clase">+</button></div>
+        <ul class="schedule-list" data-day-index="3"></ul>
+      </div>
+      <div class="schedule-day" data-day="4">
+        <div class="schedule-day-head">Viernes <button class="day-add" data-day-index="4" aria-label="Agregar clase">+</button></div>
+        <ul class="schedule-list" data-day-index="4"></ul>
+      </div>
+    </div>
+  </section>
 
   <div class="container">
 
@@ -86,6 +116,7 @@
               <select id="normativa">
                 <option value="civil">Código Civil</option>
                 <option value="penal">Código Penal</option>
+                <option value="procedimiento">Código de Procedimiento Civil</option>
               </select>
             </div>
 
@@ -143,24 +174,6 @@
 
   </div>
 
-  </div>
-
-  <div class="donation-footer">
-    <span class="donation-button">
-      <script
-        type="text/javascript"
-        src="https://cdn.tecito.app/static/js/button.v1.3.js"
-        data-name="bmc-button"
-        data-slug="buenabogao"
-        data-color="#3b82f6"
-        data-emoji=""
-        data-font="Pacifico"
-        data-text="Invitame un tecito"
-        data-outline-color="#000"
-        data-font-color="#FFF"
-        data-tecito-color="#FFF"
-      ></script>
-    </span>
   </div>
 
   <div class="modal-backdrop" id="modalCarpeta" role="dialog" aria-modal="true">
@@ -226,6 +239,28 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="personalizacion.js"></script>
+<script src="documentos.js"></script>
+<script src="busqueda.js"></script>
+<script src="schedule.js"></script>
 <script src="app.js"></script>
+  <div class="app-footer" style="font-size:12px;text-align:center;color:#666;padding:8px 0;">Esta app puede cometer errores, se recomienda revisar los códigos.</div>
+  <script>
+    (function(){
+      const f = document.querySelector('.app-footer');
+      if (!f) return;
+      document.body.appendChild(f);
+      Object.assign(f.style, {
+        position: 'fixed',
+        left: '0',
+        right: '0',
+        bottom: '0',
+        width: '100%',
+        background: 'transparent',
+        zIndex: '1000',
+        transform: 'none'
+      });
+    })();
+  </script>
 </body>
 </html>
