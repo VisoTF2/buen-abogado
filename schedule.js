@@ -67,6 +67,7 @@
   function crearEditorNodo(values, onSave, onCancel){
     const li = document.createElement('li')
     li.className = 'class-editor'
+    const colorValue = values.bgColor || '#ffffff'
     li.innerHTML = `
       <div class="editor-row">
         <input class="editor-name" placeholder="Clase" value="${escapeHtml(values.name || '')}">
@@ -77,8 +78,11 @@
         <input class="editor-absences" type="number" min="0" placeholder="Faltas" value="${escapeHtml(values.absences || 0)}">
       </div>
       <div class="editor-actions">
-        <button type="button" class="editor-save">Guardar</button>
-        <button type="button" class="editor-cancel">Cancelar</button>
+        <input class="editor-color-input" type="color" value="${escapeHtml(colorValue)}" aria-label="Seleccionar color">
+        <div class="editor-buttons">
+          <button type="button" class="editor-save">Guardar</button>
+          <button type="button" class="editor-cancel">Cancelar</button>
+        </div>
       </div>
     `
 
@@ -87,8 +91,9 @@
       const time = li.querySelector('.editor-time').value
       const teacher = li.querySelector('.editor-teacher').value
       const absences = parseInt(li.querySelector('.editor-absences').value || '0', 10) || 0
+      const bgColor = li.querySelector('.editor-color-input').value
       if (!nombre || !nombre.trim()) { li.querySelector('.editor-name').focus(); return }
-      onSave({ name: nombre.trim(), time: time.trim(), teacher: teacher.trim(), absences })
+      onSave({ name: nombre.trim(), time: time.trim(), teacher: teacher.trim(), absences, bgColor })
     })
 
     li.querySelector('.editor-cancel').addEventListener('click', ()=>{
@@ -106,6 +111,7 @@
       item.time = vals.time
       item.teacher = vals.teacher
       item.absences = vals.absences
+      item.bgColor = vals.bgColor
       guardarHorario(horario)
       render()
     }, ()=>{
@@ -200,7 +206,7 @@
   }
 
   function agregarClaseObj(obj, diaIndex){
-    const item = { id: String(Date.now()) + Math.random().toString(36).slice(2,6), name: obj.name || '', time: obj.time || '', teacher: obj.teacher || '', absences: Number(obj.absences || 0) }
+    const item = { id: String(Date.now()) + Math.random().toString(36).slice(2,6), name: obj.name || '', time: obj.time || '', teacher: obj.teacher || '', absences: Number(obj.absences || 0), bgColor: obj.bgColor || '' }
     horario[diaIndex].push(item)
     guardarHorario(horario)
     render()

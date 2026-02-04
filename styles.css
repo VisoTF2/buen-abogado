@@ -1820,7 +1820,27 @@ body.oscuro .modal-close:hover {
 .class-editor .editor-row { display: flex; gap: 8px; }
 .class-editor input { padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-weight: 600; flex: 1; min-width: 0; box-sizing: border-box; }
 .class-editor .editor-absences { width: 88px; }
-.class-editor .editor-actions { display:flex; gap:8px; justify-content:flex-end; }
+.class-editor .editor-actions { display:flex; gap:8px; align-items:center; }
+.class-editor .editor-buttons { display:flex; gap:8px; margin-left:auto; }
+.class-editor .editor-color-input {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.class-editor .editor-color-input::-webkit-color-swatch-wrapper {
+  padding: 2px;
+  border-radius: 50%;
+}
+.class-editor .editor-color-input::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
 .class-editor .editor-save { background: var(--accent); color: #fff; border: none; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
 .class-editor .editor-cancel {
   background: #b91c1c; /* color rojo fuerte fijo */
