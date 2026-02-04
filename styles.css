@@ -1776,10 +1776,29 @@ body.oscuro .modal-close:hover {
   cursor: text;
   padding: 2px 6px;
   border-radius: 6px;
+  margin-left: -4px;
 }
 .weekly-schedule-title:focus {
   outline: none;
   background: transparent;
+}
+
+[contenteditable="true"] {
+  caret-color: #000 !important;
+}
+
+body.oscuro [contenteditable="true"] {
+  caret-color: #fff !important;
+}
+
+input,
+textarea {
+  caret-color: #000 !important;
+}
+
+body.oscuro input,
+body.oscuro textarea {
+  caret-color: #fff !important;
 }
 
 .schedule-grid { display: flex; gap: 12px; width: 100%; }
