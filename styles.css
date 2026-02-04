@@ -1816,15 +1816,15 @@ body.oscuro .modal-close:hover {
 .class-delete:hover { background: var(--danger-bg); }
 
 /* Editor inline dentro del horario */
-.class-editor { display: flex; flex-direction: column; gap: 8px; padding: 8px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); }
+.class-editor { display: flex; flex-direction: column; gap: 8px; padding: 8px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); position: relative; }
 .class-editor .editor-row { display: flex; gap: 8px; }
 .class-editor input { padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-weight: 600; flex: 1; min-width: 0; box-sizing: border-box; }
 .class-editor .editor-absences { width: 88px; }
 .class-editor .editor-actions { display:flex; gap:8px; align-items:center; }
 .class-editor .editor-buttons { display:flex; gap:8px; margin-left:auto; }
 .class-editor .editor-color-input {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   border: 1px solid var(--border);
   padding: 0;
@@ -1832,9 +1832,13 @@ body.oscuro .modal-close:hover {
   background: none;
   appearance: none;
   -webkit-appearance: none;
+  flex: 0 0 auto;
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
 }
 .class-editor .editor-color-input::-webkit-color-swatch-wrapper {
-  padding: 2px;
+  padding: 3px;
   border-radius: 50%;
 }
 .class-editor .editor-color-input::-webkit-color-swatch {
