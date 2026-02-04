@@ -1767,11 +1767,21 @@ body.oscuro .modal-close:hover {
 .weekly-schedule-head {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   margin-bottom: 12px;
 }
 .weekly-schedule h3 { margin: 0; color: var(--accent); font-size: 18px; }
+.weekly-schedule-title {
+  cursor: text;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.weekly-schedule-title:focus {
+  outline: 2px solid var(--accent-light);
+  outline-offset: 2px;
+  background: rgba(30, 58, 138, 0.08);
+}
 
 .schedule-grid { display: flex; gap: 12px; width: 100%; }
 .schedule-day {
@@ -1785,7 +1795,7 @@ body.oscuro .modal-close:hover {
   box-shadow: none;
   transition: border-color 0.2s;
 }
-.schedule-day-head { font-weight: 700; color: var(--accent); margin-bottom: 8px; font-size: 14px; display:flex; align-items:center; justify-content:space-between; }
+.schedule-day-head { font-weight: 700; color: var(--accent); margin-bottom: 6px; font-size: 14px; display:flex; align-items:center; justify-content:space-between; gap: 6px; }
 .schedule-list { list-style: none; margin: 0; padding: 0; min-height: 80px; display: flex; flex-direction: column; gap: 12px; }
 .class-card {
   display: grid;
@@ -1912,7 +1922,20 @@ body.oscuro .modal-close:hover {
 .action-buttons .class-delete:hover { background: var(--danger-bg); }
 
 
-.day-add { background: var(--accent); color: #fff; border: none; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight:700; display:inline-flex; align-items:center; justify-content:center; }
+.day-add {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
 .day-add:hover { background: var(--accent-light); }
 
 @media (max-width: 800px) {

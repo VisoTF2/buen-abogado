@@ -1,6 +1,7 @@
 (function(){
   const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes']
   const STORAGE_KEY = 'horarioClases'
+  const TITLE_STORAGE_KEY = 'horarioTitulo'
 
   function $(s, root=document) { return root.querySelector(s) }
   function $all(s, root=document) { return Array.from(root.querySelectorAll(s)) }
@@ -16,6 +17,15 @@
   }
 
   function guardarHorario(h) { localStorage.setItem(STORAGE_KEY, JSON.stringify(h)) }
+
+  function cargarTituloHorario() {
+    const raw = localStorage.getItem(TITLE_STORAGE_KEY)
+    return raw ? raw : 'Horario semanal'
+  }
+
+  function guardarTituloHorario(texto) {
+    localStorage.setItem(TITLE_STORAGE_KEY, texto)
+  }
 
   function escapeHtml(s){
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -217,6 +227,22 @@
     if (!Array.isArray(horario) || horario.length !== DAYS.length) horario = DAYS.map(()=>[])
 
     render()
+
+    const titleNode = document.getElementById('weeklyScheduleTitle')
+    if (titleNode) {
+      titleNode.textContent = cargarTituloHorario()
+      titleNode.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          event.preventDefault()
+          titleNode.blur()
+        }
+      })
+      titleNode.addEventListener('blur', () => {
+        const nuevoTitulo = titleNode.textContent.trim() || 'Horario semanal'
+        titleNode.textContent = nuevoTitulo
+        guardarTituloHorario(nuevoTitulo)
+      })
+    }
 
     // add button per day: insert inline editor
     $all('.day-add').forEach(btn => {
