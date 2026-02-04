@@ -397,13 +397,13 @@
 
     .btn-note-delete:hover { background: #4b5563; }
 
-    .documentos-panel {
-      margin: 8px 0 0;
-      padding: 14px 16px 22px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: linear-gradient(135deg, rgba(30,58,138,0.06), rgba(30,58,138,0.01));
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+.documentos-panel {
+  margin: 8px 0 0;
+  padding: 14px 16px 22px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  box-shadow: none;
       display: flex;
       flex-direction: column;
       flex: 1 1 480px;
@@ -909,12 +909,12 @@
 
 .sidebarMaterias {
   width: 270px;
-  background: var(--card);
-  padding: 14px 14px 18px;
+  background: transparent;
+  padding: 8px 0 12px;
   border-radius: 14px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  box-shadow: none;
   overflow-y: auto;
-  border: 1px solid var(--border);
+  border: none;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -931,10 +931,10 @@
   align-items: stretch;
   gap: 10px;
   margin-bottom: 12px;
-  padding: 14px;
-  border: 1px solid var(--border);
+  padding: 0;
+  border: none;
   border-radius: 12px;
-  background: var(--article-bg);
+  background: transparent;
 }
 
 .sidebarAccionesTitulo {
@@ -1454,13 +1454,13 @@ body.oscuro .modal-close:hover {
       min-height: 0;
     }
 
-    .form-articulo {
-      background: var(--card);
-      padding: 16px 20px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
+.form-articulo {
+  background: transparent;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: none;
+  box-shadow: none;
+}
     
 .form-articulo h2 {
   margin-top: 10px;
@@ -1758,11 +1758,11 @@ body.oscuro .modal-close:hover {
   width: min(98vw, var(--layout-max-width));
   box-sizing: border-box;
   margin: 18px auto;
-  background: var(--card);
-  border-radius: 12px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  border: none;
+  box-shadow: none;
 }
 .weekly-schedule-head {
   display: flex;
@@ -1777,16 +1777,16 @@ body.oscuro .modal-close:hover {
 .schedule-day {
   flex: 1;
   min-width: 140px;
-  background: var(--article-bg);
-  border-radius: 8px;
-  padding: 8px;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
   box-sizing: border-box;
-  border: 1.5px solid var(--border);
-  box-shadow: 0 1px 4px rgba(30,58,138,0.04);
+  border: none;
+  box-shadow: none;
   transition: border-color 0.2s;
 }
 .schedule-day-head { font-weight: 700; color: var(--accent); margin-bottom: 8px; font-size: 14px; display:flex; align-items:center; justify-content:space-between; }
-.schedule-list { list-style: none; margin: 0; padding: 10px; min-height: 80px; display: flex; flex-direction: column; gap: 12px; }
+.schedule-list { list-style: none; margin: 0; padding: 0; min-height: 80px; display: flex; flex-direction: column; gap: 12px; }
 .class-card {
   display: grid;
   grid-template-columns: 1fr 72px; /* contenido + columna de acciones */
