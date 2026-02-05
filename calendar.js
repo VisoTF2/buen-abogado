@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let eventoEditandoId = null
   let eventoSeleccionadoId = null
   let eventoCopiado = null
+  let menuCalendario = null
 
   const leerEventos = () => {
     try {
@@ -62,6 +63,65 @@ document.addEventListener("DOMContentLoaded", () => {
       .forEach(el => el.classList.add("evento-activo"))
   }
 
+  const crearMenuCalendario = () => {
+    if (menuCalendario) return menuCalendario
+
+    const menu = document.createElement("div")
+    menu.className = "menu-contextual"
+
+    const btnCopiar = document.createElement("button")
+    btnCopiar.type = "button"
+    btnCopiar.textContent = "Copiar evento"
+
+    const btnPegar = document.createElement("button")
+    btnPegar.type = "button"
+    btnPegar.textContent = "Pegar en este día"
+
+    menu.appendChild(btnCopiar)
+    menu.appendChild(btnPegar)
+    document.body.appendChild(menu)
+
+    menuCalendario = { menu, btnCopiar, btnPegar }
+    return menuCalendario
+  }
+
+  const ocultarMenuCalendario = () => {
+    if (!menuCalendario) return
+    menuCalendario.menu.style.display = "none"
+    menuCalendario.btnCopiar.onclick = null
+    menuCalendario.btnPegar.onclick = null
+  }
+
+  const mostrarMenuCalendario = (event, handlers = {}) => {
+    const { menu, btnCopiar, btnPegar } = crearMenuCalendario()
+
+    btnCopiar.disabled = !handlers.onCopy
+    btnPegar.disabled = !handlers.onPaste || !eventoCopiado
+
+    btnCopiar.onclick = () => {
+      if (!handlers.onCopy) return
+      handlers.onCopy()
+      ocultarMenuCalendario()
+    }
+
+    btnPegar.onclick = () => {
+      if (!handlers.onPaste || !eventoCopiado) return
+      handlers.onPaste()
+      ocultarMenuCalendario()
+    }
+
+    menu.style.display = "flex"
+    const margin = 12
+    const menuWidth = menu.offsetWidth
+    const menuHeight = menu.offsetHeight
+    let x = event.clientX
+    let y = event.clientY
+    if (x + menuWidth + margin > window.innerWidth) x = window.innerWidth - menuWidth - margin
+    if (y + menuHeight + margin > window.innerHeight) y = window.innerHeight - menuHeight - margin
+    menu.style.left = `${Math.max(margin, x)}px`
+    menu.style.top = `${Math.max(margin, y)}px`
+  }
+
   const abrirModalEvento = ({ titulo, fecha, eventoId = null }) => {
     if (!modalCalendario || !modalCalendarioTitulo || !inputNombreEvento) return
     fechaSeleccionada = normalizarFecha(fecha)
@@ -87,7 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!evento) return false
     eventoCopiado = {
       title: evento.title,
-      allDay: evento.allDay,
+      allDay: true,
       completed: Boolean(evento.extendedProps.completed)
     }
     return true
@@ -114,6 +174,8 @@ document.addEventListener("DOMContentLoaded", () => {
     editable: true,
     eventStartEditable: true,
     eventDurationEditable: false,
+    forceEventDuration: true,
+    defaultTimedEventDuration: "01:00:00",
     buttonText: {
       today: "Hoy",
       month: "Mes",
@@ -129,12 +191,6 @@ document.addEventListener("DOMContentLoaded", () => {
     events: leerEventos(),
     dateClick(info) {
       fechaSeleccionada = info.dateStr
-
-      if (eventoCopiado && (info.jsEvent?.ctrlKey || info.jsEvent?.metaKey)) {
-        pegarEvento(calendar)
-        return
-      }
-
       if ((info.jsEvent?.detail || 1) >= 2) {
         abrirModalEvento({ titulo: "", fecha: info.dateStr })
       }
@@ -154,14 +210,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     },
     eventContent(arg) {
-      const checkboxId = `calendar-check-${arg.event.id}`
-      const etiqueta = document.createElement("label")
+      const etiqueta = document.createElement("div")
       etiqueta.className = "fc-event-custom"
-      etiqueta.setAttribute("for", checkboxId)
 
       const check = document.createElement("input")
       check.type = "checkbox"
-      check.id = checkboxId
       check.className = "fc-event-check"
       check.checked = Boolean(arg.event.extendedProps.completed)
 
@@ -192,7 +245,13 @@ document.addEventListener("DOMContentLoaded", () => {
         info.el.classList.add("evento-activo")
       }
     },
-    eventDrop() {
+    eventDragStart() {
+      ocultarMenuCalendario()
+    },
+    eventDrop(info) {
+      if (!info.event.allDay) {
+        info.event.setAllDay(true, { maintainDuration: false })
+      }
       guardarEventos(calendar)
       actualizarEventoActivoVisual()
     },
@@ -207,6 +266,35 @@ document.addEventListener("DOMContentLoaded", () => {
     eventRemove() {
       guardarEventos(calendar)
       actualizarEventoActivoVisual()
+    }
+  })
+
+  calendarEl.addEventListener("contextmenu", event => {
+    const eventNode = event.target.closest(".fc-event")
+    const dateNode = event.target.closest(".fc-daygrid-day[data-date], .fc-timegrid-col[data-date]")
+
+    if (eventNode) {
+      event.preventDefault()
+      const eventId = eventNode.dataset.eventoId
+      if (!eventId) return
+      const evento = calendar.getEventById(eventId)
+      if (!evento) return
+      eventoSeleccionadoId = evento.id
+      fechaSeleccionada = normalizarFecha(evento.startStr)
+      actualizarEventoActivoVisual()
+      mostrarMenuCalendario(event, {
+        onCopy: () => copiarEventoSeleccionado(calendar),
+        onPaste: () => pegarEvento(calendar)
+      })
+      return
+    }
+
+    if (dateNode) {
+      event.preventDefault()
+      fechaSeleccionada = dateNode.dataset.date || null
+      mostrarMenuCalendario(event, {
+        onPaste: () => pegarEvento(calendar)
+      })
     }
   })
 
@@ -260,24 +348,15 @@ document.addEventListener("DOMContentLoaded", () => {
     cerrarModalEvento()
   })
 
-  document.addEventListener("keydown", e => {
-    const esCopiar = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c"
-    const esPegar = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v"
-    if (!esCopiar && !esPegar) return
-
-    const focoEnInput = ["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)
-    if (focoEnInput) return
-
-    if (esCopiar) {
-      const copiado = copiarEventoSeleccionado(calendar)
-      if (copiado) e.preventDefault()
-    }
-
-    if (esPegar) {
-      const pegado = pegarEvento(calendar)
-      if (pegado) e.preventDefault()
-    }
+  document.addEventListener("click", event => {
+    if (!menuCalendario || menuCalendario.menu.style.display === "none") return
+    if (!menuCalendario.menu.contains(event.target)) ocultarMenuCalendario()
   })
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") ocultarMenuCalendario()
+  })
+  window.addEventListener("resize", ocultarMenuCalendario)
+  window.addEventListener("scroll", ocultarMenuCalendario, true)
 
   calendar.render()
 })
