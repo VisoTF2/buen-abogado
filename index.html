@@ -6,6 +6,10 @@
   <title>Buen abogado</title>
 
   <link rel="stylesheet" href="styles.css">
+  <link
+    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css"
+    rel="stylesheet"
+  >
 </head>
 
 <body>
@@ -162,6 +166,14 @@
 
         <div class="contenidoArticulos" id="contenidoArticulos"></div>
 
+        <section class="calendar-panel" aria-label="Calendario">
+          <div class="calendar-head">
+            <h3>Calendario</h3>
+            <span>Doble clic para crear/editar, arrastra para mover y usa clic derecho para copiar/pegar en otro día.</span>
+          </div>
+          <div id="calendar"></div>
+        </section>
+
         <div class="documentos-panel">
           <div class="documentos-head">
             <div class="documentos-title">
@@ -215,6 +227,27 @@
 
       <div class="modal-actions">
         <button type="button" class="btn-primary" id="modalCarpetaGuardar">Guardar carpeta</button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="modal-backdrop" id="modalCalendario" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="modalCalendarioTitulo">Nuevo evento</h3>
+        <button class="modal-close" type="button" aria-label="Cerrar" id="modalCalendarioCerrar">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <label for="inputNombreEvento">Nombre del evento</label>
+        <input type="text" id="inputNombreEvento" placeholder="Ejemplo: Estudiar obligaciones">
+      </div>
+
+      <div class="modal-actions modal-actions-calendar">
+        <button type="button" class="btn-secondary" id="modalCalendarioEliminar" hidden>Eliminar evento</button>
+        <button type="button" class="btn-primary" id="modalCalendarioGuardar">Guardar evento</button>
       </div>
     </div>
   </div>
@@ -296,11 +329,14 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales-all.global.min.js"></script>
 <script src="personalizacion.js"></script>
 <script src="documentos.js"></script>
 <script src="busqueda.js"></script>
 <script src="schedule.js"></script>
 <script src="app.js"></script>
+<script src="calendar.js"></script>
   <div class="app-footer" style="font-size:12px;text-align:center;color:#666;padding:8px 0;">Esta app puede cometer errores, se recomienda revisar los códigos.</div>
   <script>
     (function(){
