@@ -1924,6 +1924,7 @@ body.oscuro .class-card.light-bg .class-actions .absences {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  position: relative;
 }
 
 .schedule-malla-title {
@@ -1950,8 +1951,8 @@ body.oscuro .class-card.light-bg .class-actions .absences {
 
 .malla-resize-handle {
   position: absolute;
-  left: 8px;
-  bottom: 8px;
+  left: 10px;
+  bottom: 10px;
   width: 16px;
   height: 16px;
   border: none;
