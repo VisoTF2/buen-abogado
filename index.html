@@ -19,34 +19,56 @@
   </header>
 
   <!-- Horario semanal: aparece bajo el banner y encima del contenido principal -->
-  <section class="weekly-schedule" id="weeklySchedule" aria-label="Horario semanal">
-    <div class="weekly-schedule-head">
-      <h3 id="weeklyScheduleTitle" class="weekly-schedule-title" contenteditable="true" spellcheck="false">Horario semanal</h3>
-    </div>
+  <div class="weekly-schedule-layout" id="weeklyScheduleLayout">
+    <section class="weekly-schedule" id="weeklySchedule" aria-label="Horario semanal">
+      <div class="weekly-schedule-head">
+        <h3 id="weeklyScheduleTitle" class="weekly-schedule-title" contenteditable="true" spellcheck="false">Horario semanal</h3>
+      </div>
 
-    <div class="schedule-grid" id="scheduleGrid">
-      <div class="schedule-day" data-day="0">
-        <div class="schedule-day-head">Lunes <button class="day-add" data-day-index="0" aria-label="Agregar clase">+</button></div>
-        <ul class="schedule-list" data-day-index="0"></ul>
+      <div class="schedule-grid" id="scheduleGrid">
+        <div class="schedule-day" data-day="0">
+          <div class="schedule-day-head">Lunes <button class="day-add" data-day-index="0" aria-label="Agregar clase">+</button></div>
+          <ul class="schedule-list" data-day-index="0"></ul>
+        </div>
+        <div class="schedule-day" data-day="1">
+          <div class="schedule-day-head">Martes <button class="day-add" data-day-index="1" aria-label="Agregar clase">+</button></div>
+          <ul class="schedule-list" data-day-index="1"></ul>
+        </div>
+        <div class="schedule-day" data-day="2">
+          <div class="schedule-day-head">Miércoles <button class="day-add" data-day-index="2" aria-label="Agregar clase">+</button></div>
+          <ul class="schedule-list" data-day-index="2"></ul>
+        </div>
+        <div class="schedule-day" data-day="3">
+          <div class="schedule-day-head">Jueves <button class="day-add" data-day-index="3" aria-label="Agregar clase">+</button></div>
+          <ul class="schedule-list" data-day-index="3"></ul>
+        </div>
+        <div class="schedule-day" data-day="4">
+          <div class="schedule-day-head">Viernes <button class="day-add" data-day-index="4" aria-label="Agregar clase">+</button></div>
+          <ul class="schedule-list" data-day-index="4"></ul>
+        </div>
       </div>
-      <div class="schedule-day" data-day="1">
-        <div class="schedule-day-head">Martes <button class="day-add" data-day-index="1" aria-label="Agregar clase">+</button></div>
-        <ul class="schedule-list" data-day-index="1"></ul>
+    </section>
+
+    <aside class="schedule-malla" id="scheduleMalla" aria-label="Malla de la carrera">
+      <div class="schedule-malla-card">
+        <h4 class="schedule-malla-title">Malla de la carrera</h4>
+        <img id="scheduleMallaImage" alt="Malla de la carrera" hidden>
+        <p class="schedule-malla-placeholder" id="scheduleMallaPlaceholder">Sube una imagen desde configuración.</p>
       </div>
-      <div class="schedule-day" data-day="2">
-        <div class="schedule-day-head">Miércoles <button class="day-add" data-day-index="2" aria-label="Agregar clase">+</button></div>
-        <ul class="schedule-list" data-day-index="2"></ul>
+    </aside>
+  </div>
+
+  <div class="modal-backdrop" id="mallaPreviewBackdrop" aria-hidden="true">
+    <div class="modal-card malla-preview-card" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <h3>Malla de la carrera</h3>
+        <button class="modal-close" type="button" aria-label="Cerrar" id="mallaPreviewClose">✕</button>
       </div>
-      <div class="schedule-day" data-day="3">
-        <div class="schedule-day-head">Jueves <button class="day-add" data-day-index="3" aria-label="Agregar clase">+</button></div>
-        <ul class="schedule-list" data-day-index="3"></ul>
-      </div>
-      <div class="schedule-day" data-day="4">
-        <div class="schedule-day-head">Viernes <button class="day-add" data-day-index="4" aria-label="Agregar clase">+</button></div>
-        <ul class="schedule-list" data-day-index="4"></ul>
+      <div class="modal-body malla-preview-body">
+        <img id="mallaPreviewImage" alt="Vista ampliada de la malla">
       </div>
     </div>
-  </section>
+  </div>
 
   <div class="container">
 
@@ -212,6 +234,14 @@
 
         <section class="config-section">
           <div class="config-section-head">
+            <h4>Días del horario</h4>
+            <p>Activa o desactiva los días disponibles en el horario.</p>
+          </div>
+          <div class="config-options" id="scheduleDayOptions"></div>
+        </section>
+
+        <section class="config-section">
+          <div class="config-section-head">
             <h4>Banner</h4>
             <p>Personaliza la imagen superior o vuelve al estado original.</p>
           </div>
@@ -231,6 +261,28 @@
           <div class="config-actions">
             <button class="modo banner-upload config-action" type="button" onclick="abrirSelectorFondo()">Cambiar fondo</button>
             <button class="modo banner-reset config-action" type="button" onclick="restablecerFondo()">Restablecer fondo</button>
+          </div>
+        </section>
+
+        <section class="config-section">
+          <div class="config-section-head">
+            <h4>Malla de la carrera</h4>
+            <p>Agrega una imagen al lado del horario y ajusta su tamaño.</p>
+          </div>
+          <input type="file" id="mallaInput" accept="image/*" hidden>
+          <div class="config-options">
+            <label class="config-option" for="mallaToggle">
+              <span>Mostrar malla junto al horario</span>
+              <input type="checkbox" id="mallaToggle">
+            </label>
+          </div>
+          <div class="config-actions">
+            <button class="modo banner-upload config-action" type="button" onclick="abrirSelectorMalla()">Subir malla</button>
+            <button class="modo banner-reset config-action" type="button" onclick="restablecerMalla()">Quitar malla</button>
+          </div>
+          <div class="config-range">
+            <label for="mallaSize">Tamaño de la malla</label>
+            <input type="range" id="mallaSize" min="220" max="520" step="10">
           </div>
         </section>
       </div>
