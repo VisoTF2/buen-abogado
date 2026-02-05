@@ -1412,10 +1412,19 @@ body.oscuro .modal-close:hover {
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
+  justify-content: space-between;
+}
+
+.config-option span {
+  order: 0;
+  text-align: left;
+  flex: 1;
 }
 
 .config-option input {
   accent-color: var(--accent);
+  order: 1;
+  margin-left: auto;
 }
 
 .config-action {
