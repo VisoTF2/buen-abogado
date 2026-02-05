@@ -231,6 +231,27 @@
     </div>
   </div>
 
+
+
+  <div class="modal-backdrop" id="modalCalendario" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3 id="modalCalendarioTitulo">Nuevo evento</h3>
+        <button class="modal-close" type="button" aria-label="Cerrar" id="modalCalendarioCerrar">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <label for="inputNombreEvento">Nombre del evento</label>
+        <input type="text" id="inputNombreEvento" placeholder="Ejemplo: Estudiar obligaciones">
+      </div>
+
+      <div class="modal-actions modal-actions-calendar">
+        <button type="button" class="btn-secondary" id="modalCalendarioEliminar" hidden>Eliminar evento</button>
+        <button type="button" class="btn-primary" id="modalCalendarioGuardar">Guardar evento</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-backdrop" id="modalConfiguracion" role="dialog" aria-modal="true">
     <div class="modal-card config-card">
       <div class="modal-head">

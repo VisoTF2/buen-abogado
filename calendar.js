@@ -1,8 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
   const calendarEl = document.getElementById("calendar")
+  const modalCalendario = document.getElementById("modalCalendario")
+  const modalCalendarioTitulo = document.getElementById("modalCalendarioTitulo")
+  const inputNombreEvento = document.getElementById("inputNombreEvento")
+  const modalCalendarioGuardar = document.getElementById("modalCalendarioGuardar")
+  const modalCalendarioEliminar = document.getElementById("modalCalendarioEliminar")
+  const modalCalendarioCerrar = document.getElementById("modalCalendarioCerrar")
+
   if (!calendarEl || typeof FullCalendar === "undefined") return
 
   const STORAGE_KEY = "calendarEvents"
+  let fechaSeleccionada = null
+  let eventoEditandoId = null
 
   const leerEventos = () => {
     try {
@@ -35,6 +44,26 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(serializados))
   }
 
+  const abrirModalEvento = ({ titulo, fecha, eventoId = null }) => {
+    if (!modalCalendario || !modalCalendarioTitulo || !inputNombreEvento) return
+    fechaSeleccionada = fecha
+    eventoEditandoId = eventoId
+    modalCalendarioTitulo.textContent = eventoId ? "Editar evento" : "Nuevo evento"
+    inputNombreEvento.value = titulo || ""
+    if (modalCalendarioEliminar) modalCalendarioEliminar.hidden = !eventoId
+    modalCalendario.classList.add("visible")
+    setTimeout(() => inputNombreEvento.focus(), 40)
+  }
+
+  const cerrarModalEvento = () => {
+    if (!modalCalendario || !inputNombreEvento) return
+    modalCalendario.classList.remove("visible")
+    inputNombreEvento.value = ""
+    fechaSeleccionada = null
+    eventoEditandoId = null
+    if (modalCalendarioEliminar) modalCalendarioEliminar.hidden = true
+  }
+
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
     locale: "es",
@@ -54,22 +83,15 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     events: leerEventos(),
     dateClick(info) {
-      const titulo = window.prompt(
-        `Nuevo evento para ${info.dateStr}\n\nEscribe el título del evento:`
-      )
-      if (!titulo) return
-
-      const limpio = titulo.trim()
-      if (!limpio) return
-
-      calendar.addEvent({
-        id: `evento-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        title: limpio,
-        start: info.dateStr,
-        allDay: true,
-        extendedProps: { completed: false }
+      abrirModalEvento({ titulo: "", fecha: info.dateStr })
+    },
+    eventClick(info) {
+      info.jsEvent.preventDefault()
+      abrirModalEvento({
+        titulo: info.event.title,
+        fecha: info.event.startStr,
+        eventoId: info.event.id
       })
-      guardarEventos(calendar)
     },
     eventContent(arg) {
       const checkboxId = `calendar-check-${arg.event.id}`
@@ -106,9 +128,62 @@ document.addEventListener("DOMContentLoaded", () => {
         info.el.classList.remove("fc-event-done")
       }
     },
+    eventAdd() {
+      guardarEventos(calendar)
+    },
     eventChange() {
       guardarEventos(calendar)
+    },
+    eventRemove() {
+      guardarEventos(calendar)
     }
+  })
+
+  modalCalendario?.addEventListener("click", e => {
+    if (e.target === modalCalendario) cerrarModalEvento()
+  })
+
+  modalCalendarioCerrar?.addEventListener("click", cerrarModalEvento)
+
+  inputNombreEvento?.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      modalCalendarioGuardar?.click()
+    }
+  })
+
+  modalCalendarioGuardar?.addEventListener("click", () => {
+    const titulo = inputNombreEvento?.value.trim()
+    if (!titulo || !fechaSeleccionada) {
+      inputNombreEvento?.focus()
+      return
+    }
+
+    if (eventoEditandoId) {
+      const existente = calendar.getEventById(eventoEditandoId)
+      if (existente) {
+        existente.setProp("title", titulo)
+      }
+    } else {
+      calendar.addEvent({
+        id: `evento-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        title: titulo,
+        start: fechaSeleccionada,
+        allDay: true,
+        extendedProps: { completed: false }
+      })
+    }
+
+    guardarEventos(calendar)
+    cerrarModalEvento()
+  })
+
+  modalCalendarioEliminar?.addEventListener("click", () => {
+    if (!eventoEditandoId) return
+    const evento = calendar.getEventById(eventoEditandoId)
+    if (evento) evento.remove()
+    guardarEventos(calendar)
+    cerrarModalEvento()
   })
 
   calendar.render()

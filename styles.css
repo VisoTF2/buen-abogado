@@ -407,6 +407,29 @@ body.banner-sin-fondo header:not(.banner-con-imagen)::after {
 
     .btn-note-delete:hover { background: #4b5563; }
 
+.btn-secondary {
+  background: #e2e8f0;
+  color: #1f2937;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  transition: background 0.2s ease, transform 0.12s ease;
+}
+
+.btn-secondary:hover { background: #cbd5e1; }
+.btn-secondary:active { transform: translateY(1px); }
+
+body.oscuro .btn-secondary {
+  background: #1f2937;
+  color: #e5e7eb;
+  border-color: #334155;
+}
+
+body.oscuro .btn-secondary:hover { background: #334155; }
+
 .documentos-panel {
   margin: 8px 0 0;
   padding: 14px 16px 22px;
@@ -489,36 +512,57 @@ body.oscuro .calendar-head span { color: #e5e7eb; }
   border-color: #0f2b74;
 }
 
+#calendar .fc-daygrid-day-events {
+  margin-top: 2px;
+}
+
+#calendar .fc-daygrid-event {
+  margin-top: 4px;
+  min-height: 34px;
+}
+
 #calendar .fc-event {
-  border: 1px solid rgba(30, 58, 138, 0.35);
-  background: rgba(30, 58, 138, 0.08);
+  border: none;
+  box-shadow: none;
+  outline: none;
+  background: rgba(30, 58, 138, 0.12);
   color: inherit;
+  border-radius: 10px;
+}
+
+#calendar .fc-event:focus,
+#calendar .fc-event:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 #calendar .fc-event-done {
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 #calendar .fc-event-custom {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 4px;
+  gap: 8px;
+  padding: 6px 8px;
   width: 100%;
+  min-height: 34px;
   cursor: pointer;
 }
 
 #calendar .fc-event-check {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   accent-color: var(--accent);
   cursor: pointer;
   margin: 0;
+  flex: 0 0 auto;
 }
 
 #calendar .fc-event-title-custom {
-  font-size: 12px;
-  line-height: 1.2;
+  font-size: 14px;
+  line-height: 1.25;
+  font-weight: 600;
   color: #0f172a;
 }
 
@@ -528,8 +572,7 @@ body.oscuro .calendar-head span { color: #e5e7eb; }
 }
 
 body.oscuro #calendar .fc-event {
-  border-color: rgba(147, 197, 253, 0.45);
-  background: rgba(96, 165, 250, 0.15);
+  background: rgba(96, 165, 250, 0.2);
 }
 
 body.oscuro #calendar .fc-event-title-custom {
@@ -538,6 +581,16 @@ body.oscuro #calendar .fc-event-title-custom {
 
 body.oscuro #calendar .fc-event-title-done {
   color: #94a3b8;
+}
+
+.modal-actions-calendar {
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.modal-actions-calendar .btn-primary,
+.modal-actions-calendar .btn-secondary {
+  width: 100%;
 }
 
     .documentos-head {
