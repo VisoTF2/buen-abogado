@@ -50,7 +50,7 @@
     </section>
 
     <aside class="schedule-malla" id="scheduleMalla" aria-label="Malla de la carrera">
-      <div class="schedule-malla-card">
+      <div class="schedule-malla-card" id="scheduleMallaCard">
         <h4 class="schedule-malla-title">Malla de la carrera</h4>
         <img id="scheduleMallaImage" alt="Malla de la carrera" hidden>
         <p class="schedule-malla-placeholder" id="scheduleMallaPlaceholder">Sube una imagen desde configuración.</p>
@@ -279,10 +279,6 @@
           <div class="config-actions">
             <button class="modo banner-upload config-action" type="button" onclick="abrirSelectorMalla()">Subir malla</button>
             <button class="modo banner-reset config-action" type="button" onclick="restablecerMalla()">Quitar malla</button>
-          </div>
-          <div class="config-range">
-            <label for="mallaSize">Tamaño de la malla</label>
-            <input type="range" id="mallaSize" min="220" max="520" step="10">
           </div>
         </section>
       </div>

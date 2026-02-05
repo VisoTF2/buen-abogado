@@ -86,6 +86,12 @@
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
   }
 
+  function esColorBlanco(color) {
+    if (!color) return true
+    const normalized = String(color).trim().toLowerCase()
+    return normalized === '#fff' || normalized === '#ffffff'
+  }
+
   // create read-only card for a class
   function crearElementoClase(item) {
     const li = document.createElement('li')
@@ -93,11 +99,7 @@
     li.draggable = true
     li.dataset.id = item.id
     // apply background color if present
-    if (item.bgColor) {
-      const normalized = item.bgColor.toLowerCase()
-      if (normalized === '#fff' || normalized === '#ffffff') {
-        li.classList.add('light-bg')
-      }
+    if (item.bgColor && !esColorBlanco(item.bgColor)) {
       li.style.background = item.bgColor
     }
 
@@ -164,7 +166,13 @@
       const absences = parseInt(li.querySelector('.editor-absences').value || '0', 10) || 0
       const bgColor = li.querySelector('.editor-color-input').value
       if (!nombre || !nombre.trim()) { li.querySelector('.editor-name').focus(); return }
-      onSave({ name: nombre.trim(), time: time.trim(), teacher: teacher.trim(), absences, bgColor })
+      onSave({
+        name: nombre.trim(),
+        time: time.trim(),
+        teacher: teacher.trim(),
+        absences,
+        bgColor: esColorBlanco(bgColor) ? '' : bgColor,
+      })
     })
 
     li.querySelector('.editor-cancel').addEventListener('click', ()=>{
