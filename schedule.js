@@ -38,7 +38,13 @@
     li.draggable = true
     li.dataset.id = item.id
     // apply background color if present
-    if (item.bgColor) li.style.background = item.bgColor
+    if (item.bgColor) {
+      const normalized = item.bgColor.toLowerCase()
+      if (normalized === '#fff' || normalized === '#ffffff') {
+        li.classList.add('light-bg')
+      }
+      li.style.background = item.bgColor
+    }
 
     li.innerHTML = `
       <div class="class-main">

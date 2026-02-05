@@ -1840,6 +1840,11 @@ body.oscuro textarea {
   white-space: normal;
   word-break: break-word;
 }
+body.oscuro .class-card.light-bg .class-name,
+body.oscuro .class-card.light-bg .class-meta,
+body.oscuro .class-card.light-bg .class-actions .absences {
+  color: #111827;
+}
 .class-delete { background: transparent; border: none; color: var(--danger-text); cursor: pointer; font-weight: 700; padding: 4px 6px; border-radius: 6px; }
 .class-delete:hover { background: var(--danger-bg); }
 
