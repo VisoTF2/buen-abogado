@@ -14,6 +14,7 @@ const scheduleMallaPlaceholder = document.getElementById("scheduleMallaPlacehold
 const mallaPreviewBackdrop = document.getElementById("mallaPreviewBackdrop")
 const mallaPreviewImage = document.getElementById("mallaPreviewImage")
 const mallaPreviewClose = document.getElementById("mallaPreviewClose")
+const mallaResizeHandle = document.getElementById("mallaResizeHandle")
 
 function aplicarModoGuardado() {
   if (localStorage.getItem(MODO_OSCURO_STORAGE_KEY) === "true") {
@@ -121,11 +122,13 @@ function aplicarMallaImagen(src) {
   if (src) {
     scheduleMallaImage.src = src
     scheduleMallaImage.hidden = false
+    if (mallaResizeHandle) mallaResizeHandle.hidden = false
     scheduleMallaPlaceholder.hidden = true
     if (mallaPreviewImage) mallaPreviewImage.src = src
   } else {
     scheduleMallaImage.removeAttribute("src")
     scheduleMallaImage.hidden = true
+    if (mallaResizeHandle) mallaResizeHandle.hidden = true
     scheduleMallaPlaceholder.hidden = false
     if (mallaPreviewImage) mallaPreviewImage.removeAttribute("src")
   }
@@ -159,8 +162,12 @@ function aplicarMallaWidth(value) {
 }
 
 function habilitarResizeMalla() {
-  const card = document.getElementById("scheduleMallaCard")
-  if (!card) return
+  const contenedor = document.getElementById("scheduleMalla")
+  if (!contenedor || !mallaResizeHandle) return
+
+  let resizing = false
+  let startX = 0
+  let startWidth = 0
 
   const guardarAncho = width => {
     const clamped = Math.min(700, Math.max(220, Math.round(width)))
@@ -168,15 +175,30 @@ function habilitarResizeMalla() {
     localStorage.setItem(MALLA_SIZE_KEY, String(clamped))
   }
 
-  if (typeof ResizeObserver === "undefined") return
+  const onPointerMove = event => {
+    if (!resizing) return
+    const delta = startX - event.clientX
+    guardarAncho(startWidth + delta)
+  }
 
-  const observer = new ResizeObserver(entries => {
-    const entry = entries[0]
-    if (!entry) return
-    guardarAncho(entry.contentRect.width)
+  const onPointerUp = () => {
+    if (!resizing) return
+    resizing = false
+    document.body.classList.remove("malla-resizing")
+    window.removeEventListener("pointermove", onPointerMove)
+    window.removeEventListener("pointerup", onPointerUp)
+  }
+
+  mallaResizeHandle.addEventListener("pointerdown", event => {
+    event.preventDefault()
+    event.stopPropagation()
+    resizing = true
+    startX = event.clientX
+    startWidth = contenedor.getBoundingClientRect().width
+    document.body.classList.add("malla-resizing")
+    window.addEventListener("pointermove", onPointerMove)
+    window.addEventListener("pointerup", onPointerUp)
   })
-
-  observer.observe(card)
 }
 
 function restablecerMalla() {
