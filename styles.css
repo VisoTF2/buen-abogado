@@ -1396,36 +1396,34 @@ body.oscuro .modal-close:hover {
 }
 
 .config-options {
-  display: grid;
-  gap: 8px;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  justify-items: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .config-option {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 8px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--card);
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
   width: 100%;
-  text-align: left;
 }
 
 .config-option span {
   text-align: left;
-  justify-self: start;
+  flex: 1;
 }
 
 .config-option input {
   accent-color: var(--accent);
-  justify-self: end;
+  margin: 0;
 }
 
 .config-action {
