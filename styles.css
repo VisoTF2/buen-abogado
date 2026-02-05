@@ -507,6 +507,13 @@ body.oscuro .calendar-head span { color: #e5e7eb; }
   border-color: var(--accent-light);
 }
 
+#calendar .fc .fc-button:focus,
+#calendar .fc .fc-button:focus-visible,
+#calendar .fc .fc-button:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 #calendar .fc .fc-button.fc-button-active {
   background: #0f2b74;
   border-color: #0f2b74;
@@ -547,6 +554,8 @@ body.oscuro .calendar-head span { color: #e5e7eb; }
   padding: 6px 8px;
   width: 100%;
   min-height: 34px;
+  min-width: 0;
+  overflow: hidden;
   cursor: pointer;
 }
 
@@ -560,10 +569,23 @@ body.oscuro .calendar-head span { color: #e5e7eb; }
 }
 
 #calendar .fc-event-title-custom {
+  display: block;
   font-size: 14px;
   line-height: 1.25;
   font-weight: 600;
   color: #0f172a;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+#calendar .fc-event-main,
+#calendar .fc-event-main-frame,
+#calendar .fc-event-time,
+#calendar .fc-timegrid-event .fc-event-main {
+  min-width: 0;
+  overflow: hidden;
 }
 
 #calendar .fc-event-title-done {
