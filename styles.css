@@ -1927,7 +1927,7 @@ body.oscuro .class-card.light-bg .class-actions .absences {
   align-items: center;
   justify-content: center;
 }
-.action-buttons .edit-btn { color: var(--accent); width:32px; height:32px; padding:0; }
+.action-buttons .edit-btn { color: #1e3a8a; width:32px; height:32px; padding:0; }
 .action-buttons .edit-btn:hover { background: var(--focus-surface); }
 
 /* color button (top-right) */
@@ -1941,8 +1941,8 @@ body.oscuro .class-card.light-bg .class-actions .absences {
 
 .class-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(16,24,40,0.06); }
 
-.action-buttons .class-delete { color: var(--danger-text); }
-.action-buttons .class-delete:hover { background: var(--danger-bg); }
+.action-buttons .class-delete { color: #b91c1c; }
+.action-buttons .class-delete:hover { background: var(--focus-surface); }
 
 
 .day-add {
