@@ -1395,6 +1395,29 @@ body.oscuro .modal-close:hover {
   gap: 8px;
 }
 
+.config-options {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.config-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.config-option input {
+  accent-color: var(--accent);
+}
+
 .config-action {
   width: 100%;
   justify-content: center;

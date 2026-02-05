@@ -1,22 +1,77 @@
 (function(){
-  const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes']
+  const DAY_DEFS = [
+    { id: 'lunes', label: 'Lunes' },
+    { id: 'martes', label: 'Martes' },
+    { id: 'miercoles', label: 'Miércoles' },
+    { id: 'jueves', label: 'Jueves' },
+    { id: 'viernes', label: 'Viernes' },
+    { id: 'sabado', label: 'Sábado' },
+    { id: 'domingo', label: 'Domingo' },
+  ]
+  const DEFAULT_ACTIVE_DAYS = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes']
   const STORAGE_KEY = 'horarioClases'
   const TITLE_STORAGE_KEY = 'horarioTitulo'
+  const ACTIVE_DAYS_KEY = 'horarioDiasActivos'
 
   function $(s, root=document) { return root.querySelector(s) }
   function $all(s, root=document) { return Array.from(root.querySelectorAll(s)) }
 
+  function createEmptySchedule() {
+    return DAY_DEFS.reduce((acc, day) => {
+      acc[day.id] = []
+      return acc
+    }, {})
+  }
+
+  function normalizarHorario(parsed) {
+    const schedule = createEmptySchedule()
+    if (Array.isArray(parsed)) {
+      DEFAULT_ACTIVE_DAYS.forEach((dayId, idx) => {
+        if (Array.isArray(parsed[idx])) schedule[dayId] = parsed[idx]
+      })
+      return schedule
+    }
+    if (parsed && typeof parsed === 'object') {
+      DAY_DEFS.forEach(day => {
+        if (Array.isArray(parsed[day.id])) schedule[day.id] = parsed[day.id]
+      })
+      return schedule
+    }
+    return schedule
+  }
+
   function cargarHorario() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return DAYS.map(()=>[])
-      const parsed = JSON.parse(raw)
-      if (!Array.isArray(parsed)) return DAYS.map(()=>[])
-      return parsed
-    } catch(e) { return DAYS.map(()=>[]) }
+      if (!raw) return createEmptySchedule()
+      return normalizarHorario(JSON.parse(raw))
+    } catch (e) {
+      return createEmptySchedule()
+    }
   }
 
   function guardarHorario(h) { localStorage.setItem(STORAGE_KEY, JSON.stringify(h)) }
+
+  function cargarDiasActivos() {
+    try {
+      const raw = localStorage.getItem(ACTIVE_DAYS_KEY)
+      if (!raw) return [...DEFAULT_ACTIVE_DAYS]
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) return [...DEFAULT_ACTIVE_DAYS]
+      const valid = parsed.filter(dayId => DAY_DEFS.some(day => day.id === dayId))
+      return valid.length ? valid : []
+    } catch (e) {
+      return [...DEFAULT_ACTIVE_DAYS]
+    }
+  }
+
+  function guardarDiasActivos(days) {
+    localStorage.setItem(ACTIVE_DAYS_KEY, JSON.stringify(days))
+  }
+
+  function obtenerDiasActivosOrdenados() {
+    return DAY_DEFS.filter(day => diasActivos.includes(day.id))
+  }
 
   function cargarTituloHorario() {
     const raw = localStorage.getItem(TITLE_STORAGE_KEY)
@@ -140,15 +195,50 @@
   }
 
   let horario = cargarHorario()
+  let diasActivos = cargarDiasActivos()
+
+  function renderScheduleGrid() {
+    const grid = document.getElementById('scheduleGrid')
+    if (!grid) return
+    const days = obtenerDiasActivosOrdenados()
+    grid.innerHTML = ''
+    days.forEach(day => {
+      const dayColumn = document.createElement('div')
+      dayColumn.className = 'schedule-day'
+      dayColumn.dataset.dayId = day.id
+
+      const head = document.createElement('div')
+      head.className = 'schedule-day-head'
+      head.textContent = day.label
+
+      const addButton = document.createElement('button')
+      addButton.className = 'day-add'
+      addButton.type = 'button'
+      addButton.dataset.dayId = day.id
+      addButton.setAttribute('aria-label', 'Agregar clase')
+      addButton.textContent = '+'
+      head.appendChild(addButton)
+
+      const list = document.createElement('ul')
+      list.className = 'schedule-list'
+      list.dataset.dayId = day.id
+
+      dayColumn.appendChild(head)
+      dayColumn.appendChild(list)
+      grid.appendChild(dayColumn)
+    })
+  }
 
   function render() {
+    renderScheduleGrid()
     $all('.schedule-list').forEach(ul => ul.innerHTML = '')
-    horario.forEach((dia, idx) => {
-      const ul = document.querySelector(`.schedule-list[data-day-index="${idx}"]`)
+    obtenerDiasActivosOrdenados().forEach(day => {
+      const ul = document.querySelector(`.schedule-list[data-day-id="${day.id}"]`)
       if (!ul) return
-      dia.forEach(item => ul.appendChild(crearElementoClase(item)))
+      (horario[day.id] || []).forEach(item => ul.appendChild(crearElementoClase(item)))
     })
     attachListHandlers()
+    attachAddHandlers()
   }
 
   function attachListHandlers(){
@@ -169,23 +259,23 @@
         e.preventDefault()
         const id = e.dataTransfer.getData('text/plain')
         if (!id) return
-        const fromIndex = findIndexOfId(id)
-        const toIndex = parseInt(ul.dataset.dayIndex,10)
-        if (fromIndex == null || isNaN(toIndex)) return
+        const fromDayId = findDayIdOfId(id)
+        const toDayId = ul.dataset.dayId
+        if (!fromDayId || !toDayId) return
 
-        const item = horario[fromIndex].find(it=>it.id===id)
+        const item = (horario[fromDayId] || []).find(it=>it.id===id)
         if (!item) return
 
-        horario[fromIndex] = horario[fromIndex].filter(it=>it.id!==id)
+        horario[fromDayId] = (horario[fromDayId] || []).filter(it=>it.id!==id)
 
         // determine position within target based on DOM order
         const children = Array.from(ul.children).filter(n=>n.classList.contains('class-card'))
         const positions = children.map(n => n.dataset.id)
         const pos = positions.indexOf(id)
         if (pos === -1) {
-          horario[toIndex].push(item)
+          horario[toDayId].push(item)
         } else {
-          horario[toIndex].splice(pos, 0, item)
+          horario[toDayId].splice(pos, 0, item)
         }
 
         guardarHorario(horario)
@@ -208,31 +298,83 @@
     }, { offset: Number.NEGATIVE_INFINITY }).element
   }
 
-  function findIndexOfId(id){
-    for (let i=0;i<horario.length;i++){
-      if (horario[i].some(it=>it.id===id)) return i
-    }
-    return null
+  function findDayIdOfId(id){
+    return DAY_DEFS.find(day => (horario[day.id] || []).some(it=>it.id===id))?.id || null
   }
 
   function eliminarClasePorId(id){
-    horario = horario.map(d=>d.filter(it=>it.id!==id))
+    DAY_DEFS.forEach(day => {
+      horario[day.id] = (horario[day.id] || []).filter(it=>it.id!==id)
+    })
     guardarHorario(horario)
     render()
   }
 
-  function agregarClaseObj(obj, diaIndex){
+  function agregarClaseObj(obj, dayId){
     const item = { id: String(Date.now()) + Math.random().toString(36).slice(2,6), name: obj.name || '', time: obj.time || '', teacher: obj.teacher || '', absences: Number(obj.absences || 0), bgColor: obj.bgColor || '' }
-    horario[diaIndex].push(item)
+    horario[dayId].push(item)
     guardarHorario(horario)
     render()
+  }
+
+  function attachAddHandlers() {
+    $all('.day-add').forEach(btn => {
+      btn.addEventListener('click', ()=>{
+        const dayId = btn.dataset.dayId
+        const ul = document.querySelector(`.schedule-list[data-day-id="${dayId}"]`)
+        if (!ul) return
+
+        // allow multiple editors: always insert a new editor
+        const editor = crearEditorNodo({}, (vals)=>{
+          agregarClaseObj(vals, dayId)
+        }, ()=>{ render() })
+
+        ul.insertBefore(editor, ul.firstChild)
+        editor.querySelector('.editor-name').focus()
+      })
+    })
+  }
+
+  function renderDayOptions() {
+    const optionsRoot = document.getElementById('scheduleDayOptions')
+    if (!optionsRoot) return
+    optionsRoot.innerHTML = ''
+    DAY_DEFS.forEach(day => {
+      const label = document.createElement('label')
+      label.className = 'config-option'
+
+      const input = document.createElement('input')
+      input.type = 'checkbox'
+      input.checked = diasActivos.includes(day.id)
+      input.dataset.dayId = day.id
+      input.addEventListener('change', () => {
+        const isActive = input.checked
+        if (isActive && !diasActivos.includes(day.id)) {
+          diasActivos = [...diasActivos, day.id]
+        }
+        if (!isActive && diasActivos.includes(day.id)) {
+          diasActivos = diasActivos.filter(id => id !== day.id)
+        }
+        diasActivos = DAY_DEFS.filter(d => diasActivos.includes(d.id)).map(d => d.id)
+        guardarDiasActivos(diasActivos)
+        render()
+      })
+
+      const text = document.createElement('span')
+      text.textContent = day.label
+
+      label.appendChild(input)
+      label.appendChild(text)
+      optionsRoot.appendChild(label)
+    })
   }
 
   // init DOM handlers
   document.addEventListener('DOMContentLoaded', ()=>{
-    if (!Array.isArray(horario) || horario.length !== DAYS.length) horario = DAYS.map(()=>[])
+    if (!horario || typeof horario !== 'object') horario = createEmptySchedule()
 
     render()
+    renderDayOptions()
 
     const titleNode = document.getElementById('weeklyScheduleTitle')
     if (titleNode) {
@@ -250,21 +392,5 @@
       })
     }
 
-    // add button per day: insert inline editor
-    $all('.day-add').forEach(btn => {
-      btn.addEventListener('click', ()=>{
-        const idx = parseInt(btn.dataset.dayIndex, 10)
-        const ul = document.querySelector(`.schedule-list[data-day-index="${idx}"]`)
-        if (!ul) return
-
-        // allow multiple editors: always insert a new editor
-        const editor = crearEditorNodo({}, (vals)=>{
-          agregarClaseObj(vals, idx)
-        }, ()=>{ render() })
-
-        ul.insertBefore(editor, ul.firstChild)
-        editor.querySelector('.editor-name').focus()
-      })
-    })
   })
 })();
