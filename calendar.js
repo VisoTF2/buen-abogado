@@ -12,6 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const STORAGE_KEY = "calendarEvents"
   let fechaSeleccionada = null
   let eventoEditandoId = null
+  let eventoSeleccionadoId = null
+  let eventoCopiado = null
 
   const leerEventos = () => {
     try {
@@ -44,9 +46,25 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(serializados))
   }
 
+  const normalizarFecha = fecha => {
+    if (!fecha) return null
+    if (fecha.includes("T")) return fecha.split("T")[0]
+    return fecha
+  }
+
+  const actualizarEventoActivoVisual = () => {
+    calendarEl
+      .querySelectorAll(".fc-event.evento-activo")
+      .forEach(el => el.classList.remove("evento-activo"))
+    if (!eventoSeleccionadoId) return
+    calendarEl
+      .querySelectorAll(`.fc-event[data-evento-id="${eventoSeleccionadoId}"]`)
+      .forEach(el => el.classList.add("evento-activo"))
+  }
+
   const abrirModalEvento = ({ titulo, fecha, eventoId = null }) => {
     if (!modalCalendario || !modalCalendarioTitulo || !inputNombreEvento) return
-    fechaSeleccionada = fecha
+    fechaSeleccionada = normalizarFecha(fecha)
     eventoEditandoId = eventoId
     modalCalendarioTitulo.textContent = eventoId ? "Editar evento" : "Nuevo evento"
     inputNombreEvento.value = titulo || ""
@@ -59,9 +77,33 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!modalCalendario || !inputNombreEvento) return
     modalCalendario.classList.remove("visible")
     inputNombreEvento.value = ""
-    fechaSeleccionada = null
     eventoEditandoId = null
     if (modalCalendarioEliminar) modalCalendarioEliminar.hidden = true
+  }
+
+  const copiarEventoSeleccionado = calendar => {
+    if (!eventoSeleccionadoId) return false
+    const evento = calendar.getEventById(eventoSeleccionadoId)
+    if (!evento) return false
+    eventoCopiado = {
+      title: evento.title,
+      allDay: evento.allDay,
+      completed: Boolean(evento.extendedProps.completed)
+    }
+    return true
+  }
+
+  const pegarEvento = calendar => {
+    if (!eventoCopiado || !fechaSeleccionada) return false
+    calendar.addEvent({
+      id: `evento-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      title: eventoCopiado.title,
+      start: fechaSeleccionada,
+      allDay: true,
+      extendedProps: { completed: Boolean(eventoCopiado.completed) }
+    })
+    guardarEventos(calendar)
+    return true
   }
 
   const calendar = new FullCalendar.Calendar(calendarEl, {
@@ -69,6 +111,9 @@ document.addEventListener("DOMContentLoaded", () => {
     locale: "es",
     height: "auto",
     selectable: true,
+    editable: true,
+    eventStartEditable: true,
+    eventDurationEditable: false,
     buttonText: {
       today: "Hoy",
       month: "Mes",
@@ -83,15 +128,30 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     events: leerEventos(),
     dateClick(info) {
-      abrirModalEvento({ titulo: "", fecha: info.dateStr })
+      fechaSeleccionada = info.dateStr
+
+      if (eventoCopiado && (info.jsEvent?.ctrlKey || info.jsEvent?.metaKey)) {
+        pegarEvento(calendar)
+        return
+      }
+
+      if ((info.jsEvent?.detail || 1) >= 2) {
+        abrirModalEvento({ titulo: "", fecha: info.dateStr })
+      }
     },
     eventClick(info) {
       info.jsEvent.preventDefault()
-      abrirModalEvento({
-        titulo: info.event.title,
-        fecha: info.event.startStr,
-        eventoId: info.event.id
-      })
+      eventoSeleccionadoId = info.event.id
+      fechaSeleccionada = normalizarFecha(info.event.startStr)
+      actualizarEventoActivoVisual()
+
+      if (info.jsEvent.detail >= 2) {
+        abrirModalEvento({
+          titulo: info.event.title,
+          fecha: info.event.startStr,
+          eventoId: info.event.id
+        })
+      }
     },
     eventContent(arg) {
       const checkboxId = `calendar-check-${arg.event.id}`
@@ -122,20 +182,31 @@ document.addEventListener("DOMContentLoaded", () => {
       return { domNodes: [etiqueta] }
     },
     eventDidMount(info) {
+      info.el.dataset.eventoId = info.event.id
       if (info.event.extendedProps.completed) {
         info.el.classList.add("fc-event-done")
       } else {
         info.el.classList.remove("fc-event-done")
       }
+      if (eventoSeleccionadoId && eventoSeleccionadoId === info.event.id) {
+        info.el.classList.add("evento-activo")
+      }
+    },
+    eventDrop() {
+      guardarEventos(calendar)
+      actualizarEventoActivoVisual()
     },
     eventAdd() {
       guardarEventos(calendar)
+      actualizarEventoActivoVisual()
     },
     eventChange() {
       guardarEventos(calendar)
+      actualizarEventoActivoVisual()
     },
     eventRemove() {
       guardarEventos(calendar)
+      actualizarEventoActivoVisual()
     }
   })
 
@@ -181,9 +252,31 @@ document.addEventListener("DOMContentLoaded", () => {
   modalCalendarioEliminar?.addEventListener("click", () => {
     if (!eventoEditandoId) return
     const evento = calendar.getEventById(eventoEditandoId)
-    if (evento) evento.remove()
+    if (evento) {
+      if (eventoSeleccionadoId === evento.id) eventoSeleccionadoId = null
+      evento.remove()
+    }
     guardarEventos(calendar)
     cerrarModalEvento()
+  })
+
+  document.addEventListener("keydown", e => {
+    const esCopiar = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c"
+    const esPegar = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v"
+    if (!esCopiar && !esPegar) return
+
+    const focoEnInput = ["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)
+    if (focoEnInput) return
+
+    if (esCopiar) {
+      const copiado = copiarEventoSeleccionado(calendar)
+      if (copiado) e.preventDefault()
+    }
+
+    if (esPegar) {
+      const pegado = pegarEvento(calendar)
+      if (pegado) e.preventDefault()
+    }
   })
 
   calendar.render()
