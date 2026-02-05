@@ -1395,6 +1395,38 @@ body.oscuro .modal-close:hover {
   gap: 8px;
 }
 
+.config-options {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.config-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  justify-content: space-between;
+}
+
+.config-option span {
+  order: 0;
+  text-align: left;
+  flex: 1;
+}
+
+.config-option input {
+  accent-color: var(--accent);
+  order: 1;
+  margin-left: auto;
+}
+
 .config-action {
   width: 100%;
   justify-content: center;
@@ -1840,6 +1872,11 @@ body.oscuro textarea {
   white-space: normal;
   word-break: break-word;
 }
+body.oscuro .class-card.light-bg .class-name,
+body.oscuro .class-card.light-bg .class-meta,
+body.oscuro .class-card.light-bg .class-actions .absences {
+  color: #111827;
+}
 .class-delete { background: transparent; border: none; color: var(--danger-text); cursor: pointer; font-weight: 700; padding: 4px 6px; border-radius: 6px; }
 .class-delete:hover { background: var(--danger-bg); }
 
@@ -1922,8 +1959,9 @@ body.oscuro textarea {
   align-items: center;
   justify-content: center;
 }
-.action-buttons .edit-btn { color: var(--accent); width:32px; height:32px; padding:0; }
+.action-buttons .edit-btn { color: #1e3a8a; width:32px; height:32px; padding:0; }
 .action-buttons .edit-btn:hover { background: var(--focus-surface); }
+body.oscuro .action-buttons button:hover { background: rgba(255, 255, 255, 0.16); }
 
 /* color button (top-right) */
 .class-card { position: relative; }
@@ -1936,8 +1974,8 @@ body.oscuro textarea {
 
 .class-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(16,24,40,0.06); }
 
-.action-buttons .class-delete { color: var(--danger-text); }
-.action-buttons .class-delete:hover { background: var(--danger-bg); }
+.action-buttons .class-delete { color: #b91c1c; }
+.action-buttons .class-delete:hover { background: var(--focus-surface); }
 
 
 .day-add {
