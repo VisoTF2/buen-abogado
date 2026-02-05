@@ -2,6 +2,8 @@ const MODO_OSCURO_STORAGE_KEY = "modoOscuroActivo"
 const appBanner = document.getElementById("appBanner")
 const bannerInput = document.getElementById("bannerInput")
 const BANNER_STORAGE_KEY = "bannerImagenApp"
+const BANNER_FILL_ENABLED_KEY = "bannerColorFondoActivo"
+const bannerFillToggle = document.getElementById("bannerFillToggle")
 const fondoInput = document.getElementById("fondoInput")
 const FONDO_STORAGE_KEY = "fondoImagenApp"
 const mallaInput = document.getElementById("mallaInput")
@@ -9,6 +11,10 @@ const mallaToggle = document.getElementById("mallaToggle")
 const MALLA_STORAGE_KEY = "mallaImagenHorario"
 const MALLA_ENABLED_KEY = "mallaActivaHorario"
 const MALLA_SIZE_KEY = "mallaSizeHorario"
+const MALLA_MIN_WIDTH = 220
+const MALLA_MAX_WIDTH = 700
+const MALLA_DEFAULT_WIDTH = 320
+const MALLA_RESIZE_SENSITIVITY = 0.45
 const scheduleMallaImage = document.getElementById("scheduleMallaImage")
 const scheduleMallaPlaceholder = document.getElementById("scheduleMallaPlaceholder")
 const mallaPreviewBackdrop = document.getElementById("mallaPreviewBackdrop")
@@ -39,6 +45,11 @@ function aplicarBanner(src) {
   }
 }
 
+function aplicarFondoBannerActivo(activo) {
+  document.body.classList.toggle("banner-sin-fondo", !activo)
+  if (bannerFillToggle) bannerFillToggle.checked = activo
+}
+
 function restablecerBanner() {
   aplicarBanner("")
   localStorage.removeItem(BANNER_STORAGE_KEY)
@@ -59,6 +70,12 @@ bannerInput?.addEventListener("change", e => {
   }
   lector.readAsDataURL(archivo)
   e.target.value = ""
+})
+
+bannerFillToggle?.addEventListener("change", () => {
+  const activo = bannerFillToggle.checked
+  aplicarFondoBannerActivo(activo)
+  localStorage.setItem(BANNER_FILL_ENABLED_KEY, String(activo))
 })
 
 function abrirSelectorFondo() {
@@ -157,7 +174,7 @@ function aplicarMallaWidth(value) {
   if (!value) return
   const size = Number.parseInt(value, 10)
   if (Number.isNaN(size)) return
-  const clamped = Math.min(700, Math.max(220, size))
+  const clamped = Math.min(MALLA_MAX_WIDTH, Math.max(MALLA_MIN_WIDTH, size))
   document.documentElement.style.setProperty("--malla-width", `${clamped}px`)
 }
 
@@ -166,24 +183,45 @@ function habilitarResizeMalla() {
   if (!contenedor || !mallaResizeHandle) return
 
   let resizing = false
-  let startX = 0
-  let startWidth = 0
+  let lastX = 0
+  let currentWidth = 0
+  let widthPendiente = null
+  let rafId = null
+
+  const clampWidth = width => Math.min(MALLA_MAX_WIDTH, Math.max(MALLA_MIN_WIDTH, Math.round(width)))
+
+  const aplicarWidthPendiente = () => {
+    rafId = null
+    if (widthPendiente == null) return
+    aplicarMallaWidth(String(clampWidth(widthPendiente)))
+  }
 
   const guardarAncho = width => {
-    const clamped = Math.min(700, Math.max(220, Math.round(width)))
+    const clamped = clampWidth(width)
     aplicarMallaWidth(String(clamped))
     localStorage.setItem(MALLA_SIZE_KEY, String(clamped))
   }
 
   const onPointerMove = event => {
     if (!resizing) return
-    const delta = startX - event.clientX
-    guardarAncho(startWidth + delta)
+    const delta = lastX - event.clientX
+    lastX = event.clientX
+    currentWidth += delta * MALLA_RESIZE_SENSITIVITY
+    widthPendiente = currentWidth
+    if (!rafId) rafId = window.requestAnimationFrame(aplicarWidthPendiente)
   }
 
   const onPointerUp = () => {
     if (!resizing) return
     resizing = false
+    if (rafId) {
+      window.cancelAnimationFrame(rafId)
+      rafId = null
+    }
+    if (widthPendiente != null) {
+      guardarAncho(widthPendiente)
+      widthPendiente = null
+    }
     document.body.classList.remove("malla-resizing")
     window.removeEventListener("pointermove", onPointerMove)
     window.removeEventListener("pointerup", onPointerUp)
@@ -193,8 +231,10 @@ function habilitarResizeMalla() {
     event.preventDefault()
     event.stopPropagation()
     resizing = true
-    startX = event.clientX
-    startWidth = contenedor.getBoundingClientRect().width
+    lastX = event.clientX
+    currentWidth = contenedor.getBoundingClientRect().width
+    widthPendiente = currentWidth
+    mallaResizeHandle.setPointerCapture?.(event.pointerId)
     document.body.classList.add("malla-resizing")
     window.addEventListener("pointermove", onPointerMove)
     window.addEventListener("pointerup", onPointerUp)
@@ -203,7 +243,9 @@ function habilitarResizeMalla() {
 
 function restablecerMalla() {
   aplicarMallaImagen("")
+  aplicarMallaWidth(String(MALLA_DEFAULT_WIDTH))
   localStorage.removeItem(MALLA_STORAGE_KEY)
+  localStorage.removeItem(MALLA_SIZE_KEY)
   if (mallaInput) mallaInput.value = ""
 }
 
@@ -245,7 +287,8 @@ document.addEventListener("keydown", event => {
 habilitarResizeMalla()
 aplicarModoGuardado()
 aplicarBanner(localStorage.getItem(BANNER_STORAGE_KEY) || "")
+aplicarFondoBannerActivo(localStorage.getItem(BANNER_FILL_ENABLED_KEY) !== "false")
 aplicarFondo(localStorage.getItem(FONDO_STORAGE_KEY) || "")
 aplicarMallaImagen(localStorage.getItem(MALLA_STORAGE_KEY) || "")
 aplicarMallaActiva(localStorage.getItem(MALLA_ENABLED_KEY) === "true")
-aplicarMallaWidth(localStorage.getItem(MALLA_SIZE_KEY) || "320")
+aplicarMallaWidth(localStorage.getItem(MALLA_SIZE_KEY) || String(MALLA_DEFAULT_WIDTH))

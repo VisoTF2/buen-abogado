@@ -130,6 +130,16 @@
 
     li.querySelector('.edit-btn').addEventListener('click', () => abrirEditorEditar(li, item))
 
+    li.addEventListener('contextmenu', event => {
+      event.preventDefault()
+      const dayId = findDayIdOfId(item.id)
+      if (!dayId) return
+      mostrarMenuHorario(event, {
+        onCopy: () => copiarClase(item),
+        onPaste: () => pegarClaseEnDia(dayId),
+      })
+    })
+
     // color picker removed — simplified card actions
 
     return li
@@ -204,6 +214,82 @@
 
   let horario = cargarHorario()
   let diasActivos = cargarDiasActivos()
+  let claseCopiada = null
+  let menuHorario = null
+
+  function crearMenuHorario() {
+    if (menuHorario) return menuHorario
+
+    const menu = document.createElement('div')
+    menu.className = 'menu-contextual'
+
+    const btnCopiar = document.createElement('button')
+    btnCopiar.type = 'button'
+    btnCopiar.textContent = 'Copiar tarjeta'
+
+    const btnPegar = document.createElement('button')
+    btnPegar.type = 'button'
+    btnPegar.textContent = 'Pegar en este día'
+
+    menu.appendChild(btnCopiar)
+    menu.appendChild(btnPegar)
+    document.body.appendChild(menu)
+
+    menuHorario = { menu, btnCopiar, btnPegar }
+    return menuHorario
+  }
+
+  function ocultarMenuHorario() {
+    if (!menuHorario) return
+    menuHorario.menu.style.display = 'none'
+    menuHorario.btnCopiar.onclick = null
+    menuHorario.btnPegar.onclick = null
+  }
+
+  function mostrarMenuHorario(event, handlers = {}) {
+    const { menu, btnCopiar, btnPegar } = crearMenuHorario()
+
+    btnCopiar.disabled = !handlers.onCopy
+    btnPegar.disabled = !handlers.onPaste || !claseCopiada
+
+    btnCopiar.onclick = () => {
+      if (!handlers.onCopy) return
+      handlers.onCopy()
+      ocultarMenuHorario()
+    }
+
+    btnPegar.onclick = () => {
+      if (!handlers.onPaste || !claseCopiada) return
+      handlers.onPaste()
+      ocultarMenuHorario()
+    }
+
+    menu.style.display = 'flex'
+    const margin = 12
+    const menuWidth = menu.offsetWidth
+    const menuHeight = menu.offsetHeight
+    let x = event.clientX
+    let y = event.clientY
+    if (x + menuWidth + margin > window.innerWidth) x = window.innerWidth - menuWidth - margin
+    if (y + menuHeight + margin > window.innerHeight) y = window.innerHeight - menuHeight - margin
+    menu.style.left = `${Math.max(margin, x)}px`
+    menu.style.top = `${Math.max(margin, y)}px`
+  }
+
+  function copiarClase(item) {
+    claseCopiada = {
+      name: item.name || '',
+      time: item.time || '',
+      teacher: item.teacher || '',
+      absences: Number(item.absences || 0),
+      bgColor: item.bgColor || '',
+    }
+  }
+
+  function pegarClaseEnDia(dayId) {
+    if (!claseCopiada) return
+    agregarClaseObj(claseCopiada, dayId)
+  }
 
   function renderScheduleGrid() {
     const grid = document.getElementById('scheduleGrid')
@@ -261,6 +347,16 @@
         } else {
           ul.insertBefore(draggingNode, after)
         }
+      }
+
+      ul.oncontextmenu = function(e) {
+        if (e.target.closest('.class-card')) return
+        e.preventDefault()
+        const dayId = ul.dataset.dayId
+        if (!dayId) return
+        mostrarMenuHorario(e, {
+          onPaste: () => pegarClaseEnDia(dayId),
+        })
       }
 
       ul.ondrop = function(e){
@@ -383,6 +479,16 @@
 
     render()
     renderDayOptions()
+
+    document.addEventListener('click', event => {
+      if (!menuHorario || menuHorario.menu.style.display === 'none') return
+      if (!menuHorario.menu.contains(event.target)) ocultarMenuHorario()
+    })
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') ocultarMenuHorario()
+    })
+    window.addEventListener('resize', ocultarMenuHorario)
+    window.addEventListener('scroll', ocultarMenuHorario, true)
 
     const titleNode = document.getElementById('weeklyScheduleTitle')
     if (titleNode) {

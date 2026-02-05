@@ -52,9 +52,9 @@
     <aside class="schedule-malla" id="scheduleMalla" aria-label="Malla de la carrera">
       <div class="schedule-malla-card" id="scheduleMallaCard">
         <h4 class="schedule-malla-title">Malla de la carrera</h4>
+        <button class="malla-resize-handle" id="mallaResizeHandle" type="button" aria-label="Cambiar tamaño de la malla" hidden></button>
         <div class="schedule-malla-image-wrap">
           <img id="scheduleMallaImage" alt="Malla de la carrera" hidden>
-          <button class="malla-resize-handle" id="mallaResizeHandle" type="button" aria-label="Cambiar tamaño de la malla" hidden></button>
         </div>
         <p class="schedule-malla-placeholder" id="scheduleMallaPlaceholder">Sube una imagen desde configuración.</p>
       </div>
@@ -249,6 +249,12 @@
             <p>Personaliza la imagen superior o vuelve al estado original.</p>
           </div>
           <input type="file" id="bannerInput" accept="image/*" hidden>
+          <div class="config-options">
+            <label class="config-option" for="bannerFillToggle">
+              <span>Mostrar color de fondo del banner</span>
+              <input type="checkbox" id="bannerFillToggle" checked>
+            </label>
+          </div>
           <div class="config-actions">
             <button class="modo banner-upload config-action" type="button" onclick="abrirSelectorBanner()">Cambiar banner</button>
             <button class="modo banner-reset config-action" type="button" onclick="restablecerBanner()">Restablecer banner</button>
