@@ -134,6 +134,16 @@
       background-color: var(--bg);
     }
 
+
+body.banner-sin-fondo header:not(.banner-con-imagen) {
+  background: transparent;
+  box-shadow: none;
+}
+
+body.banner-sin-fondo header:not(.banner-con-imagen)::after {
+  display: none;
+}
+
     header::after {
       content: "";
       position: absolute;

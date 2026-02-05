@@ -2,6 +2,8 @@ const MODO_OSCURO_STORAGE_KEY = "modoOscuroActivo"
 const appBanner = document.getElementById("appBanner")
 const bannerInput = document.getElementById("bannerInput")
 const BANNER_STORAGE_KEY = "bannerImagenApp"
+const BANNER_FILL_ENABLED_KEY = "bannerColorFondoActivo"
+const bannerFillToggle = document.getElementById("bannerFillToggle")
 const fondoInput = document.getElementById("fondoInput")
 const FONDO_STORAGE_KEY = "fondoImagenApp"
 const mallaInput = document.getElementById("mallaInput")
@@ -39,6 +41,11 @@ function aplicarBanner(src) {
   }
 }
 
+function aplicarFondoBannerActivo(activo) {
+  document.body.classList.toggle("banner-sin-fondo", !activo)
+  if (bannerFillToggle) bannerFillToggle.checked = activo
+}
+
 function restablecerBanner() {
   aplicarBanner("")
   localStorage.removeItem(BANNER_STORAGE_KEY)
@@ -59,6 +66,12 @@ bannerInput?.addEventListener("change", e => {
   }
   lector.readAsDataURL(archivo)
   e.target.value = ""
+})
+
+bannerFillToggle?.addEventListener("change", () => {
+  const activo = bannerFillToggle.checked
+  aplicarFondoBannerActivo(activo)
+  localStorage.setItem(BANNER_FILL_ENABLED_KEY, String(activo))
 })
 
 function abrirSelectorFondo() {
@@ -245,6 +258,7 @@ document.addEventListener("keydown", event => {
 habilitarResizeMalla()
 aplicarModoGuardado()
 aplicarBanner(localStorage.getItem(BANNER_STORAGE_KEY) || "")
+aplicarFondoBannerActivo(localStorage.getItem(BANNER_FILL_ENABLED_KEY) !== "false")
 aplicarFondo(localStorage.getItem(FONDO_STORAGE_KEY) || "")
 aplicarMallaImagen(localStorage.getItem(MALLA_STORAGE_KEY) || "")
 aplicarMallaActiva(localStorage.getItem(MALLA_ENABLED_KEY) === "true")

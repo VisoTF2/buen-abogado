@@ -249,6 +249,12 @@
             <p>Personaliza la imagen superior o vuelve al estado original.</p>
           </div>
           <input type="file" id="bannerInput" accept="image/*" hidden>
+          <div class="config-options">
+            <label class="config-option" for="bannerFillToggle">
+              <span>Mostrar color de fondo del banner</span>
+              <input type="checkbox" id="bannerFillToggle" checked>
+            </label>
+          </div>
           <div class="config-actions">
             <button class="modo banner-upload config-action" type="button" onclick="abrirSelectorBanner()">Cambiar banner</button>
             <button class="modo banner-reset config-action" type="button" onclick="restablecerBanner()">Restablecer banner</button>
