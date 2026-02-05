@@ -1932,6 +1932,11 @@ body.oscuro .class-card.light-bg .class-actions .absences {
   color: var(--accent);
 }
 
+.schedule-malla-image-wrap {
+  position: relative;
+  width: 100%;
+}
+
 .schedule-malla-card img {
   width: 100%;
   height: auto;
@@ -1943,10 +1948,29 @@ body.oscuro .class-card.light-bg .class-actions .absences {
   cursor: zoom-in;
 }
 
+.malla-resize-handle {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  width: 16px;
+  height: 16px;
+  border: none;
+  background: transparent;
+  cursor: nesw-resize;
+  padding: 0;
+  z-index: 2;
+}
+
 .schedule-malla-placeholder {
   margin: 0;
   color: var(--muted-text);
   font-size: 13px;
+}
+
+body.malla-resizing,
+body.malla-resizing * {
+  cursor: nesw-resize !important;
+  user-select: none;
 }
 
 body.malla-activa .schedule-malla {
