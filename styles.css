@@ -1426,6 +1426,23 @@ body.oscuro .modal-close:hover {
   justify-self: end;
 }
 
+.config-range {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted-text);
+}
+
+.config-range label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.config-range input[type="range"] {
+  width: 100%;
+}
+
 .config-action {
   width: 100%;
   justify-content: center;
@@ -1785,10 +1802,18 @@ body.oscuro .modal-close:hover {
 }
 
 /* Horario semanal */
-.weekly-schedule {
+.weekly-schedule-layout {
   width: min(98vw, var(--layout-max-width));
   box-sizing: border-box;
   margin: 18px auto;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.weekly-schedule {
+  flex: 1 1 auto;
+  min-width: 0;
   background: transparent;
   border-radius: 0;
   padding: 0;
@@ -1878,6 +1903,66 @@ body.oscuro .class-card.light-bg .class-actions .absences {
 }
 .class-delete { background: transparent; border: none; color: var(--danger-text); cursor: pointer; font-weight: 700; padding: 4px 6px; border-radius: 6px; }
 .class-delete:hover { background: var(--danger-bg); }
+
+.schedule-malla {
+  display: none;
+  width: var(--malla-width, 320px);
+  flex: 0 0 auto;
+}
+
+.schedule-malla-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.04);
+}
+
+.schedule-malla-title {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: var(--accent);
+}
+
+.schedule-malla-image {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px dashed var(--border);
+  background: var(--article-bg);
+  padding: 10px;
+  box-sizing: border-box;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.schedule-malla-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.schedule-malla-placeholder {
+  margin: 0;
+  color: var(--muted-text);
+  font-size: 13px;
+}
+
+body.malla-activa .schedule-malla {
+  display: block;
+}
+
+@media (max-width: 900px) {
+  .weekly-schedule-layout {
+    flex-direction: column;
+  }
+
+  body.malla-activa .schedule-malla {
+    width: 100%;
+  }
+}
 
 /* Editor inline dentro del horario */
 .class-editor { display: flex; flex-direction: column; gap: 8px; padding: 8px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); position: relative; }
