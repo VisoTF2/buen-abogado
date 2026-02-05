@@ -1929,6 +1929,7 @@ body.oscuro .class-card.light-bg .class-actions .absences {
 }
 .action-buttons .edit-btn { color: #1e3a8a; width:32px; height:32px; padding:0; }
 .action-buttons .edit-btn:hover { background: var(--focus-surface); }
+body.oscuro .action-buttons button:hover { background: rgba(255, 255, 255, 0.16); }
 
 /* color button (top-right) */
 .class-card { position: relative; }
