@@ -52,10 +52,8 @@
     <aside class="schedule-malla" id="scheduleMalla" aria-label="Malla de la carrera">
       <div class="schedule-malla-card">
         <h4 class="schedule-malla-title">Malla de la carrera</h4>
-        <div class="schedule-malla-image">
-          <img id="scheduleMallaImage" alt="Malla de la carrera" hidden>
-          <p class="schedule-malla-placeholder" id="scheduleMallaPlaceholder">Sube una imagen desde configuración.</p>
-        </div>
+        <img id="scheduleMallaImage" alt="Malla de la carrera" hidden>
+        <p class="schedule-malla-placeholder" id="scheduleMallaPlaceholder">Sube una imagen desde configuración.</p>
       </div>
     </aside>
   </div>
@@ -220,6 +218,14 @@
             <p>Alterna entre el modo claro y oscuro.</p>
           </div>
           <button class="modo config-action" type="button" onclick="toggleModo()">Modo oscuro</button>
+        </section>
+
+        <section class="config-section">
+          <div class="config-section-head">
+            <h4>Días del horario</h4>
+            <p>Activa o desactiva los días disponibles en el horario.</p>
+          </div>
+          <div class="config-options" id="scheduleDayOptions"></div>
         </section>
 
         <section class="config-section">
