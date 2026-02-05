@@ -533,6 +533,12 @@ body.oscuro .calendar-head span { color: #e5e7eb; }
   margin-top: 2px;
 }
 
+#calendar .fc .fc-scrollgrid-section-header .fc-sticky {
+  top: 0 !important;
+  z-index: 6;
+  background: var(--card);
+}
+
 #calendar .fc-daygrid-event {
   margin-top: 4px;
   min-height: 34px;
