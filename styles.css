@@ -1924,6 +1924,10 @@ body.oscuro .class-card.light-bg .class-actions .absences {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  resize: horizontal;
+  overflow: auto;
+  min-width: 220px;
+  max-width: 700px;
 }
 
 .schedule-malla-title {

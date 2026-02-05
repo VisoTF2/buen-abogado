@@ -6,7 +6,6 @@ const fondoInput = document.getElementById("fondoInput")
 const FONDO_STORAGE_KEY = "fondoImagenApp"
 const mallaInput = document.getElementById("mallaInput")
 const mallaToggle = document.getElementById("mallaToggle")
-const mallaSize = document.getElementById("mallaSize")
 const MALLA_STORAGE_KEY = "mallaImagenHorario"
 const MALLA_ENABLED_KEY = "mallaActivaHorario"
 const MALLA_SIZE_KEY = "mallaSizeHorario"
@@ -148,15 +147,36 @@ function cerrarMallaPreview() {
 function aplicarMallaActiva(activa) {
   document.body.classList.toggle("malla-activa", activa)
   if (mallaToggle) mallaToggle.checked = activa
-  if (mallaSize) mallaSize.disabled = !activa
 }
 
-function aplicarMallaSize(value) {
+
+function aplicarMallaWidth(value) {
   if (!value) return
   const size = Number.parseInt(value, 10)
   if (Number.isNaN(size)) return
-  document.documentElement.style.setProperty("--malla-width", `${size}px`)
-  if (mallaSize) mallaSize.value = `${size}`
+  const clamped = Math.min(700, Math.max(220, size))
+  document.documentElement.style.setProperty("--malla-width", `${clamped}px`)
+}
+
+function habilitarResizeMalla() {
+  const card = document.getElementById("scheduleMallaCard")
+  if (!card) return
+
+  const guardarAncho = width => {
+    const clamped = Math.min(700, Math.max(220, Math.round(width)))
+    aplicarMallaWidth(String(clamped))
+    localStorage.setItem(MALLA_SIZE_KEY, String(clamped))
+  }
+
+  if (typeof ResizeObserver === "undefined") return
+
+  const observer = new ResizeObserver(entries => {
+    const entry = entries[0]
+    if (!entry) return
+    guardarAncho(entry.contentRect.width)
+  })
+
+  observer.observe(card)
 }
 
 function restablecerMalla() {
@@ -189,11 +209,6 @@ mallaToggle?.addEventListener("change", () => {
   localStorage.setItem(MALLA_ENABLED_KEY, activa ? "true" : "false")
 })
 
-mallaSize?.addEventListener("input", () => {
-  const valor = mallaSize.value
-  aplicarMallaSize(valor)
-  localStorage.setItem(MALLA_SIZE_KEY, valor)
-})
 
 scheduleMallaImage?.addEventListener("click", abrirMallaPreview)
 mallaPreviewClose?.addEventListener("click", cerrarMallaPreview)
@@ -205,9 +220,10 @@ document.addEventListener("keydown", event => {
   if (event.key === "Escape") cerrarMallaPreview()
 })
 
+habilitarResizeMalla()
 aplicarModoGuardado()
 aplicarBanner(localStorage.getItem(BANNER_STORAGE_KEY) || "")
 aplicarFondo(localStorage.getItem(FONDO_STORAGE_KEY) || "")
 aplicarMallaImagen(localStorage.getItem(MALLA_STORAGE_KEY) || "")
 aplicarMallaActiva(localStorage.getItem(MALLA_ENABLED_KEY) === "true")
-aplicarMallaSize(localStorage.getItem(MALLA_SIZE_KEY) || "320")
+aplicarMallaWidth(localStorage.getItem(MALLA_SIZE_KEY) || "320")
