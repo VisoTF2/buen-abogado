@@ -397,13 +397,13 @@
 
     .btn-note-delete:hover { background: #4b5563; }
 
-    .documentos-panel {
-      margin: 8px 0 0;
-      padding: 14px 16px 22px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: linear-gradient(135deg, rgba(30,58,138,0.06), rgba(30,58,138,0.01));
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+.documentos-panel {
+  margin: 8px 0 0;
+  padding: 14px 16px 22px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  box-shadow: none;
       display: flex;
       flex-direction: column;
       flex: 1 1 480px;
@@ -909,12 +909,12 @@
 
 .sidebarMaterias {
   width: 270px;
-  background: var(--card);
-  padding: 14px 14px 18px;
+  background: transparent;
+  padding: 8px 0 12px;
   border-radius: 14px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  box-shadow: none;
   overflow-y: auto;
-  border: 1px solid var(--border);
+  border: none;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -931,10 +931,10 @@
   align-items: stretch;
   gap: 10px;
   margin-bottom: 12px;
-  padding: 14px;
-  border: 1px solid var(--border);
+  padding: 0;
+  border: none;
   border-radius: 12px;
-  background: var(--article-bg);
+  background: transparent;
 }
 
 .sidebarAccionesTitulo {
@@ -1454,13 +1454,13 @@ body.oscuro .modal-close:hover {
       min-height: 0;
     }
 
-    .form-articulo {
-      background: var(--card);
-      padding: 16px 20px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
+.form-articulo {
+  background: transparent;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: none;
+  box-shadow: none;
+}
     
 .form-articulo h2 {
   margin-top: 10px;
@@ -1758,35 +1758,63 @@ body.oscuro .modal-close:hover {
   width: min(98vw, var(--layout-max-width));
   box-sizing: border-box;
   margin: 18px auto;
-  background: var(--card);
-  border-radius: 12px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  border: none;
+  box-shadow: none;
 }
 .weekly-schedule-head {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   margin-bottom: 12px;
 }
 .weekly-schedule h3 { margin: 0; color: var(--accent); font-size: 18px; }
+.weekly-schedule-title {
+  cursor: text;
+  padding: 0px 0px;
+  border-radius: 6px;
+  margin-left: 20px;
+}
+.weekly-schedule-title:focus {
+  outline: none;
+  background: transparent;
+}
+
+[contenteditable="true"] {
+  caret-color: #000 !important;
+}
+
+body.oscuro [contenteditable="true"] {
+  caret-color: #fff !important;
+}
+
+input,
+textarea {
+  caret-color: #000 !important;
+}
+
+body.oscuro input,
+body.oscuro textarea {
+  caret-color: #fff !important;
+}
 
 .schedule-grid { display: flex; gap: 12px; width: 100%; }
 .schedule-day {
   flex: 1;
   min-width: 140px;
-  background: var(--article-bg);
-  border-radius: 8px;
-  padding: 8px;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
   box-sizing: border-box;
-  border: 1.5px solid var(--border);
-  box-shadow: 0 1px 4px rgba(30,58,138,0.04);
+  border: none;
+  box-shadow: none;
   transition: border-color 0.2s;
 }
-.schedule-day-head { font-weight: 700; color: var(--accent); margin-bottom: 8px; font-size: 14px; display:flex; align-items:center; justify-content:space-between; }
-.schedule-list { list-style: none; margin: 0; padding: 10px; min-height: 80px; display: flex; flex-direction: column; gap: 12px; }
+.schedule-day-head { font-weight: 700; color: var(--accent); margin-bottom: 6px; font-size: 15px; display:flex; align-items:center; justify-content:flex-start; gap: 6px; }
+.schedule-list { list-style: none; margin: 0; padding: 0; min-height: 80px; display: flex; flex-direction: column; gap: 12px; }
 .class-card {
   display: grid;
   grid-template-columns: 1fr 72px; /* contenido + columna de acciones */
@@ -1816,11 +1844,35 @@ body.oscuro .modal-close:hover {
 .class-delete:hover { background: var(--danger-bg); }
 
 /* Editor inline dentro del horario */
-.class-editor { display: flex; flex-direction: column; gap: 8px; padding: 8px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); }
+.class-editor { display: flex; flex-direction: column; gap: 8px; padding: 8px; border-radius: 8px; background: var(--card); border: 1px solid var(--border); position: relative; }
 .class-editor .editor-row { display: flex; gap: 8px; }
 .class-editor input { padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-weight: 600; flex: 1; min-width: 0; box-sizing: border-box; }
 .class-editor .editor-absences { width: 88px; }
-.class-editor .editor-actions { display:flex; gap:8px; justify-content:flex-end; }
+.class-editor .editor-actions { display:flex; gap:8px; align-items:center; }
+.class-editor .editor-buttons { display:flex; gap:8px; margin-left:auto; }
+.class-editor .editor-color-input {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 0 0 auto;
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+}
+.class-editor .editor-color-input::-webkit-color-swatch-wrapper {
+  padding: 3px;
+  border-radius: 50%;
+}
+.class-editor .editor-color-input::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
+}
 .class-editor .editor-save { background: var(--accent); color: #fff; border: none; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
 .class-editor .editor-cancel {
   background: #b91c1c; /* color rojo fuerte fijo */
@@ -1888,7 +1940,21 @@ body.oscuro .modal-close:hover {
 .action-buttons .class-delete:hover { background: var(--danger-bg); }
 
 
-.day-add { background: var(--accent); color: #fff; border: none; width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-weight:700; display:inline-flex; align-items:center; justify-content:center; }
+.day-add {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  margin-left: 4px;
+}
 .day-add:hover { background: var(--accent-light); }
 
 @media (max-width: 800px) {
