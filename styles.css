@@ -1362,10 +1362,15 @@ body.oscuro .modal-close:hover {
 
 .config-card {
   width: min(520px, 92vw);
+  max-height: min(84vh, 720px);
 }
 
 .configuracion-body {
   gap: 14px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .config-section {
