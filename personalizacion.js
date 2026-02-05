@@ -12,6 +12,9 @@ const MALLA_ENABLED_KEY = "mallaActivaHorario"
 const MALLA_SIZE_KEY = "mallaSizeHorario"
 const scheduleMallaImage = document.getElementById("scheduleMallaImage")
 const scheduleMallaPlaceholder = document.getElementById("scheduleMallaPlaceholder")
+const mallaPreviewBackdrop = document.getElementById("mallaPreviewBackdrop")
+const mallaPreviewImage = document.getElementById("mallaPreviewImage")
+const mallaPreviewClose = document.getElementById("mallaPreviewClose")
 
 function aplicarModoGuardado() {
   if (localStorage.getItem(MODO_OSCURO_STORAGE_KEY) === "true") {
@@ -120,11 +123,26 @@ function aplicarMallaImagen(src) {
     scheduleMallaImage.src = src
     scheduleMallaImage.hidden = false
     scheduleMallaPlaceholder.hidden = true
+    if (mallaPreviewImage) mallaPreviewImage.src = src
   } else {
     scheduleMallaImage.removeAttribute("src")
     scheduleMallaImage.hidden = true
     scheduleMallaPlaceholder.hidden = false
+    if (mallaPreviewImage) mallaPreviewImage.removeAttribute("src")
   }
+}
+
+function abrirMallaPreview() {
+  if (!mallaPreviewBackdrop || !mallaPreviewImage) return
+  if (!mallaPreviewImage.getAttribute("src")) return
+  mallaPreviewBackdrop.classList.add("visible")
+  mallaPreviewBackdrop.setAttribute("aria-hidden", "false")
+}
+
+function cerrarMallaPreview() {
+  if (!mallaPreviewBackdrop) return
+  mallaPreviewBackdrop.classList.remove("visible")
+  mallaPreviewBackdrop.setAttribute("aria-hidden", "true")
 }
 
 function aplicarMallaActiva(activa) {
@@ -175,6 +193,16 @@ mallaSize?.addEventListener("input", () => {
   const valor = mallaSize.value
   aplicarMallaSize(valor)
   localStorage.setItem(MALLA_SIZE_KEY, valor)
+})
+
+scheduleMallaImage?.addEventListener("click", abrirMallaPreview)
+mallaPreviewClose?.addEventListener("click", cerrarMallaPreview)
+mallaPreviewBackdrop?.addEventListener("click", event => {
+  if (event.target === mallaPreviewBackdrop) cerrarMallaPreview()
+})
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") cerrarMallaPreview()
 })
 
 aplicarModoGuardado()
