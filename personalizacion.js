@@ -397,6 +397,13 @@ function aplicarMallaWidth(value) {
   document.documentElement.style.setProperty("--malla-width", `${clamped}px`)
 }
 
+function obtenerZoomApp() {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue("--zoom-scale")
+  const escala = Number.parseFloat(raw)
+  if (!Number.isFinite(escala) || escala <= 0) return 1
+  return escala
+}
+
 function habilitarResizeMalla() {
   const contenedor = document.getElementById("scheduleMalla")
   if (!contenedor || !mallaResizeHandle) return
@@ -423,7 +430,8 @@ function habilitarResizeMalla() {
 
   const onPointerMove = event => {
     if (!resizing) return
-    const delta = lastX - event.clientX
+    const zoomScale = obtenerZoomApp()
+    const delta = (lastX - event.clientX) / zoomScale
     lastX = event.clientX
     currentWidth += delta * MALLA_RESIZE_SENSITIVITY
     widthPendiente = currentWidth
@@ -451,7 +459,7 @@ function habilitarResizeMalla() {
     event.stopPropagation()
     resizing = true
     lastX = event.clientX
-    currentWidth = contenedor.getBoundingClientRect().width
+    currentWidth = contenedor.getBoundingClientRect().width / obtenerZoomApp()
     widthPendiente = currentWidth
     mallaResizeHandle.setPointerCapture?.(event.pointerId)
     document.body.classList.add("malla-resizing")
