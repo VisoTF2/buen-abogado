@@ -2121,9 +2121,6 @@ body.malla-activa .schedule-malla {
 }
 
 .malla-preview-actions {
-  position: absolute;
-  top: 12px;
-  right: 12px;
   gap: 8px;
 }
 
