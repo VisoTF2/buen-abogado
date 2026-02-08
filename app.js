@@ -950,7 +950,8 @@ function activarArrastreArticulo(box, normativa, materia) {
 }
 
 const mallaPreviewBackdrop = document.getElementById("mallaPreviewBackdrop")
-const mallaPreviewVisible = () => mallaPreviewBackdrop?.classList.contains("visible")
+const mallaPreviewVisible = () =>
+  mallaPreviewBackdrop?.getAttribute("aria-hidden") === "false"
 
 document.addEventListener(
   "wheel",

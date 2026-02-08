@@ -44,7 +44,7 @@ let mallaZoomActual = 1
 let mallaZoomBase = { width: 0, height: 0 }
 
 function mallaPreviewVisible() {
-  return mallaPreviewBackdrop?.classList.contains("visible")
+  return mallaPreviewBackdrop?.getAttribute("aria-hidden") === "false"
 }
 
 function asegurarMallaPreviewEnBody() {
