@@ -516,6 +516,28 @@ function mostrarMenuContextual(x, y) {
   menuContextual.style.top = `${posY}px`
 }
 
+function obtenerPosicionMenuContextual(objetivo) {
+  if (!objetivo) return { x: window.innerWidth / 2, y: window.innerHeight / 2 }
+
+  const seleccion = window.getSelection()
+  if (seleccion && seleccion.rangeCount > 0 && seleccionPerteneceAlObjetivo(objetivo, seleccion)) {
+    const rango = seleccion.getRangeAt(0)
+    const rect = rango.getBoundingClientRect()
+    if (rect.width || rect.height) {
+      return {
+        x: rect.left + rect.width / 2,
+        y: rect.bottom + 8
+      }
+    }
+  }
+
+  const rect = objetivo.getBoundingClientRect()
+  return {
+    x: rect.left + rect.width / 2,
+    y: rect.bottom + 8
+  }
+}
+
 function enfocarObjetivoParaPegar() {
   if (!objetivoContextual) return
   const seleccion = window.getSelection()
@@ -617,6 +639,18 @@ function inicializarMenuContextual() {
     actualizarEstadoMenuContextual()
     mostrarMenuContextual(e.clientX, e.clientY)
   })
+
+  const mostrarMenuDesdeAccion = event => {
+    const editable = esCampoEditable(event.target)
+    if (!editable) return
+    objetivoContextual = editable
+    actualizarEstadoMenuContextual()
+    const { x, y } = obtenerPosicionMenuContextual(editable)
+    mostrarMenuContextual(x, y)
+  }
+
+  document.addEventListener("copy", mostrarMenuDesdeAccion)
+  document.addEventListener("paste", mostrarMenuDesdeAccion)
 
   botonCopiarMenu.addEventListener("click", async () => {
     if (!objetivoContextual || !navigator.clipboard?.writeText) return
