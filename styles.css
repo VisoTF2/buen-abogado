@@ -33,6 +33,10 @@
       --danger-border: rgba(220, 38, 38, 0.42);
       --danger-border-strong: rgba(239, 68, 68, 0.62);
       --danger-text: #b91c1c;
+      --danger-solid-bg: #dc2626;
+      --danger-solid-hover: #b91c1c;
+      --danger-solid-border: #b91c1c;
+      --danger-solid-text: #fff;
       --card-shadow-elevated: 0 6px 16px rgba(0, 0, 0, 0.1);
     }
 
@@ -64,6 +68,10 @@
       --danger-border: rgba(248, 113, 113, 0.5);
       --danger-border-strong: rgba(252, 165, 165, 0.68);
       --danger-text: #fca5a5;
+      --danger-solid-bg: #dc2626;
+      --danger-solid-hover: #b91c1c;
+      --danger-solid-border: #b91c1c;
+      --danger-solid-text: #fff;
       --card-shadow-elevated: 0 12px 26px rgba(0,0,0,0.42);
     }
 
@@ -383,11 +391,11 @@ body.banner-sin-fondo header:not(.banner-con-imagen)::after {
     }
 
     .btn-small {
-      background: #dc2626;
-      color: white;
+      background: var(--danger-solid-bg);
+      color: var(--danger-solid-text);
     }
 
-    .btn-small:hover { background: #b91c1c; }
+    .btn-small:hover { background: var(--danger-solid-hover); }
 
     .btn-note {
       background: var(--accent);
@@ -399,13 +407,13 @@ body.banner-sin-fondo header:not(.banner-con-imagen)::after {
     .btn-note:hover { background: var(--accent-light); }
 
     .btn-note-delete {
-      background: #6b7280;
-      color: white;
+      background: var(--danger-solid-bg);
+      color: var(--danger-solid-text);
       margin-top: 10px;
       margin-right: 10px;
     }
 
-    .btn-note-delete:hover { background: #4b5563; }
+    .btn-note-delete:hover { background: var(--danger-solid-hover); }
 
 .btn-secondary {
   background: #e2e8f0;
@@ -647,14 +655,14 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .documento-eliminar {
-      background: var(--danger-bg);
-      color: var(--danger-text);
-      border-color: var(--danger-border);
+      background: var(--danger-solid-bg);
+      color: var(--danger-solid-text);
+      border-color: var(--danger-solid-border);
     }
 
     .documento-eliminar:hover {
-      background: var(--danger-hover-bg);
-      border-color: var(--danger-border-strong);
+      background: var(--danger-solid-hover);
+      border-color: var(--danger-solid-hover);
     }
 
     .documento-ver:active,
@@ -1134,9 +1142,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetaEliminar {
-  border: 1px solid var(--danger-border);
-  background: var(--danger-bg);
-  color: var(--danger-text);
+  border: 1px solid var(--danger-solid-border);
+  background: var(--danger-solid-bg);
+  color: var(--danger-solid-text);
   border-radius: 10px;
   padding: 8px 12px;
   cursor: pointer;
@@ -1145,8 +1153,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetaEliminar:hover {
-  background: var(--danger-hover-bg);
-  border-color: var(--danger-border-strong);
+  background: var(--danger-solid-hover);
+  border-color: var(--danger-solid-hover);
 }
 .carpetaEliminar:active { transform: translateY(1px); }
 
@@ -1233,9 +1241,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetaDocumentoQuitar {
-  border: 1px solid var(--danger-border);
-  background: var(--danger-bg);
-  color: var(--danger-text);
+  border: 1px solid var(--danger-solid-border);
+  background: var(--danger-solid-bg);
+  color: var(--danger-solid-text);
   border-radius: 8px;
   padding: 6px 10px;
   cursor: pointer;
@@ -1245,8 +1253,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetaDocumentoQuitar:hover {
-  background: var(--danger-hover-bg);
-  border-color: var(--danger-border-strong);
+  background: var(--danger-solid-hover);
+  border-color: var(--danger-solid-hover);
 }
 .carpetaDocumentoQuitar:active { transform: translateY(1px); }
 
@@ -1952,8 +1960,19 @@ body.oscuro .class-card.light-bg .class-meta,
 body.oscuro .class-card.light-bg .class-actions .absences {
   color: #111827;
 }
-.class-delete { background: transparent; border: none; color: var(--danger-text); cursor: pointer; font-weight: 700; padding: 4px 6px; border-radius: 6px; }
-.class-delete:hover { background: var(--danger-bg); }
+.class-delete {
+  background: var(--danger-solid-bg);
+  border: 1px solid var(--danger-solid-border);
+  color: var(--danger-solid-text);
+  cursor: pointer;
+  font-weight: 700;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+.class-delete:hover {
+  background: var(--danger-solid-hover);
+  border-color: var(--danger-solid-hover);
+}
 
 .schedule-malla {
   display: none;
@@ -2085,8 +2104,8 @@ body.malla-activa .schedule-malla {
 }
 .class-editor .editor-save { background: var(--accent); color: #fff; border: none; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
 .class-editor .editor-cancel {
-  background: #b91c1c; /* color rojo fuerte fijo */
-  color: #fff;
+  background: var(--danger-solid-bg);
+  color: var(--danger-solid-text);
   border: none;
   padding: 8px 12px;
   border-radius: 8px;
@@ -2147,8 +2166,8 @@ body.oscuro .action-buttons button:hover { background: rgba(255, 255, 255, 0.16)
 
 .class-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(16,24,40,0.06); }
 
-.action-buttons .class-delete { color: #b91c1c; }
-.action-buttons .class-delete:hover { background: var(--focus-surface); }
+.action-buttons .class-delete { color: var(--danger-solid-text); }
+.action-buttons .class-delete:hover { background: var(--danger-solid-hover); }
 
 
 .day-add {
