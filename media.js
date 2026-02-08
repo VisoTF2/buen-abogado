@@ -42,8 +42,17 @@ const finalizarEmbed = embedUrl => {
     if (!url.searchParams.has("playsinline")) {
       url.searchParams.set("playsinline", "1")
     }
+    const existingOrigin = url.searchParams.get("origin")
+    if (existingOrigin && !existingOrigin.startsWith("http")) {
+      url.searchParams.delete("origin")
+    }
     const origin = window.location?.origin
-    if (origin && origin !== "null" && !url.searchParams.has("origin")) {
+    if (
+      origin &&
+      origin !== "null" &&
+      origin.startsWith("http") &&
+      !url.searchParams.has("origin")
+    ) {
       url.searchParams.set("origin", origin)
     }
     return url.toString()
@@ -149,7 +158,16 @@ const renderMedia = videos => {
   if (!mediaGrid) return
   mediaGrid.innerHTML = ""
 
-  if (!videos.length) {
+  const normalizados = videos.map(video => ({
+    ...video,
+    embedUrl: finalizarEmbed(video.embedUrl) || video.embedUrl
+  }))
+
+  if (JSON.stringify(normalizados) !== JSON.stringify(videos)) {
+    guardarVideos(normalizados)
+  }
+
+  if (!normalizados.length) {
     const empty = document.createElement("div")
     empty.className = "media-empty"
     empty.textContent = "Todavía no has agregado videos."
@@ -157,9 +175,9 @@ const renderMedia = videos => {
     return
   }
 
-  videos.forEach(video => {
+  normalizados.forEach(video => {
     const card = crearCardVideo(video, id => {
-      const updated = videos.filter(item => item.id !== id)
+      const updated = normalizados.filter(item => item.id !== id)
       guardarVideos(updated)
       renderMedia(updated)
     })
