@@ -1112,25 +1112,39 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpeta-color-input {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  width: 120px;
+  height: 12px;
+  border-radius: 999px;
   border: 1px solid var(--border);
   padding: 0;
   cursor: pointer;
-  background: none;
+  background: linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
   appearance: none;
   -webkit-appearance: none;
 }
 
-.carpeta-color-input::-webkit-color-swatch-wrapper {
-  padding: 3px;
+.carpeta-color-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
+  background: #fff;
+  border: 2px solid #111827;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
-.carpeta-color-input::-webkit-color-swatch {
-  border: none;
+.carpeta-color-input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
+  background: #fff;
+  border: 2px solid #111827;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.carpeta-color-input::-moz-range-track {
+  background: transparent;
+  border: none;
 }
 
 .carpetaEliminar {
@@ -1613,25 +1627,39 @@ body.oscuro .modal-close:hover {
     }
 
     .materia-color-input {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
+      width: 120px;
+      height: 12px;
+      border-radius: 999px;
       border: 1px solid var(--border);
       padding: 0;
       cursor: pointer;
-      background: none;
+      background: linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
       appearance: none;
       -webkit-appearance: none;
     }
 
-    .materia-color-input::-webkit-color-swatch-wrapper {
-      padding: 3px;
+    .materia-color-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
+      background: #fff;
+      border: 2px solid #111827;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
     }
 
-    .materia-color-input::-webkit-color-swatch {
-      border: none;
+    .materia-color-input::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
+      background: #fff;
+      border: 2px solid #111827;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    }
+
+    .materia-color-input::-moz-range-track {
+      background: transparent;
+      border: none;
     }
 
     .articulo {
@@ -2061,27 +2089,40 @@ body.malla-activa .schedule-malla {
 .class-editor .editor-actions { display:flex; gap:8px; align-items:center; }
 .class-editor .editor-buttons { display:flex; gap:8px; margin-left:auto; }
 .class-editor .editor-color-input {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  width: 120px;
+  height: 12px;
+  border-radius: 999px;
   border: 1px solid var(--border);
   padding: 0;
   cursor: pointer;
-  background: none;
+  background: linear-gradient(90deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
   appearance: none;
   -webkit-appearance: none;
   flex: 0 0 auto;
   position: absolute;
   left: 8px;
-  bottom: 8px;
+  bottom: 12px;
 }
-.class-editor .editor-color-input::-webkit-color-swatch-wrapper {
-  padding: 3px;
+.class-editor .editor-color-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
+  background: #fff;
+  border: 2px solid #111827;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
-.class-editor .editor-color-input::-webkit-color-swatch {
+.class-editor .editor-color-input::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #111827;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.class-editor .editor-color-input::-moz-range-track {
+  background: transparent;
   border: none;
-  border-radius: 50%;
 }
 .class-editor .editor-save { background: var(--accent); color: #fff; border: none; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
 .class-editor .editor-cancel {

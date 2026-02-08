@@ -24,6 +24,83 @@ function escaparComoHTML(texto) {
     .replace(/>/g, "&gt;")
 }
 
+function hexAjustadoAHsl(hex) {
+  const limpio = String(hex || "#1e3a8a").trim().replace("#", "")
+  const expandido = limpio.length === 3
+    ? limpio.split("").map(c => c + c).join("")
+    : limpio.padEnd(6, "0")
+  const r = parseInt(expandido.slice(0, 2), 16) / 255
+  const g = parseInt(expandido.slice(2, 4), 16) / 255
+  const b = parseInt(expandido.slice(4, 6), 16) / 255
+  const max = Math.max(r, g, b)
+  const min = Math.min(r, g, b)
+  const delta = max - min
+  let h = 0
+  let s = 0
+  const l = (max + min) / 2
+
+  if (delta !== 0) {
+    s = delta / (1 - Math.abs(2 * l - 1))
+    switch (max) {
+      case r:
+        h = ((g - b) / delta) % 6
+        break
+      case g:
+        h = (b - r) / delta + 2
+        break
+      default:
+        h = (r - g) / delta + 4
+        break
+    }
+    h = Math.round(h * 60)
+    if (h < 0) h += 360
+  }
+
+  return {
+    h,
+    s: Math.round(s * 100),
+    l: Math.round(l * 100)
+  }
+}
+
+function obtenerHueDesdeHex(hex) {
+  return hexAjustadoAHsl(hex).h
+}
+
+function hslAHex(h, s, l) {
+  const sat = s / 100
+  const lig = l / 100
+  const c = (1 - Math.abs(2 * lig - 1)) * sat
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1))
+  const m = lig - c / 2
+  let r = 0
+  let g = 0
+  let b = 0
+
+  if (h >= 0 && h < 60) {
+    r = c
+    g = x
+  } else if (h < 120) {
+    r = x
+    g = c
+  } else if (h < 180) {
+    g = c
+    b = x
+  } else if (h < 240) {
+    g = x
+    b = c
+  } else if (h < 300) {
+    r = x
+    b = c
+  } else {
+    r = c
+    b = x
+  }
+
+  const toHex = val => Math.round((val + m) * 255).toString(16).padStart(2, "0")
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+}
+
 const ZOOM_STEP = 0.05
 const MIN_ZOOM = 1
 const MAX_ZOOM = 1.25
@@ -1181,16 +1258,22 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
     acciones.className = "carpetaActions"
 
     const colorInput = document.createElement("input")
-    colorInput.type = "color"
+    colorInput.type = "range"
     colorInput.className = "carpeta-color-input"
-    colorInput.value = colorCarpeta
+    colorInput.min = "0"
+    colorInput.max = "360"
+    colorInput.value = obtenerHueDesdeHex(colorCarpeta)
+    const carpetaHsl = hexAjustadoAHsl(colorCarpeta)
+    colorInput.dataset.s = carpetaHsl.s
+    colorInput.dataset.l = carpetaHsl.l
     colorInput.addEventListener("click", e => e.stopPropagation())
     colorInput.addEventListener("input", () => {
-      card.style.setProperty("--carpeta-color", colorInput.value)
-      card.style.borderColor = colorInput.value
+      const nuevoColor = hslAHex(Number(colorInput.value), Number(colorInput.dataset.s), Number(colorInput.dataset.l))
+      card.style.setProperty("--carpeta-color", nuevoColor)
+      card.style.borderColor = nuevoColor
     })
     colorInput.addEventListener("change", () => {
-      const nuevoColor = colorInput.value
+      const nuevoColor = hslAHex(Number(colorInput.value), Number(colorInput.dataset.s), Number(colorInput.dataset.l))
       carpetas = carpetas.map(c => (c.id === carpeta.id ? { ...c, color: nuevoColor } : c))
       guardarCarpetas()
       renderizarCarpetasSidebar(contenedor, agrupado, sidebar)
@@ -1377,15 +1460,20 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
   controles.className = "materia-controls"
 
   const colorInput = document.createElement("input")
-  colorInput.type = "color"
+  colorInput.type = "range"
   colorInput.className = "materia-color-input"
-  colorInput.value = colorMateria
+  colorInput.min = "0"
+  colorInput.max = "360"
+  colorInput.value = obtenerHueDesdeHex(colorMateria)
+  const materiaHsl = hexAjustadoAHsl(colorMateria)
+  colorInput.dataset.s = materiaHsl.s
+  colorInput.dataset.l = materiaHsl.l
 
   colorInput.addEventListener("click", e => e.stopPropagation())
   colorInput.addEventListener("pointerdown", e => e.stopImmediatePropagation())
 
   colorInput.addEventListener("input", () => {
-    const nuevoColor = colorInput.value
+    const nuevoColor = hslAHex(Number(colorInput.value), Number(colorInput.dataset.s), Number(colorInput.dataset.l))
     tituloM.style.color = nuevoColor
     tituloM.style.setProperty("--materia-underline", nuevoColor)
 
@@ -1407,7 +1495,7 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
   })
 
   colorInput.addEventListener("change", () => {
-    const nuevoColor = colorInput.value
+    const nuevoColor = hslAHex(Number(colorInput.value), Number(colorInput.dataset.s), Number(colorInput.dataset.l))
     articulos.forEach(a => {
       if (a.materia === nombreActual && a.normativa === normativa) a.color = nuevoColor
     })

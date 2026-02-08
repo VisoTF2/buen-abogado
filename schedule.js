@@ -92,6 +92,83 @@
     return normalized === '#fff' || normalized === '#ffffff'
   }
 
+  function hexAjustadoAHsl(hex) {
+    const limpio = String(hex || '#1e3a8a').trim().replace('#', '')
+    const expandido = limpio.length === 3
+      ? limpio.split('').map(c => c + c).join('')
+      : limpio.padEnd(6, '0')
+    const r = parseInt(expandido.slice(0, 2), 16) / 255
+    const g = parseInt(expandido.slice(2, 4), 16) / 255
+    const b = parseInt(expandido.slice(4, 6), 16) / 255
+    const max = Math.max(r, g, b)
+    const min = Math.min(r, g, b)
+    const delta = max - min
+    let h = 0
+    let s = 0
+    const l = (max + min) / 2
+
+    if (delta !== 0) {
+      s = delta / (1 - Math.abs(2 * l - 1))
+      switch (max) {
+        case r:
+          h = ((g - b) / delta) % 6
+          break
+        case g:
+          h = (b - r) / delta + 2
+          break
+        default:
+          h = (r - g) / delta + 4
+          break
+      }
+      h = Math.round(h * 60)
+      if (h < 0) h += 360
+    }
+
+    return {
+      h,
+      s: Math.round(s * 100),
+      l: Math.round(l * 100),
+    }
+  }
+
+  function obtenerHueDesdeHex(hex) {
+    return hexAjustadoAHsl(hex).h
+  }
+
+  function hslAHex(h, s, l) {
+    const sat = s / 100
+    const lig = l / 100
+    const c = (1 - Math.abs(2 * lig - 1)) * sat
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1))
+    const m = lig - c / 2
+    let r = 0
+    let g = 0
+    let b = 0
+
+    if (h >= 0 && h < 60) {
+      r = c
+      g = x
+    } else if (h < 120) {
+      r = x
+      g = c
+    } else if (h < 180) {
+      g = c
+      b = x
+    } else if (h < 240) {
+      g = x
+      b = c
+    } else if (h < 300) {
+      r = x
+      b = c
+    } else {
+      r = c
+      b = x
+    }
+
+    const toHex = val => Math.round((val + m) * 255).toString(16).padStart(2, '0')
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+  }
+
   // create read-only card for a class
   function crearElementoClase(item) {
     const li = document.createElement('li')
@@ -151,6 +228,7 @@
     const li = document.createElement('li')
     li.className = 'class-editor'
     const colorValue = values.bgColor || '#ffffff'
+    const colorHsl = hexAjustadoAHsl(colorValue)
     li.innerHTML = `
       <div class="editor-row">
         <input class="editor-name" placeholder="Clase" value="${escapeHtml(values.name || '')}">
@@ -161,20 +239,23 @@
         <input class="editor-absences" type="number" min="0" placeholder="Faltas" value="${escapeHtml(values.absences || 0)}">
       </div>
       <div class="editor-actions">
-        <input class="editor-color-input" type="color" value="${escapeHtml(colorValue)}" aria-label="Seleccionar color">
+        <input class="editor-color-input" type="range" min="0" max="360" value="${colorHsl.h}" aria-label="Seleccionar color">
         <div class="editor-buttons">
           <button type="button" class="editor-save">Guardar</button>
           <button type="button" class="editor-cancel">Cancelar</button>
         </div>
       </div>
     `
+    const colorInput = li.querySelector('.editor-color-input')
+    colorInput.dataset.s = colorHsl.s
+    colorInput.dataset.l = colorHsl.l
 
     li.querySelector('.editor-save').addEventListener('click', ()=>{
       const nombre = li.querySelector('.editor-name').value
       const time = li.querySelector('.editor-time').value
       const teacher = li.querySelector('.editor-teacher').value
       const absences = parseInt(li.querySelector('.editor-absences').value || '0', 10) || 0
-      const bgColor = li.querySelector('.editor-color-input').value
+      const bgColor = hslAHex(Number(colorInput.value), Number(colorInput.dataset.s), Number(colorInput.dataset.l))
       if (!nombre || !nombre.trim()) { li.querySelector('.editor-name').focus(); return }
       onSave({
         name: nombre.trim(),
