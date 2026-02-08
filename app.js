@@ -190,7 +190,7 @@ function insertarEditorCarpeta(contenedor) {
     return
   }
 
-  const placeholder = contenedor.querySelector(".carpetaVacia")
+  const placeholder = contenedor.querySelector(":scope > .carpetaVacia")
   if (placeholder) placeholder.remove()
 
   const card = document.createElement("div")
