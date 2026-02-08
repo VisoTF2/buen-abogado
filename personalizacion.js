@@ -9,6 +9,8 @@ const FONDO_STORAGE_KEY = "fondoImagenApp"
 const mallaInput = document.getElementById("mallaInput")
 const mallaToggle = document.getElementById("mallaToggle")
 const MALLA_STORAGE_KEY = "mallaImagenHorario"
+const MALLA_BASE_KEY = "mallaImagenBaseHorario"
+const MALLA_OVERLAY_KEY = "mallaOverlayHorario"
 const MALLA_ENABLED_KEY = "mallaActivaHorario"
 const MALLA_SIZE_KEY = "mallaSizeHorario"
 const MALLA_MIN_WIDTH = 220
@@ -143,14 +145,19 @@ function abrirSelectorMalla() {
 }
 
 function aplicarMallaImagen(src) {
-  if (!scheduleMallaImage || !scheduleMallaPlaceholder) return
+  aplicarMallaBase(src, src)
+}
 
-  if (src) {
-    scheduleMallaImage.src = src
+function aplicarMallaBase(baseSrc, displaySrc) {
+  if (!scheduleMallaImage || !scheduleMallaPlaceholder) return
+  const resolvedDisplay = displaySrc || baseSrc
+
+  if (baseSrc) {
+    scheduleMallaImage.src = resolvedDisplay
     scheduleMallaImage.hidden = false
     if (mallaResizeHandle) mallaResizeHandle.hidden = false
     scheduleMallaPlaceholder.hidden = true
-    if (mallaPreviewImage) mallaPreviewImage.src = src
+    if (mallaPreviewImage) mallaPreviewImage.src = baseSrc
     window.requestAnimationFrame(ajustarCanvasMalla)
   } else {
     scheduleMallaImage.removeAttribute("src")
@@ -160,6 +167,10 @@ function aplicarMallaImagen(src) {
     if (mallaPreviewImage) mallaPreviewImage.removeAttribute("src")
     limpiarCanvasMalla()
   }
+}
+
+function obtenerOverlayMalla() {
+  return localStorage.getItem(MALLA_OVERLAY_KEY) || ""
 }
 
 function ajustarCanvasMalla() {
@@ -182,7 +193,24 @@ function limpiarCanvasMalla() {
   if (!mallaPreviewCanvas) return
   const ctx = mallaPreviewCanvas.getContext("2d")
   if (!ctx) return
+  ctx.globalCompositeOperation = "source-over"
   ctx.clearRect(0, 0, mallaPreviewCanvas.width, mallaPreviewCanvas.height)
+}
+
+function cargarOverlayMalla() {
+  if (!mallaPreviewCanvas || !mallaPreviewImage) return
+  const overlaySrc = obtenerOverlayMalla()
+  limpiarCanvasMalla()
+  if (!overlaySrc) return
+  const rect = mallaPreviewImage.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+  const overlayImage = new Image()
+  overlayImage.onload = () => {
+    const ctx = mallaPreviewCanvas.getContext("2d")
+    if (!ctx) return
+    ctx.drawImage(overlayImage, 0, 0, rect.width, rect.height)
+  }
+  overlayImage.src = overlaySrc
 }
 
 function establecerModoDibujo(activo) {
@@ -218,35 +246,43 @@ function establecerModoBorrador(activo) {
 }
 
 function guardarEdicionMalla() {
-  if (!mallaPreviewImage || !mallaPreviewCanvas) return
-  const src = mallaPreviewImage.getAttribute("src")
-  if (!src) return
+  if (!mallaPreviewCanvas) return
+  const overlayDataUrl = mallaPreviewCanvas.toDataURL("image/png")
+  localStorage.setItem(MALLA_OVERLAY_KEY, overlayDataUrl)
+  actualizarMallaCompuesta()
+  limpiarCanvasMalla()
+  cargarOverlayMalla()
+  establecerModoDibujo(false)
+  establecerModoBorrador(false)
+}
+
+function actualizarMallaCompuesta() {
+  const baseSrc = localStorage.getItem(MALLA_BASE_KEY) || ""
+  if (!baseSrc) return
+  const overlaySrc = obtenerOverlayMalla()
+  if (!overlaySrc) {
+    aplicarMallaBase(baseSrc, baseSrc)
+    localStorage.setItem(MALLA_STORAGE_KEY, baseSrc)
+    return
+  }
   const baseImage = new Image()
+  const overlayImage = new Image()
   baseImage.onload = () => {
     const outputCanvas = document.createElement("canvas")
-    outputCanvas.width = baseImage.naturalWidth || mallaPreviewCanvas.width
-    outputCanvas.height = baseImage.naturalHeight || mallaPreviewCanvas.height
+    outputCanvas.width = baseImage.naturalWidth
+    outputCanvas.height = baseImage.naturalHeight
     const outputCtx = outputCanvas.getContext("2d")
     if (!outputCtx) return
-    outputCtx.drawImage(baseImage, 0, 0, outputCanvas.width, outputCanvas.height)
-    outputCtx.drawImage(
-      mallaPreviewCanvas,
-      0,
-      0,
-      mallaPreviewCanvas.width,
-      mallaPreviewCanvas.height,
-      0,
-      0,
-      outputCanvas.width,
-      outputCanvas.height
-    )
-    const dataUrl = outputCanvas.toDataURL("image/png")
-    aplicarMallaImagen(dataUrl)
-    localStorage.setItem(MALLA_STORAGE_KEY, dataUrl)
-    limpiarCanvasMalla()
-    establecerModoDibujo(false)
+    outputCtx.drawImage(baseImage, 0, 0)
+    overlayImage.onload = () => {
+      outputCtx.drawImage(overlayImage, 0, 0, outputCanvas.width, outputCanvas.height)
+      const displayUrl = outputCanvas.toDataURL("image/png")
+      aplicarMallaBase(baseSrc, displayUrl)
+      localStorage.setItem(MALLA_STORAGE_KEY, displayUrl)
+    }
+    overlayImage.src = overlaySrc
   }
-  baseImage.src = src
+  baseImage.src = baseSrc
 }
 
 function abrirMallaPreview() {
@@ -254,7 +290,10 @@ function abrirMallaPreview() {
   if (!mallaPreviewImage.getAttribute("src")) return
   mallaPreviewBackdrop.classList.add("visible")
   mallaPreviewBackdrop.setAttribute("aria-hidden", "false")
-  window.requestAnimationFrame(ajustarCanvasMalla)
+  window.requestAnimationFrame(() => {
+    ajustarCanvasMalla()
+    cargarOverlayMalla()
+  })
 }
 
 function cerrarMallaPreview() {
@@ -346,7 +385,9 @@ function habilitarResizeMalla() {
 function restablecerMalla() {
   aplicarMallaImagen("")
   aplicarMallaWidth(String(MALLA_DEFAULT_WIDTH))
+  localStorage.removeItem(MALLA_BASE_KEY)
   localStorage.removeItem(MALLA_STORAGE_KEY)
+  localStorage.removeItem(MALLA_OVERLAY_KEY)
   localStorage.removeItem(MALLA_SIZE_KEY)
   if (mallaInput) mallaInput.value = ""
 }
@@ -359,8 +400,10 @@ mallaInput?.addEventListener("change", e => {
   lector.onload = () => {
     const dataUrl = lector.result
     if (typeof dataUrl === "string") {
-      aplicarMallaImagen(dataUrl)
+      aplicarMallaBase(dataUrl, dataUrl)
+      localStorage.setItem(MALLA_BASE_KEY, dataUrl)
       localStorage.setItem(MALLA_STORAGE_KEY, dataUrl)
+      localStorage.removeItem(MALLA_OVERLAY_KEY)
       aplicarMallaActiva(true)
       localStorage.setItem(MALLA_ENABLED_KEY, "true")
     }
@@ -381,8 +424,14 @@ mallaPreviewClose?.addEventListener("click", cerrarMallaPreview)
 mallaPreviewBackdrop?.addEventListener("click", event => {
   if (event.target === mallaPreviewBackdrop) cerrarMallaPreview()
 })
-mallaPreviewImage?.addEventListener("load", ajustarCanvasMalla)
-window.addEventListener("resize", ajustarCanvasMalla)
+mallaPreviewImage?.addEventListener("load", () => {
+  ajustarCanvasMalla()
+  cargarOverlayMalla()
+})
+window.addEventListener("resize", () => {
+  ajustarCanvasMalla()
+  cargarOverlayMalla()
+})
 
 mallaDrawToggle?.addEventListener("click", () => {
   establecerModoDibujo(!mallaDrawActive)
@@ -394,6 +443,8 @@ mallaEraseToggle?.addEventListener("click", () => {
 
 mallaClearLines?.addEventListener("click", () => {
   limpiarCanvasMalla()
+  localStorage.removeItem(MALLA_OVERLAY_KEY)
+  actualizarMallaCompuesta()
 })
 
 mallaSaveLines?.addEventListener("click", guardarEdicionMalla)
@@ -449,6 +500,11 @@ aplicarModoGuardado()
 aplicarBanner(localStorage.getItem(BANNER_STORAGE_KEY) || "")
 aplicarFondoBannerActivo(localStorage.getItem(BANNER_FILL_ENABLED_KEY) !== "false")
 aplicarFondo(localStorage.getItem(FONDO_STORAGE_KEY) || "")
-aplicarMallaImagen(localStorage.getItem(MALLA_STORAGE_KEY) || "")
+const storedDisplayMalla = localStorage.getItem(MALLA_STORAGE_KEY) || ""
+const storedBaseMalla = localStorage.getItem(MALLA_BASE_KEY) || storedDisplayMalla
+if (storedBaseMalla && !localStorage.getItem(MALLA_BASE_KEY)) {
+  localStorage.setItem(MALLA_BASE_KEY, storedBaseMalla)
+}
+aplicarMallaBase(storedBaseMalla, storedDisplayMalla)
 aplicarMallaActiva(localStorage.getItem(MALLA_ENABLED_KEY) === "true")
 aplicarMallaWidth(localStorage.getItem(MALLA_SIZE_KEY) || String(MALLA_DEFAULT_WIDTH))
