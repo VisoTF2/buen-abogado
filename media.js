@@ -42,6 +42,9 @@ const finalizarEmbed = embedUrl => {
     if (!url.searchParams.has("playsinline")) {
       url.searchParams.set("playsinline", "1")
     }
+    if (!url.searchParams.has("modestbranding")) {
+      url.searchParams.set("modestbranding", "1")
+    }
     const existingOrigin = url.searchParams.get("origin")
     if (existingOrigin && !existingOrigin.startsWith("http")) {
       url.searchParams.delete("origin")
@@ -54,6 +57,14 @@ const finalizarEmbed = embedUrl => {
       !url.searchParams.has("origin")
     ) {
       url.searchParams.set("origin", origin)
+    }
+    const referrer = window.location?.href
+    if (
+      referrer &&
+      referrer.startsWith("http") &&
+      !url.searchParams.has("widget_referrer")
+    ) {
+      url.searchParams.set("widget_referrer", referrer)
     }
     return url.toString()
   } catch (error) {
@@ -76,42 +87,42 @@ const construirEmbedYouTube = url => {
 
   if (host === "youtu.be") {
     const id = path.replace("/", "")
-    return id ? finalizarEmbed(`https://www.youtube-nocookie.com/embed/${id}`) : null
+    return id ? finalizarEmbed(`https://www.youtube.com/embed/${id}`) : null
   }
 
   if (host.endsWith("youtube.com")) {
     if (path.startsWith("/embed/")) {
-      return finalizarEmbed(`https://www.youtube-nocookie.com${path}${parsed.search}`)
+      return finalizarEmbed(`https://www.youtube.com${path}${parsed.search}`)
     }
 
     if (path.startsWith("/playlist") && list) {
       return finalizarEmbed(
-        `https://www.youtube-nocookie.com/embed/videoseries?list=${list}`
+        `https://www.youtube.com/embed/videoseries?list=${list}`
       )
     }
 
     if (path.startsWith("/shorts/")) {
       const id = path.replace("/shorts/", "")
       return id
-        ? finalizarEmbed(`https://www.youtube-nocookie.com/embed/${id}`)
+        ? finalizarEmbed(`https://www.youtube.com/embed/${id}`)
         : null
     }
 
     if (path.startsWith("/live/")) {
       const id = path.replace("/live/", "")
       return id
-        ? finalizarEmbed(`https://www.youtube-nocookie.com/embed/${id}`)
+        ? finalizarEmbed(`https://www.youtube.com/embed/${id}`)
         : null
     }
 
     if (path === "/watch") {
       const id = parsed.searchParams.get("v")
       if (id) {
-        return finalizarEmbed(`https://www.youtube-nocookie.com/embed/${id}`)
+        return finalizarEmbed(`https://www.youtube.com/embed/${id}`)
       }
       if (list) {
         return finalizarEmbed(
-          `https://www.youtube-nocookie.com/embed/videoseries?list=${list}`
+          `https://www.youtube.com/embed/videoseries?list=${list}`
         )
       }
     }
@@ -127,7 +138,7 @@ const crearCardVideo = (video, onRemove) => {
   const iframe = document.createElement("iframe")
   iframe.src = video.embedUrl
   iframe.title = "Video de YouTube"
-  iframe.referrerPolicy = "strict-origin-when-cross-origin"
+  iframe.referrerPolicy = "origin"
   iframe.allow =
     "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
   iframe.allowFullscreen = true
