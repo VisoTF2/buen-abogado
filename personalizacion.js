@@ -17,6 +17,9 @@ const MALLA_MIN_WIDTH = 220
 const MALLA_MAX_WIDTH = 700
 const MALLA_DEFAULT_WIDTH = 320
 const MALLA_RESIZE_SENSITIVITY = 0.45
+const MALLA_ZOOM_STEP = 0.2
+const MALLA_ZOOM_MIN = 1
+const MALLA_ZOOM_MAX = 2.6
 const scheduleMallaImage = document.getElementById("scheduleMallaImage")
 const scheduleMallaPlaceholder = document.getElementById("scheduleMallaPlaceholder")
 const mallaPreviewBackdrop = document.getElementById("mallaPreviewBackdrop")
@@ -24,6 +27,8 @@ const mallaPreviewImage = document.getElementById("mallaPreviewImage")
 const mallaPreviewClose = document.getElementById("mallaPreviewClose")
 const mallaPreviewCanvasWrap = document.getElementById("mallaPreviewCanvasWrap")
 const mallaPreviewCanvas = document.getElementById("mallaPreviewCanvas")
+const mallaZoomIn = document.getElementById("mallaZoomIn")
+const mallaZoomOut = document.getElementById("mallaZoomOut")
 const mallaDrawToggle = document.getElementById("mallaDrawToggle")
 const mallaEraseToggle = document.getElementById("mallaEraseToggle")
 const mallaClearLines = document.getElementById("mallaClearLines")
@@ -34,6 +39,7 @@ const mallaResizeHandle = document.getElementById("mallaResizeHandle")
 let mallaDrawActive = false
 let mallaIsDrawing = false
 let mallaEraseActive = false
+let mallaZoomActual = 1
 
 function asegurarMallaPreviewEnBody() {
   if (!mallaPreviewBackdrop) return
@@ -154,6 +160,13 @@ function abrirSelectorMalla() {
 
 function aplicarMallaImagen(src) {
   aplicarMallaBase(src, src)
+}
+
+function aplicarZoomMalla(nivel) {
+  if (!mallaPreviewCanvasWrap) return
+  const limitado = Math.min(MALLA_ZOOM_MAX, Math.max(MALLA_ZOOM_MIN, nivel))
+  mallaZoomActual = limitado
+  mallaPreviewCanvasWrap.style.setProperty("--malla-zoom", limitado.toFixed(2))
 }
 
 function aplicarMallaBase(baseSrc, displaySrc) {
@@ -320,6 +333,7 @@ function abrirMallaPreview() {
   if (!mallaPreviewBackdrop || !mallaPreviewImage) return
   if (!mallaPreviewImage.getAttribute("src")) return
   asegurarMallaPreviewEnBody()
+  aplicarZoomMalla(1)
   mallaPreviewBackdrop.classList.add("visible")
   mallaPreviewBackdrop.setAttribute("aria-hidden", "false")
   window.requestAnimationFrame(() => {
@@ -460,6 +474,15 @@ mallaPreviewImage?.addEventListener("load", () => {
   ajustarCanvasMalla()
   cargarOverlayMalla()
 })
+
+mallaZoomIn?.addEventListener("click", () => {
+  aplicarZoomMalla(mallaZoomActual + MALLA_ZOOM_STEP)
+})
+
+mallaZoomOut?.addEventListener("click", () => {
+  aplicarZoomMalla(mallaZoomActual - MALLA_ZOOM_STEP)
+})
+
 window.addEventListener("resize", () => {
   ajustarCanvasMalla()
   cargarOverlayMalla()

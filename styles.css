@@ -2109,11 +2109,15 @@ body.malla-activa .schedule-malla {
 }
 
 .malla-preview-canvas-wrap {
+  --malla-zoom: 1;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  width: calc(100% * var(--malla-zoom));
+  max-width: none;
+  flex: 0 0 auto;
+  transition: width 0.15s ease;
 }
 
 .malla-preview-body img {
@@ -2146,6 +2150,17 @@ body.malla-activa .schedule-malla {
   gap: 6px;
   margin-left: auto;
   align-items: center;
+}
+
+.malla-zoom-controls {
+  display: inline-flex;
+  align-items: center;
+}
+
+.malla-zoom-btn {
+  width: 36px;
+  height: 32px;
+  font-size: 14px;
 }
 
 .malla-tool {
