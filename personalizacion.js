@@ -35,6 +35,12 @@ let mallaDrawActive = false
 let mallaIsDrawing = false
 let mallaEraseActive = false
 
+function asegurarMallaPreviewEnBody() {
+  if (!mallaPreviewBackdrop) return
+  if (mallaPreviewBackdrop.parentElement === document.body) return
+  document.body.appendChild(mallaPreviewBackdrop)
+}
+
 function aplicarModoGuardado() {
   if (localStorage.getItem(MODO_OSCURO_STORAGE_KEY) === "true") {
     document.body.classList.add("oscuro")
@@ -313,6 +319,7 @@ function actualizarMallaCompuesta() {
 function abrirMallaPreview() {
   if (!mallaPreviewBackdrop || !mallaPreviewImage) return
   if (!mallaPreviewImage.getAttribute("src")) return
+  asegurarMallaPreviewEnBody()
   mallaPreviewBackdrop.classList.add("visible")
   mallaPreviewBackdrop.setAttribute("aria-hidden", "false")
   window.requestAnimationFrame(() => {
