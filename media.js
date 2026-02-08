@@ -31,6 +31,23 @@ const guardarVideos = videos => {
 const crearIdVideo = () =>
   `media-${Date.now()}-${Math.random().toString(16).slice(2)}`
 
+const finalizarEmbed = embedUrl => {
+  if (!embedUrl) return null
+  try {
+    const url = new URL(embedUrl)
+    if (!url.searchParams.has("rel")) {
+      url.searchParams.set("rel", "0")
+    }
+    const origin = window.location?.origin
+    if (origin && origin !== "null" && !url.searchParams.has("origin")) {
+      url.searchParams.set("origin", origin)
+    }
+    return url.toString()
+  } catch (error) {
+    return embedUrl
+  }
+}
+
 const construirEmbedYouTube = url => {
   if (!url) return null
   let parsed
@@ -46,32 +63,38 @@ const construirEmbedYouTube = url => {
 
   if (host === "youtu.be") {
     const id = path.replace("/", "")
-    return id ? `https://www.youtube.com/embed/${id}` : null
+    return id ? finalizarEmbed(`https://www.youtube.com/embed/${id}`) : null
   }
 
   if (host.endsWith("youtube.com")) {
     if (path.startsWith("/embed/")) {
-      return `https://www.youtube.com${path}${parsed.search}`
+      return finalizarEmbed(`https://www.youtube.com${path}${parsed.search}`)
     }
 
     if (path.startsWith("/playlist") && list) {
-      return `https://www.youtube.com/embed/videoseries?list=${list}`
+      return finalizarEmbed(
+        `https://www.youtube.com/embed/videoseries?list=${list}`
+      )
     }
 
     if (path.startsWith("/shorts/")) {
       const id = path.replace("/shorts/", "")
-      return id ? `https://www.youtube.com/embed/${id}` : null
+      return id ? finalizarEmbed(`https://www.youtube.com/embed/${id}`) : null
     }
 
     if (path.startsWith("/live/")) {
       const id = path.replace("/live/", "")
-      return id ? `https://www.youtube.com/embed/${id}` : null
+      return id ? finalizarEmbed(`https://www.youtube.com/embed/${id}`) : null
     }
 
     if (path === "/watch") {
       const id = parsed.searchParams.get("v")
-      if (id) return `https://www.youtube.com/embed/${id}`
-      if (list) return `https://www.youtube.com/embed/videoseries?list=${list}`
+      if (id) return finalizarEmbed(`https://www.youtube.com/embed/${id}`)
+      if (list) {
+        return finalizarEmbed(
+          `https://www.youtube.com/embed/videoseries?list=${list}`
+        )
+      }
     }
   }
 
