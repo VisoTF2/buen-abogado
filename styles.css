@@ -2096,16 +2096,24 @@ body.malla-activa .schedule-malla {
 
 .malla-preview-body {
   overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .malla-preview-body img {
-  width: 100%;
+  width: min(100%, 860px);
+  max-height: 70vh;
   height: auto;
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--article-bg);
   padding: 8px;
   box-sizing: border-box;
+}
+
+.malla-preview-card .modal-head h3 {
+  color: var(--accent);
 }
 
 @media (max-width: 900px) {
