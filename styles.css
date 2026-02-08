@@ -2156,7 +2156,19 @@ body.malla-activa .schedule-malla {
 .malla-zoom-controls {
   display: flex;
   gap: 6px;
-  margin-left: 4px;
+  margin-right: 4px;
+  padding-right: 6px;
+  border-right: 1px solid var(--border);
+  align-items: center;
+}
+
+.malla-zoom-controls .zoom-btn {
+  height: 28px;
+  width: 28px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
 }
 
 .malla-tool {
