@@ -623,6 +623,7 @@ function inicializarMenuContextual() {
   menuContextual = menu
   botonCopiarMenu = copiar
   botonPegarMenu = pegar
+  let seleccionTimeout = null
 
   document.body.appendChild(menuContextual)
 
@@ -651,6 +652,26 @@ function inicializarMenuContextual() {
 
   document.addEventListener("copy", mostrarMenuDesdeAccion)
   document.addEventListener("paste", mostrarMenuDesdeAccion)
+
+  const mostrarMenuSiSeleccion = () => {
+    if (seleccionTimeout) {
+      clearTimeout(seleccionTimeout)
+    }
+
+    seleccionTimeout = window.setTimeout(() => {
+      const seleccion = window.getSelection()
+      if (!seleccion || seleccion.isCollapsed) return
+      const nodo = seleccion.anchorNode
+      const editable = nodo instanceof HTMLElement ? esCampoEditable(nodo) : esCampoEditable(nodo?.parentElement)
+      if (!editable) return
+      objetivoContextual = editable
+      actualizarEstadoMenuContextual()
+      const { x, y } = obtenerPosicionMenuContextual(editable)
+      mostrarMenuContextual(x, y)
+    }, 60)
+  }
+
+  document.addEventListener("selectionchange", mostrarMenuSiSeleccion)
 
   botonCopiarMenu.addEventListener("click", async () => {
     if (!objetivoContextual || !navigator.clipboard?.writeText) return
