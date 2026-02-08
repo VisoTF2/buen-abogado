@@ -138,47 +138,48 @@ function crearCarpeta(nombre) {
   }
 }
 
-function activarEdicionNombreCarpeta(carpeta, nombreBtn) {
-  const wrap = nombreBtn.parentElement
-  if (!wrap || wrap.querySelector(".carpetaNombreInput")) return
+function configurarNombreEditableCarpeta(carpeta, nombreEl) {
+  if (!nombreEl) return
+  nombreEl.setAttribute("contenteditable", "true")
+  nombreEl.setAttribute("role", "textbox")
+  nombreEl.setAttribute("aria-label", "Editar nombre de carpeta")
+  nombreEl.setAttribute("spellcheck", "false")
 
-  const input = document.createElement("input")
-  input.type = "text"
-  input.className = "carpetaNombreInput"
-  input.value = carpeta.nombre || ""
-  input.placeholder = "Nombre de la carpeta"
+  const restaurarTexto = valor => {
+    nombreEl.textContent = valor || "Carpeta sin título"
+  }
 
-  const confirmar = () => {
-    const nuevo = input.value.trim()
+  let textoOriginal = carpeta.nombre || "Carpeta sin título"
+
+  nombreEl.addEventListener("focus", () => {
+    textoOriginal = nombreEl.textContent || textoOriginal
+  })
+
+  nombreEl.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      nombreEl.blur()
+    }
+    if (e.key === "Escape") {
+      e.preventDefault()
+      restaurarTexto(textoOriginal)
+      nombreEl.blur()
+    }
+  })
+
+  nombreEl.addEventListener("blur", () => {
+    const nuevo = (nombreEl.textContent || "").trim()
     if (!nuevo) {
-      input.focus()
+      restaurarTexto(textoOriginal)
+      return
+    }
+    if (nuevo === textoOriginal) {
+      restaurarTexto(nuevo)
       return
     }
     carpetas = carpetas.map(c => (c.id === carpeta.id ? { ...c, nombre: nuevo } : c))
     guardarCarpetas()
     ordenarYMostrar()
-  }
-
-  const cancelar = () => {
-    ordenarYMostrar()
-  }
-
-  input.addEventListener("keydown", e => {
-    if (e.key === "Enter") {
-      e.preventDefault()
-      confirmar()
-    }
-    if (e.key === "Escape") {
-      e.preventDefault()
-      cancelar()
-    }
-  })
-  input.addEventListener("blur", confirmar)
-
-  wrap.replaceChild(input, nombreBtn)
-  requestAnimationFrame(() => {
-    input.focus()
-    input.select()
   })
 }
 
@@ -1287,13 +1288,12 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
     toggleBtn.addEventListener("click", () => toggleCarpetaColapsada(carpeta.id))
     toggleBtn.style.color = colorCarpeta
 
-    const nombreBtn = document.createElement("button")
+    const nombreBtn = document.createElement("div")
     nombreBtn.className = "carpetaNombre"
-    nombreBtn.type = "button"
     nombreBtn.textContent = carpeta.nombre || "Carpeta sin título"
     nombreBtn.title = carpeta.nombre || "Carpeta sin título"
-    nombreBtn.addEventListener("click", () => activarEdicionNombreCarpeta(carpeta, nombreBtn))
     nombreBtn.style.color = colorCarpeta
+    configurarNombreEditableCarpeta(carpeta, nombreBtn)
 
     const acciones = document.createElement("div")
     acciones.className = "carpetaActions"

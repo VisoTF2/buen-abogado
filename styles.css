@@ -1102,18 +1102,26 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
 
 .carpetaNombre {
-  background: transparent;
-  border: none;
   color: var(--carpeta-color);
   font-weight: 700;
   font-size: 15px;
-  cursor: pointer;
+  cursor: text;
   text-align: left;
   flex: 1;
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.carpetaNombre[contenteditable="true"] {
+  outline: none;
+  background: transparent;
+}
+
+.carpetaNombre[contenteditable="true"]::selection {
+  color: inherit;
+  background: transparent;
 }
 
 .carpetaNombreInput {
