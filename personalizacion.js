@@ -40,6 +40,7 @@ let mallaDrawActive = false
 let mallaIsDrawing = false
 let mallaEraseActive = false
 let mallaZoomActual = 1
+let mallaZoomBase = { width: 0, height: 0 }
 
 function asegurarMallaPreviewEnBody() {
   if (!mallaPreviewBackdrop) return
@@ -162,11 +163,29 @@ function aplicarMallaImagen(src) {
   aplicarMallaBase(src, src)
 }
 
+function actualizarBaseZoomMalla(width, height) {
+  if (!mallaPreviewImage) return
+  const baseWidth = width || mallaPreviewImage.getBoundingClientRect().width
+  const baseHeight = height || mallaPreviewImage.getBoundingClientRect().height
+  if (!baseWidth || !baseHeight) return
+  mallaZoomBase = { width: baseWidth, height: baseHeight }
+}
+
+function actualizarTamanoZoomMalla() {
+  if (!mallaPreviewCanvasWrap) return
+  if (!mallaZoomBase.width || !mallaZoomBase.height) {
+    actualizarBaseZoomMalla()
+  }
+  if (!mallaZoomBase.width || !mallaZoomBase.height) return
+  mallaPreviewCanvasWrap.style.width = `${mallaZoomBase.width * mallaZoomActual}px`
+  mallaPreviewCanvasWrap.style.height = `${mallaZoomBase.height * mallaZoomActual}px`
+}
+
 function aplicarZoomMalla(nivel) {
   if (!mallaPreviewCanvasWrap) return
   const limitado = Math.min(MALLA_ZOOM_MAX, Math.max(MALLA_ZOOM_MIN, nivel))
   mallaZoomActual = limitado
-  mallaPreviewCanvasWrap.style.setProperty("--malla-zoom", limitado.toFixed(2))
+  actualizarTamanoZoomMalla()
 }
 
 function aplicarMallaBase(baseSrc, displaySrc) {
@@ -209,6 +228,8 @@ function ajustarCanvasMalla() {
   mallaPreviewCanvas.height = Math.round(baseHeight * dpr)
   mallaPreviewCanvas.style.width = `${baseWidth}px`
   mallaPreviewCanvas.style.height = `${baseHeight}px`
+  actualizarBaseZoomMalla(baseWidth, baseHeight)
+  actualizarTamanoZoomMalla()
   const ctx = mallaPreviewCanvas.getContext("2d")
   if (!ctx) return
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
