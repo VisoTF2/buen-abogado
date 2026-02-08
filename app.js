@@ -949,9 +949,13 @@ function activarArrastreArticulo(box, normativa, materia) {
   })
 }
 
+const mallaPreviewBackdrop = document.getElementById("mallaPreviewBackdrop")
+const mallaPreviewVisible = () => mallaPreviewBackdrop?.classList.contains("visible")
+
 document.addEventListener(
   "wheel",
   e => {
+    if (mallaPreviewVisible()) return
     if (!e.ctrlKey) return
     e.preventDefault()
     const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP
@@ -961,6 +965,7 @@ document.addEventListener(
 )
 
 document.addEventListener("keydown", e => {
+  if (mallaPreviewVisible()) return
   const ctrl = e.ctrlKey || e.metaKey
   if (!ctrl) return
 
@@ -978,6 +983,7 @@ document.addEventListener("keydown", e => {
 
 if (appRoot) {
   appRoot.addEventListener("touchstart", e => {
+    if (mallaPreviewVisible()) return
     if (e.touches.length === 2) {
       pinchStartDistance = distanciaEntreToques(e.touches)
       pinchStartZoom = zoomActual
@@ -987,6 +993,7 @@ if (appRoot) {
   appRoot.addEventListener(
     "touchmove",
     e => {
+      if (mallaPreviewVisible()) return
       if (e.touches.length === 2 && pinchStartDistance) {
         e.preventDefault()
         const nuevaDistancia = distanciaEntreToques(e.touches)
