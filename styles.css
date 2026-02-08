@@ -2120,6 +2120,13 @@ body.malla-activa .schedule-malla {
   box-sizing: border-box;
 }
 
+.malla-preview-actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  gap: 8px;
+}
+
 .malla-preview-canvas-wrap canvas {
   position: absolute;
   inset: 0;

@@ -28,6 +28,8 @@ const mallaDrawToggle = document.getElementById("mallaDrawToggle")
 const mallaEraseToggle = document.getElementById("mallaEraseToggle")
 const mallaClearLines = document.getElementById("mallaClearLines")
 const mallaSaveLines = document.getElementById("mallaSaveLines")
+const mallaPreviewEdit = document.getElementById("mallaPreviewEdit")
+const mallaPreviewRemove = document.getElementById("mallaPreviewRemove")
 const mallaResizeHandle = document.getElementById("mallaResizeHandle")
 let mallaDrawActive = false
 let mallaIsDrawing = false
@@ -448,6 +450,15 @@ mallaClearLines?.addEventListener("click", () => {
 })
 
 mallaSaveLines?.addEventListener("click", guardarEdicionMalla)
+
+mallaPreviewEdit?.addEventListener("click", () => {
+  abrirSelectorMalla()
+})
+
+mallaPreviewRemove?.addEventListener("click", () => {
+  restablecerMalla()
+  cerrarMallaPreview()
+})
 
 mallaPreviewCanvas?.addEventListener("pointerdown", event => {
   if ((!mallaDrawActive && !mallaEraseActive) || !mallaPreviewCanvas) return
