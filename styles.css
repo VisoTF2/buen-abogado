@@ -2104,21 +2104,26 @@ body.malla-activa .schedule-malla {
 .malla-preview-body {
   overflow: auto;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 12px;
+}
+
+.malla-preview-zoom-area {
+  display: inline-block;
+  flex: 0 0 auto;
+  margin: auto;
 }
 
 .malla-preview-canvas-wrap {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
+  display: inline-block;
+  transform: scale(var(--malla-zoom, 1));
+  transform-origin: top left;
 }
 
 .malla-preview-body img {
   width: auto;
-  max-width: 100%;
   height: auto;
   border-radius: 10px;
   border: 1px solid var(--border);
@@ -2146,6 +2151,12 @@ body.malla-activa .schedule-malla {
   gap: 6px;
   margin-left: auto;
   align-items: center;
+}
+
+.malla-zoom-controls {
+  display: flex;
+  gap: 6px;
+  margin-left: 4px;
 }
 
 .malla-tool {

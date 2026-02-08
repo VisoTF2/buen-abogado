@@ -20,6 +20,8 @@ const MALLA_RESIZE_SENSITIVITY = 0.45
 const scheduleMallaImage = document.getElementById("scheduleMallaImage")
 const scheduleMallaPlaceholder = document.getElementById("scheduleMallaPlaceholder")
 const mallaPreviewBackdrop = document.getElementById("mallaPreviewBackdrop")
+const mallaPreviewBody = document.getElementById("mallaPreviewBody")
+const mallaPreviewZoomArea = document.getElementById("mallaPreviewZoomArea")
 const mallaPreviewImage = document.getElementById("mallaPreviewImage")
 const mallaPreviewClose = document.getElementById("mallaPreviewClose")
 const mallaPreviewCanvasWrap = document.getElementById("mallaPreviewCanvasWrap")
@@ -31,9 +33,17 @@ const mallaSaveLines = document.getElementById("mallaSaveLines")
 const mallaPreviewEdit = document.getElementById("mallaPreviewEdit")
 const mallaPreviewRemove = document.getElementById("mallaPreviewRemove")
 const mallaResizeHandle = document.getElementById("mallaResizeHandle")
+const mallaZoomIn = document.getElementById("mallaZoomIn")
+const mallaZoomOut = document.getElementById("mallaZoomOut")
+const MALLA_ZOOM_STEP = 0.05
+const MALLA_MIN_ZOOM = 0.6
+const MALLA_MAX_ZOOM = 2.5
 let mallaDrawActive = false
 let mallaIsDrawing = false
 let mallaEraseActive = false
+let mallaZoomScale = 1
+let mallaZoomBaseSize = null
+let mallaZoomFocus = false
 
 function asegurarMallaPreviewEnBody() {
   if (!mallaPreviewBackdrop) return
@@ -181,17 +191,51 @@ function obtenerOverlayMalla() {
   return localStorage.getItem(MALLA_OVERLAY_KEY) || ""
 }
 
+function calcularBaseMallaSize() {
+  if (!mallaPreviewImage || !mallaPreviewBody) return null
+  const naturalWidth = mallaPreviewImage.naturalWidth
+  const naturalHeight = mallaPreviewImage.naturalHeight
+  if (!naturalWidth || !naturalHeight) return null
+  const maxWidth = mallaPreviewBody.clientWidth || naturalWidth
+  const maxHeight = mallaPreviewBody.clientHeight || naturalHeight
+  const escala = Math.min(maxWidth / naturalWidth, maxHeight / naturalHeight, 1)
+  return {
+    width: Math.round(naturalWidth * escala),
+    height: Math.round(naturalHeight * escala)
+  }
+}
+
+function actualizarZoomMalla() {
+  if (!mallaZoomBaseSize || !mallaPreviewCanvasWrap || !mallaPreviewZoomArea) return
+  const width = mallaZoomBaseSize.width
+  const height = mallaZoomBaseSize.height
+  const scaledWidth = Math.round(width * mallaZoomScale)
+  const scaledHeight = Math.round(height * mallaZoomScale)
+  mallaPreviewCanvasWrap.style.setProperty("--malla-zoom", mallaZoomScale.toFixed(3))
+  mallaPreviewZoomArea.style.width = `${scaledWidth}px`
+  mallaPreviewZoomArea.style.height = `${scaledHeight}px`
+}
+
+function aplicarZoomMalla(nivel) {
+  const limitado = Math.min(MALLA_MAX_ZOOM, Math.max(MALLA_MIN_ZOOM, nivel))
+  mallaZoomScale = limitado
+  actualizarZoomMalla()
+}
+
 function ajustarCanvasMalla() {
   if (!mallaPreviewCanvas || !mallaPreviewImage) return
-  const rect = mallaPreviewImage.getBoundingClientRect()
-  const zoomScaleRaw = getComputedStyle(document.documentElement)
-    .getPropertyValue("--zoom-scale")
-    .trim()
-  const zoomScale = Number.parseFloat(zoomScaleRaw) || 1
-  const baseWidth = mallaPreviewImage.offsetWidth || (rect.width ? rect.width / zoomScale : 0)
-  const baseHeight = mallaPreviewImage.offsetHeight || (rect.height ? rect.height / zoomScale : 0)
-  if (!baseWidth || !baseHeight) return
+  const baseSize = calcularBaseMallaSize()
+  if (!baseSize) return
+  const baseWidth = baseSize.width
+  const baseHeight = baseSize.height
   const dpr = window.devicePixelRatio || 1
+  mallaZoomBaseSize = { width: baseWidth, height: baseHeight }
+  if (mallaPreviewCanvasWrap) {
+    mallaPreviewCanvasWrap.style.width = `${baseWidth}px`
+    mallaPreviewCanvasWrap.style.height = `${baseHeight}px`
+  }
+  mallaPreviewImage.style.width = `${baseWidth}px`
+  mallaPreviewImage.style.height = `${baseHeight}px`
   mallaPreviewCanvas.width = Math.round(baseWidth * dpr)
   mallaPreviewCanvas.height = Math.round(baseHeight * dpr)
   mallaPreviewCanvas.style.width = `${baseWidth}px`
@@ -201,6 +245,7 @@ function ajustarCanvasMalla() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
   ctx.lineCap = "round"
   ctx.lineJoin = "round"
+  actualizarZoomMalla()
 }
 
 function limpiarCanvasMalla() {
@@ -335,6 +380,7 @@ function cerrarMallaPreview() {
   limpiarCanvasMalla()
   establecerModoDibujo(false)
   establecerModoBorrador(false)
+  mallaZoomFocus = false
 }
 
 function aplicarMallaActiva(activa) {
@@ -490,6 +536,34 @@ mallaPreviewRemove?.addEventListener("click", () => {
   cerrarMallaPreview()
 })
 
+mallaZoomIn?.addEventListener("click", () => {
+  aplicarZoomMalla(mallaZoomScale + MALLA_ZOOM_STEP)
+})
+
+mallaZoomOut?.addEventListener("click", () => {
+  aplicarZoomMalla(mallaZoomScale - MALLA_ZOOM_STEP)
+})
+
+mallaPreviewCanvasWrap?.addEventListener("mouseenter", () => {
+  mallaZoomFocus = true
+})
+
+mallaPreviewCanvasWrap?.addEventListener("mouseleave", () => {
+  mallaZoomFocus = false
+})
+
+mallaPreviewCanvasWrap?.addEventListener("focusin", () => {
+  mallaZoomFocus = true
+})
+
+mallaPreviewCanvasWrap?.addEventListener("focusout", () => {
+  mallaZoomFocus = false
+})
+
+mallaPreviewCanvasWrap?.addEventListener("pointerdown", () => {
+  mallaPreviewCanvasWrap.focus?.()
+})
+
 mallaPreviewCanvas?.addEventListener("pointerdown", event => {
   if ((!mallaDrawActive && !mallaEraseActive) || !mallaPreviewCanvas) return
   const ctx = mallaPreviewCanvas.getContext("2d")
@@ -535,6 +609,40 @@ mallaPreviewCanvas?.addEventListener("pointerleave", detenerDibujo)
 document.addEventListener("keydown", event => {
   if (event.key === "Escape") cerrarMallaPreview()
 })
+
+window.mallaZoomApi = {
+  handleWheel(event) {
+    if (!event.ctrlKey) return false
+    if (!mallaPreviewBackdrop?.classList.contains("visible")) return false
+    if (!mallaPreviewCanvasWrap?.contains(event.target)) return false
+    event.preventDefault()
+    const delta = event.deltaY > 0 ? -MALLA_ZOOM_STEP : MALLA_ZOOM_STEP
+    aplicarZoomMalla(mallaZoomScale + delta)
+    return true
+  },
+  handleKeydown(event) {
+    const ctrl = event.ctrlKey || event.metaKey
+    if (!ctrl) return false
+    if (!mallaPreviewBackdrop?.classList.contains("visible")) return false
+    if (!mallaZoomFocus) return false
+    if (event.key === "+" || event.key === "=") {
+      event.preventDefault()
+      aplicarZoomMalla(mallaZoomScale + MALLA_ZOOM_STEP)
+      return true
+    }
+    if (event.key === "-" || event.key === "_") {
+      event.preventDefault()
+      aplicarZoomMalla(mallaZoomScale - MALLA_ZOOM_STEP)
+      return true
+    }
+    if (event.key === "0") {
+      event.preventDefault()
+      aplicarZoomMalla(1)
+      return true
+    }
+    return false
+  }
+}
 
 habilitarResizeMalla()
 aplicarModoGuardado()
