@@ -889,6 +889,19 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       transform: translateY(1px);
     }
 
+    #numeroArticulo::-webkit-outer-spin-button,
+    #numeroArticulo::-webkit-inner-spin-button,
+    .editor-absences::-webkit-outer-spin-button,
+    .editor-absences::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    #numeroArticulo,
+    .editor-absences {
+      -moz-appearance: textfield;
+    }
+
     .resaltado-busqueda {
       outline: 2px solid var(--search-highlight-outline);
       box-shadow: 0 0 0 4px var(--search-highlight-glow);
