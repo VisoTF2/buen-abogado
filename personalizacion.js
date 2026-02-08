@@ -43,6 +43,10 @@ let mallaEraseActive = false
 let mallaZoomActual = 1
 let mallaZoomBase = { width: 0, height: 0 }
 
+function mallaPreviewVisible() {
+  return mallaPreviewBackdrop?.classList.contains("visible")
+}
+
 function asegurarMallaPreviewEnBody() {
   if (!mallaPreviewBackdrop) return
   if (mallaPreviewBackdrop.parentElement === document.body) return
@@ -509,6 +513,31 @@ mallaPreviewBackdrop?.addEventListener("click", event => {
 mallaPreviewImage?.addEventListener("load", () => {
   ajustarCanvasMalla()
   cargarOverlayMalla()
+})
+
+mallaPreviewCanvasWrap?.addEventListener(
+  "wheel",
+  event => {
+    if (!mallaPreviewVisible()) return
+    if (!event.ctrlKey && !event.metaKey) return
+    event.preventDefault()
+    const delta = event.deltaY > 0 ? -MALLA_ZOOM_STEP : MALLA_ZOOM_STEP
+    aplicarZoomMalla(mallaZoomActual + delta)
+  },
+  { passive: false }
+)
+
+document.addEventListener("keydown", event => {
+  if (!mallaPreviewVisible()) return
+  if (!event.ctrlKey && !event.metaKey) return
+  if (event.key === "+" || event.key === "=") {
+    event.preventDefault()
+    aplicarZoomMalla(mallaZoomActual + MALLA_ZOOM_STEP)
+  }
+  if (event.key === "-" || event.key === "_") {
+    event.preventDefault()
+    aplicarZoomMalla(mallaZoomActual - MALLA_ZOOM_STEP)
+  }
 })
 
 mallaZoomIn?.addEventListener("click", () => {
