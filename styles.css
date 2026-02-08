@@ -2142,15 +2142,15 @@ body.malla-activa .schedule-malla {
   gap: 6px;
   padding: 6px;
   border-radius: 10px;
-  background: rgba(15, 23, 42, 0.72);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.2);
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 16px rgba(16, 24, 40, 0.12);
 }
 
 .malla-tool {
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: transparent;
-  color: #f8fafc;
+  border: 1px solid var(--border);
+  background: var(--focus-surface);
+  color: var(--text);
   font-size: 12px;
   font-weight: 600;
   padding: 6px 8px;
@@ -2160,7 +2160,7 @@ body.malla-activa .schedule-malla {
 }
 
 .malla-tool:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--article-bg);
 }
 
 .malla-tool:active {
@@ -2168,18 +2168,19 @@ body.malla-activa .schedule-malla {
 }
 
 .malla-tool[aria-pressed="true"] {
-  background: rgba(239, 68, 68, 0.2);
-  border-color: rgba(248, 113, 113, 0.65);
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.45);
+  color: var(--accent);
 }
 
 .malla-tool-primary {
-  background: rgba(59, 130, 246, 0.9);
-  border-color: rgba(59, 130, 246, 0.9);
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
 }
 
 .malla-tool-primary:hover {
-  background: rgba(37, 99, 235, 0.95);
+  background: var(--accent-light);
 }
 
 .malla-preview-card .modal-head h3 {

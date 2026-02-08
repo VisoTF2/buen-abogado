@@ -23,11 +23,13 @@ const mallaPreviewClose = document.getElementById("mallaPreviewClose")
 const mallaPreviewCanvasWrap = document.getElementById("mallaPreviewCanvasWrap")
 const mallaPreviewCanvas = document.getElementById("mallaPreviewCanvas")
 const mallaDrawToggle = document.getElementById("mallaDrawToggle")
+const mallaEraseToggle = document.getElementById("mallaEraseToggle")
 const mallaClearLines = document.getElementById("mallaClearLines")
 const mallaSaveLines = document.getElementById("mallaSaveLines")
 const mallaResizeHandle = document.getElementById("mallaResizeHandle")
 let mallaDrawActive = false
 let mallaIsDrawing = false
+let mallaEraseActive = false
 
 function aplicarModoGuardado() {
   if (localStorage.getItem(MODO_OSCURO_STORAGE_KEY) === "true") {
@@ -185,11 +187,33 @@ function limpiarCanvasMalla() {
 
 function establecerModoDibujo(activo) {
   mallaDrawActive = activo
+  if (activo) {
+    mallaEraseActive = false
+  }
   if (mallaPreviewCanvasWrap) {
     mallaPreviewCanvasWrap.classList.toggle("drawing-active", activo)
   }
   if (mallaDrawToggle) {
     mallaDrawToggle.setAttribute("aria-pressed", activo ? "true" : "false")
+  }
+  if (mallaEraseToggle) {
+    mallaEraseToggle.setAttribute("aria-pressed", "false")
+  }
+}
+
+function establecerModoBorrador(activo) {
+  mallaEraseActive = activo
+  if (activo) {
+    mallaDrawActive = false
+  }
+  if (mallaPreviewCanvasWrap) {
+    mallaPreviewCanvasWrap.classList.toggle("drawing-active", activo)
+  }
+  if (mallaEraseToggle) {
+    mallaEraseToggle.setAttribute("aria-pressed", activo ? "true" : "false")
+  }
+  if (mallaDrawToggle) {
+    mallaDrawToggle.setAttribute("aria-pressed", "false")
   }
 }
 
@@ -239,6 +263,7 @@ function cerrarMallaPreview() {
   mallaPreviewBackdrop.setAttribute("aria-hidden", "true")
   limpiarCanvasMalla()
   establecerModoDibujo(false)
+  establecerModoBorrador(false)
 }
 
 function aplicarMallaActiva(activa) {
@@ -363,6 +388,10 @@ mallaDrawToggle?.addEventListener("click", () => {
   establecerModoDibujo(!mallaDrawActive)
 })
 
+mallaEraseToggle?.addEventListener("click", () => {
+  establecerModoBorrador(!mallaEraseActive)
+})
+
 mallaClearLines?.addEventListener("click", () => {
   limpiarCanvasMalla()
 })
@@ -370,14 +399,21 @@ mallaClearLines?.addEventListener("click", () => {
 mallaSaveLines?.addEventListener("click", guardarEdicionMalla)
 
 mallaPreviewCanvas?.addEventListener("pointerdown", event => {
-  if (!mallaDrawActive || !mallaPreviewCanvas) return
+  if ((!mallaDrawActive && !mallaEraseActive) || !mallaPreviewCanvas) return
   const ctx = mallaPreviewCanvas.getContext("2d")
   if (!ctx) return
   const rect = mallaPreviewCanvas.getBoundingClientRect()
   const x = event.clientX - rect.left
   const y = event.clientY - rect.top
-  ctx.strokeStyle = "#e11d2e"
-  ctx.lineWidth = 3
+  if (mallaEraseActive) {
+    ctx.strokeStyle = "#ffffff"
+    ctx.lineWidth = 18
+    ctx.globalCompositeOperation = "destination-out"
+  } else {
+    ctx.strokeStyle = "#e11d2e"
+    ctx.lineWidth = 3
+    ctx.globalCompositeOperation = "source-over"
+  }
   ctx.beginPath()
   ctx.moveTo(x, y)
   mallaIsDrawing = true
