@@ -52,6 +52,10 @@
     <aside class="schedule-malla" id="scheduleMalla" aria-label="Malla de la carrera">
       <div class="schedule-malla-card" id="scheduleMallaCard">
         <h4 class="schedule-malla-title">Malla de la carrera</h4>
+        <div class="action-buttons malla-card-actions">
+          <button class="edit-btn" type="button" id="mallaPreviewEdit" aria-label="Editar malla">✎</button>
+          <button class="class-delete" type="button" id="mallaPreviewRemove" aria-label="Quitar malla">✕</button>
+        </div>
         <button class="malla-resize-handle" id="mallaResizeHandle" type="button" aria-label="Cambiar tamaño de la malla" hidden></button>
         <div class="schedule-malla-image-wrap">
           <img id="scheduleMallaImage" alt="Malla de la carrera" hidden>
@@ -70,10 +74,6 @@
           <button class="malla-tool" type="button" id="mallaEraseToggle" aria-pressed="false">Borrador</button>
           <button class="malla-tool" type="button" id="mallaClearLines">Limpiar</button>
           <button class="malla-tool malla-tool-primary" type="button" id="mallaSaveLines">Guardar</button>
-        </div>
-        <div class="action-buttons malla-preview-actions">
-          <button class="edit-btn" type="button" id="mallaPreviewEdit" aria-label="Editar malla">✎</button>
-          <button class="class-delete" type="button" id="mallaPreviewRemove" aria-label="Quitar malla">✕</button>
         </div>
         <button class="modal-close" type="button" aria-label="Cerrar" id="mallaPreviewClose">✕</button>
       </div>
