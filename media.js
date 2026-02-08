@@ -35,8 +35,12 @@ const finalizarEmbed = embedUrl => {
   if (!embedUrl) return null
   try {
     const url = new URL(embedUrl)
-    if (!url.searchParams.has("rel")) {
-      url.searchParams.set("rel", "0")
+    if (!url.searchParams.has("rel")) url.searchParams.set("rel", "0")
+    if (!url.searchParams.has("enablejsapi")) {
+      url.searchParams.set("enablejsapi", "1")
+    }
+    if (!url.searchParams.has("playsinline")) {
+      url.searchParams.set("playsinline", "1")
     }
     const origin = window.location?.origin
     if (origin && origin !== "null" && !url.searchParams.has("origin")) {
