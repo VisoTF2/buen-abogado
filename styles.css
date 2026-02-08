@@ -1039,11 +1039,15 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   --carpeta-color: var(--accent);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 8px 9px 5px;
-  background: var(--article-bg);
+  padding: 12px;
+  background: var(--card);
   box-shadow: var(--card-shadow-elevated);
 }
 
+.carpetaBox.carpeta-editor {
+  border-style: dashed;
+  background: var(--article-bg);
+}
 
 .carpetaHeader {
   display: flex;
@@ -1112,10 +1116,23 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   text-overflow: ellipsis;
 }
 
+.carpetaNombreInput {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--card);
+  color: var(--text);
+  box-sizing: border-box;
+}
+
 .carpetaActions {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -1141,29 +1158,50 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   border-radius: 50%;
 }
 
+.carpetaGuardar,
+.carpetaCancelar,
 .carpetaEliminar {
-  border: 1px solid var(--danger-solid-border);
-  background: var(--danger-solid-bg);
-  color: var(--danger-solid-text);
-  border-radius: 10px;
-  padding: 8px 12px;
+  border: none;
+  border-radius: 9px;
+  padding: 7px 11px;
+  font-weight: 700;
+  font-size: 13px;
   cursor: pointer;
-  font-weight: 600;
-  transition: background 0.15s ease, transform 0.12s ease;
+  transition: background 0.15s ease, transform 0.12s ease, filter 0.15s ease;
 }
 
-.carpetaEliminar:hover {
-  background: var(--danger-solid-hover);
-  border-color: var(--danger-solid-hover);
+.carpetaGuardar {
+  background: var(--accent);
+  color: #fff;
 }
+
+.carpetaCancelar {
+  background: var(--danger-solid-bg);
+  color: var(--danger-solid-text);
+}
+
+.carpetaEliminar {
+  background: var(--danger-solid-bg);
+  color: var(--danger-solid-text);
+}
+
+.carpetaGuardar:hover,
+.carpetaCancelar:hover,
+.carpetaEliminar:hover {
+  filter: brightness(0.95);
+}
+
+.carpetaGuardar:active,
+.carpetaCancelar:active,
 .carpetaEliminar:active { transform: translateY(1px); }
 
 
 .carpetaLista {
   gap: 4px;
-  padding: 4px 6px;
+  padding: 6px;
   border-radius: 10px;
   border: 1px dashed transparent;
+  background: var(--article-bg);
   align-items: stretch;
   box-shadow: inset 0 0 0 1px transparent;
   min-height: var(--carpeta-slot-height);
@@ -1186,10 +1224,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetaDocumentos {
-  border: none;
+  border: 1px dashed transparent;
   border-radius: 10px;
   padding: 8px 10px;
-  background: transparent;
+  background: var(--article-bg);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1204,7 +1242,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
 .carpetaDocumentosVacio {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--muted-text);
   padding: 6px 8px;
   min-height: var(--carpeta-slot-height);
   display: flex;
@@ -1270,7 +1308,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
 .carpetaVacia {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--muted-text);
   padding: 6px 8px;
   min-height: var(--carpeta-slot-height);
   display: flex;
@@ -1280,7 +1318,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .sidebarItemCarpeta {
-  background: #f1f5f9;
+  background: var(--article-bg);
   min-height: var(--carpeta-slot-height);
   display: flex;
   align-items: center;

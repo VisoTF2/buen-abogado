@@ -10,10 +10,6 @@ let materiaSeleccionada = null
 let materiaDropProcesado = false
 const appRoot = document.getElementById("appRoot")
 const contenedorArticulosPrincipal = document.getElementById("contenidoArticulos")
-const modalCarpeta = document.getElementById("modalCarpeta")
-const modalCarpetaTitulo = document.getElementById("modalCarpetaTitulo")
-const inputNombreCarpeta = document.getElementById("inputNombreCarpeta")
-const modalCarpetaGuardar = document.getElementById("modalCarpetaGuardar")
 const modalConfiguracion = document.getElementById("modalConfiguracion")
 
 function escaparComoHTML(texto) {
@@ -35,7 +31,6 @@ let articuloArrastradoId = null
 let materiaArrastrada = null
 let materiaArrastradaNormativa = null
 let materiaArrastradaCarpetaId = null
-let carpetaEnEdicionId = null
 
 modalConfiguracion?.addEventListener("click", e => {
   if (e.target === modalConfiguracion) cerrarModalConfiguracion()
@@ -93,16 +88,7 @@ if (contenedorArticulosPrincipal) {
   contenedorArticulosPrincipal.addEventListener("drop", manejarReordenArticulos)
 }
 
-modalCarpetaGuardar?.addEventListener("click", confirmarCarpeta)
-modalCarpeta?.addEventListener("click", e => {
-  if (e.target === modalCarpeta) cerrarModalCarpeta()
-})
-inputNombreCarpeta?.addEventListener("keydown", e => {
-  if (e.key === "Enter") {
-    e.preventDefault()
-    confirmarCarpeta()
-  }
-})
+
 function valorOrdenArticulo(a) {
   if (typeof a.orden === "number") return a.orden
   if (typeof a.numero === "number") return a.numero
@@ -139,6 +125,138 @@ function ordenarMaterias(nombres, normativa) {
 
 function guardarCarpetas() {
   localStorage.setItem("carpetasMaterias", JSON.stringify(carpetas))
+}
+
+function crearCarpeta(nombre) {
+  return {
+    id: `carpeta-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    nombre,
+    color: "#1e3a8a",
+    materias: [],
+    documentos: [],
+    colapsada: false
+  }
+}
+
+function activarEdicionNombreCarpeta(carpeta, nombreBtn) {
+  const wrap = nombreBtn.parentElement
+  if (!wrap || wrap.querySelector(".carpetaNombreInput")) return
+
+  const input = document.createElement("input")
+  input.type = "text"
+  input.className = "carpetaNombreInput"
+  input.value = carpeta.nombre || ""
+  input.placeholder = "Nombre de la carpeta"
+
+  const confirmar = () => {
+    const nuevo = input.value.trim()
+    if (!nuevo) {
+      input.focus()
+      return
+    }
+    carpetas = carpetas.map(c => (c.id === carpeta.id ? { ...c, nombre: nuevo } : c))
+    guardarCarpetas()
+    ordenarYMostrar()
+  }
+
+  const cancelar = () => {
+    ordenarYMostrar()
+  }
+
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      confirmar()
+    }
+    if (e.key === "Escape") {
+      e.preventDefault()
+      cancelar()
+    }
+  })
+  input.addEventListener("blur", confirmar)
+
+  wrap.replaceChild(input, nombreBtn)
+  requestAnimationFrame(() => {
+    input.focus()
+    input.select()
+  })
+}
+
+function insertarEditorCarpeta(contenedor) {
+  if (!contenedor || contenedor.querySelector(".carpetaBox.carpeta-editor")) {
+    const existente = contenedor?.querySelector(".carpetaBox.carpeta-editor input")
+    existente?.focus()
+    return
+  }
+
+  const placeholder = contenedor.querySelector(".carpetaVacia")
+  if (placeholder) placeholder.remove()
+
+  const card = document.createElement("div")
+  card.className = "carpetaBox carpeta-editor"
+
+  const header = document.createElement("div")
+  header.className = "carpetaHeader"
+
+  const tituloWrap = document.createElement("div")
+  tituloWrap.className = "carpetaTituloWrap"
+
+  const input = document.createElement("input")
+  input.type = "text"
+  input.className = "carpetaNombreInput"
+  input.placeholder = "Nombre de la carpeta"
+
+  tituloWrap.appendChild(input)
+  header.appendChild(tituloWrap)
+
+  const acciones = document.createElement("div")
+  acciones.className = "carpetaActions"
+
+  const guardar = document.createElement("button")
+  guardar.type = "button"
+  guardar.className = "carpetaGuardar"
+  guardar.textContent = "Guardar"
+
+  const cancelar = document.createElement("button")
+  cancelar.type = "button"
+  cancelar.className = "carpetaCancelar"
+  cancelar.textContent = "Cancelar"
+
+  acciones.appendChild(guardar)
+  acciones.appendChild(cancelar)
+  header.appendChild(acciones)
+  card.appendChild(header)
+
+  const cerrarEditor = () => {
+    card.remove()
+  }
+
+  const confirmar = () => {
+    const nombre = input.value.trim()
+    if (!nombre) {
+      input.focus()
+      return
+    }
+    carpetas = [...carpetas, crearCarpeta(nombre)]
+    guardarCarpetas()
+    ordenarYMostrar()
+  }
+
+  guardar.addEventListener("click", confirmar)
+  cancelar.addEventListener("click", cerrarEditor)
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      confirmar()
+    }
+    if (e.key === "Escape") {
+      e.preventDefault()
+      cerrarEditor()
+    }
+  })
+
+  contenedor.prepend(card)
+  requestAnimationFrame(() => input.focus())
 }
 
 function carpetaDeDocumento(documentoId) {
@@ -998,7 +1116,6 @@ function ordenarYMostrar() {
   nuevaCarpetaBtn.className = "btn-carpeta"
   nuevaCarpetaBtn.type = "button"
   nuevaCarpetaBtn.textContent = "Nueva carpeta"
-  nuevaCarpetaBtn.addEventListener("click", () => abrirModalCarpeta())
   accionesSidebar.appendChild(tituloSidebar)
   accionesSidebar.appendChild(nuevaCarpetaBtn)
   sidebar.appendChild(accionesSidebar)
@@ -1013,6 +1130,7 @@ function ordenarYMostrar() {
   seccionCarpetas.appendChild(tituloCarpetas)
   seccionCarpetas.appendChild(listaCarpetas)
   sidebar.appendChild(seccionCarpetas)
+  nuevaCarpetaBtn.addEventListener("click", () => insertarEditorCarpeta(listaCarpetas))
 
   const agrupado = { civil: {}, penal: {} }
 
@@ -1169,12 +1287,12 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
     toggleBtn.addEventListener("click", () => toggleCarpetaColapsada(carpeta.id))
     toggleBtn.style.color = colorCarpeta
 
-  const nombreBtn = document.createElement("button")
-  nombreBtn.className = "carpetaNombre"
-  nombreBtn.type = "button"
-  nombreBtn.textContent = carpeta.nombre || "Carpeta sin título"
-  nombreBtn.title = carpeta.nombre || "Carpeta sin título"
-  nombreBtn.addEventListener("click", () => abrirModalCarpeta(carpeta.id))
+    const nombreBtn = document.createElement("button")
+    nombreBtn.className = "carpetaNombre"
+    nombreBtn.type = "button"
+    nombreBtn.textContent = carpeta.nombre || "Carpeta sin título"
+    nombreBtn.title = carpeta.nombre || "Carpeta sin título"
+    nombreBtn.addEventListener("click", () => activarEdicionNombreCarpeta(carpeta, nombreBtn))
     nombreBtn.style.color = colorCarpeta
 
     const acciones = document.createElement("div")
@@ -1660,51 +1778,6 @@ function borrarMateria(nombre, normativa = null) {
   guardarLocal()
   normativaSeleccionada = null
   materiaSeleccionada = null
-  ordenarYMostrar()
-}
-
-function abrirModalCarpeta(id = null) {
-  if (!modalCarpeta || !modalCarpetaTitulo || !inputNombreCarpeta) return
-  carpetaEnEdicionId = id
-  const carpeta = carpetas.find(c => c.id === id)
-  modalCarpetaTitulo.textContent = id ? "Editar carpeta" : "Nueva carpeta"
-  inputNombreCarpeta.value = carpeta?.nombre || ""
-  modalCarpeta.classList.add("visible")
-  setTimeout(() => inputNombreCarpeta.focus(), 50)
-}
-
-function cerrarModalCarpeta() {
-  if (!modalCarpeta || !inputNombreCarpeta) return
-  modalCarpeta.classList.remove("visible")
-  inputNombreCarpeta.value = ""
-  carpetaEnEdicionId = null
-}
-
-function confirmarCarpeta() {
-  if (!inputNombreCarpeta) return
-  const nombre = inputNombreCarpeta.value.trim()
-  if (!nombre) {
-    inputNombreCarpeta.focus()
-    return
-  }
-
-  if (carpetaEnEdicionId) {
-    carpetas = carpetas.map(c => (c.id === carpetaEnEdicionId ? { ...c, nombre } : c))
-  } else {
-    carpetas = [
-      ...carpetas,
-      {
-        id: `carpeta-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        nombre,
-        materias: [],
-        colapsada: false,
-        color: "#1e3a8a"
-      }
-    ]
-  }
-
-  guardarCarpetas()
-  cerrarModalCarpeta()
   ordenarYMostrar()
 }
 
