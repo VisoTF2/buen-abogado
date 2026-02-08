@@ -2198,8 +2198,9 @@ body.malla-activa .schedule-malla {
   justify-content: center;
 }
 .action-buttons .edit-btn { color: #1e3a8a; width:32px; height:32px; padding:0; }
-.action-buttons .edit-btn:hover { background: var(--focus-surface); }
+.action-buttons .edit-btn:hover { background: var(--accent-light); color: #fff; }
 body.oscuro .action-buttons button:hover { background: rgba(255, 255, 255, 0.16); }
+body.oscuro .action-buttons .edit-btn:hover { background: rgba(96, 165, 250, 0.35); color: #fff; }
 
 /* color button (top-right) */
 .class-card { position: relative; }
