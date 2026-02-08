@@ -411,6 +411,17 @@ function aplicarZoom(nivel) {
   localStorage.setItem(ZOOM_STORAGE_KEY, limitado.toFixed(3))
 }
 
+function aumentarZoom() {
+  aplicarZoom(zoomActual + ZOOM_STEP)
+}
+
+function disminuirZoom() {
+  aplicarZoom(zoomActual - ZOOM_STEP)
+}
+
+window.aumentarZoom = aumentarZoom
+window.disminuirZoom = disminuirZoom
+
 function distanciaEntreToques(touches) {
   if (touches.length < 2) return 0
   const [a, b] = touches
