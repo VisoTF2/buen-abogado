@@ -20,7 +20,14 @@ const scheduleMallaPlaceholder = document.getElementById("scheduleMallaPlacehold
 const mallaPreviewBackdrop = document.getElementById("mallaPreviewBackdrop")
 const mallaPreviewImage = document.getElementById("mallaPreviewImage")
 const mallaPreviewClose = document.getElementById("mallaPreviewClose")
+const mallaPreviewCanvasWrap = document.getElementById("mallaPreviewCanvasWrap")
+const mallaPreviewCanvas = document.getElementById("mallaPreviewCanvas")
+const mallaDrawToggle = document.getElementById("mallaDrawToggle")
+const mallaClearLines = document.getElementById("mallaClearLines")
+const mallaSaveLines = document.getElementById("mallaSaveLines")
 const mallaResizeHandle = document.getElementById("mallaResizeHandle")
+let mallaDrawActive = false
+let mallaIsDrawing = false
 
 function aplicarModoGuardado() {
   if (localStorage.getItem(MODO_OSCURO_STORAGE_KEY) === "true") {
@@ -142,13 +149,80 @@ function aplicarMallaImagen(src) {
     if (mallaResizeHandle) mallaResizeHandle.hidden = false
     scheduleMallaPlaceholder.hidden = true
     if (mallaPreviewImage) mallaPreviewImage.src = src
+    window.requestAnimationFrame(ajustarCanvasMalla)
   } else {
     scheduleMallaImage.removeAttribute("src")
     scheduleMallaImage.hidden = true
     if (mallaResizeHandle) mallaResizeHandle.hidden = true
     scheduleMallaPlaceholder.hidden = false
     if (mallaPreviewImage) mallaPreviewImage.removeAttribute("src")
+    limpiarCanvasMalla()
   }
+}
+
+function ajustarCanvasMalla() {
+  if (!mallaPreviewCanvas || !mallaPreviewImage) return
+  const rect = mallaPreviewImage.getBoundingClientRect()
+  if (!rect.width || !rect.height) return
+  const dpr = window.devicePixelRatio || 1
+  mallaPreviewCanvas.width = Math.round(rect.width * dpr)
+  mallaPreviewCanvas.height = Math.round(rect.height * dpr)
+  mallaPreviewCanvas.style.width = `${rect.width}px`
+  mallaPreviewCanvas.style.height = `${rect.height}px`
+  const ctx = mallaPreviewCanvas.getContext("2d")
+  if (!ctx) return
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  ctx.lineCap = "round"
+  ctx.lineJoin = "round"
+}
+
+function limpiarCanvasMalla() {
+  if (!mallaPreviewCanvas) return
+  const ctx = mallaPreviewCanvas.getContext("2d")
+  if (!ctx) return
+  ctx.clearRect(0, 0, mallaPreviewCanvas.width, mallaPreviewCanvas.height)
+}
+
+function establecerModoDibujo(activo) {
+  mallaDrawActive = activo
+  if (mallaPreviewCanvasWrap) {
+    mallaPreviewCanvasWrap.classList.toggle("drawing-active", activo)
+  }
+  if (mallaDrawToggle) {
+    mallaDrawToggle.setAttribute("aria-pressed", activo ? "true" : "false")
+  }
+}
+
+function guardarEdicionMalla() {
+  if (!mallaPreviewImage || !mallaPreviewCanvas) return
+  const src = mallaPreviewImage.getAttribute("src")
+  if (!src) return
+  const baseImage = new Image()
+  baseImage.onload = () => {
+    const outputCanvas = document.createElement("canvas")
+    outputCanvas.width = baseImage.naturalWidth || mallaPreviewCanvas.width
+    outputCanvas.height = baseImage.naturalHeight || mallaPreviewCanvas.height
+    const outputCtx = outputCanvas.getContext("2d")
+    if (!outputCtx) return
+    outputCtx.drawImage(baseImage, 0, 0, outputCanvas.width, outputCanvas.height)
+    outputCtx.drawImage(
+      mallaPreviewCanvas,
+      0,
+      0,
+      mallaPreviewCanvas.width,
+      mallaPreviewCanvas.height,
+      0,
+      0,
+      outputCanvas.width,
+      outputCanvas.height
+    )
+    const dataUrl = outputCanvas.toDataURL("image/png")
+    aplicarMallaImagen(dataUrl)
+    localStorage.setItem(MALLA_STORAGE_KEY, dataUrl)
+    limpiarCanvasMalla()
+    establecerModoDibujo(false)
+  }
+  baseImage.src = src
 }
 
 function abrirMallaPreview() {
@@ -156,12 +230,15 @@ function abrirMallaPreview() {
   if (!mallaPreviewImage.getAttribute("src")) return
   mallaPreviewBackdrop.classList.add("visible")
   mallaPreviewBackdrop.setAttribute("aria-hidden", "false")
+  window.requestAnimationFrame(ajustarCanvasMalla)
 }
 
 function cerrarMallaPreview() {
   if (!mallaPreviewBackdrop) return
   mallaPreviewBackdrop.classList.remove("visible")
   mallaPreviewBackdrop.setAttribute("aria-hidden", "true")
+  limpiarCanvasMalla()
+  establecerModoDibujo(false)
 }
 
 function aplicarMallaActiva(activa) {
@@ -279,6 +356,53 @@ mallaPreviewClose?.addEventListener("click", cerrarMallaPreview)
 mallaPreviewBackdrop?.addEventListener("click", event => {
   if (event.target === mallaPreviewBackdrop) cerrarMallaPreview()
 })
+mallaPreviewImage?.addEventListener("load", ajustarCanvasMalla)
+window.addEventListener("resize", ajustarCanvasMalla)
+
+mallaDrawToggle?.addEventListener("click", () => {
+  establecerModoDibujo(!mallaDrawActive)
+})
+
+mallaClearLines?.addEventListener("click", () => {
+  limpiarCanvasMalla()
+})
+
+mallaSaveLines?.addEventListener("click", guardarEdicionMalla)
+
+mallaPreviewCanvas?.addEventListener("pointerdown", event => {
+  if (!mallaDrawActive || !mallaPreviewCanvas) return
+  const ctx = mallaPreviewCanvas.getContext("2d")
+  if (!ctx) return
+  const rect = mallaPreviewCanvas.getBoundingClientRect()
+  const x = event.clientX - rect.left
+  const y = event.clientY - rect.top
+  ctx.strokeStyle = "#e11d2e"
+  ctx.lineWidth = 3
+  ctx.beginPath()
+  ctx.moveTo(x, y)
+  mallaIsDrawing = true
+  mallaPreviewCanvas.setPointerCapture?.(event.pointerId)
+})
+
+mallaPreviewCanvas?.addEventListener("pointermove", event => {
+  if (!mallaIsDrawing || !mallaPreviewCanvas) return
+  const ctx = mallaPreviewCanvas.getContext("2d")
+  if (!ctx) return
+  const rect = mallaPreviewCanvas.getBoundingClientRect()
+  const x = event.clientX - rect.left
+  const y = event.clientY - rect.top
+  ctx.lineTo(x, y)
+  ctx.stroke()
+})
+
+const detenerDibujo = event => {
+  if (!mallaIsDrawing || !mallaPreviewCanvas) return
+  mallaIsDrawing = false
+  mallaPreviewCanvas.releasePointerCapture?.(event.pointerId)
+}
+
+mallaPreviewCanvas?.addEventListener("pointerup", detenerDibujo)
+mallaPreviewCanvas?.addEventListener("pointerleave", detenerDibujo)
 
 document.addEventListener("keydown", event => {
   if (event.key === "Escape") cerrarMallaPreview()
