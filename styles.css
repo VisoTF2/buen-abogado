@@ -275,6 +275,15 @@ body.banner-sin-fondo header:not(.banner-con-imagen)::after {
       box-shadow: none !important;
     }
 
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible,
+    button:focus,
+    button:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+
     .nota-box {
       font-family: "Segoe UI Semibold", Arial, sans-serif !important;
       font-size: 16px;
@@ -1156,6 +1165,12 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   -webkit-appearance: none;
 }
 
+.carpeta-color-input:focus,
+.carpeta-color-input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .carpeta-color-input::-webkit-color-swatch-wrapper {
   padding: 3px;
   border-radius: 50%;
@@ -1676,6 +1691,12 @@ body.oscuro .modal-close:hover {
       background: none;
       appearance: none;
       -webkit-appearance: none;
+    }
+
+    .materia-color-input:focus,
+    .materia-color-input:focus-visible {
+      outline: none;
+      box-shadow: none;
     }
 
     .materia-color-input::-webkit-color-swatch-wrapper {
@@ -2248,6 +2269,11 @@ body.malla-activa .schedule-malla {
   position: absolute;
   left: 8px;
   bottom: 8px;
+}
+.class-editor .editor-color-input:focus,
+.class-editor .editor-color-input:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 .class-editor .editor-color-input::-webkit-color-swatch-wrapper {
   padding: 3px;
