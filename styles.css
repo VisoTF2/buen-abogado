@@ -2214,7 +2214,8 @@ body.oscuro .action-buttons .edit-btn:hover { background: rgba(96, 165, 250, 0.3
 .class-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(16,24,40,0.06); }
 
 .action-buttons .class-delete { color: var(--danger-solid-bg); }
-.action-buttons .class-delete:hover { background: var(--danger-hover-bg); }
+.action-buttons .class-delete:hover { background: var(--danger-solid-bg); color: #fff; }
+body.oscuro .action-buttons .class-delete:hover { background: var(--danger-solid-bg); color: #fff; }
 
 
 .day-add {
