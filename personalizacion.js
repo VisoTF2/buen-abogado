@@ -178,12 +178,18 @@ function obtenerOverlayMalla() {
 function ajustarCanvasMalla() {
   if (!mallaPreviewCanvas || !mallaPreviewImage) return
   const rect = mallaPreviewImage.getBoundingClientRect()
-  if (!rect.width || !rect.height) return
+  const zoomScaleRaw = getComputedStyle(document.documentElement)
+    .getPropertyValue("--zoom-scale")
+    .trim()
+  const zoomScale = Number.parseFloat(zoomScaleRaw) || 1
+  const baseWidth = mallaPreviewImage.offsetWidth || (rect.width ? rect.width / zoomScale : 0)
+  const baseHeight = mallaPreviewImage.offsetHeight || (rect.height ? rect.height / zoomScale : 0)
+  if (!baseWidth || !baseHeight) return
   const dpr = window.devicePixelRatio || 1
-  mallaPreviewCanvas.width = Math.round(rect.width * dpr)
-  mallaPreviewCanvas.height = Math.round(rect.height * dpr)
-  mallaPreviewCanvas.style.width = `${rect.width}px`
-  mallaPreviewCanvas.style.height = `${rect.height}px`
+  mallaPreviewCanvas.width = Math.round(baseWidth * dpr)
+  mallaPreviewCanvas.height = Math.round(baseHeight * dpr)
+  mallaPreviewCanvas.style.width = `${baseWidth}px`
+  mallaPreviewCanvas.style.height = `${baseHeight}px`
   const ctx = mallaPreviewCanvas.getContext("2d")
   if (!ctx) return
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
@@ -204,15 +210,32 @@ function cargarOverlayMalla() {
   const overlaySrc = obtenerOverlayMalla()
   limpiarCanvasMalla()
   if (!overlaySrc) return
-  const rect = mallaPreviewImage.getBoundingClientRect()
-  if (!rect.width || !rect.height) return
+  const dpr = window.devicePixelRatio || 1
+  const baseWidth = mallaPreviewCanvas.width / dpr
+  const baseHeight = mallaPreviewCanvas.height / dpr
+  if (!baseWidth || !baseHeight) return
   const overlayImage = new Image()
   overlayImage.onload = () => {
     const ctx = mallaPreviewCanvas.getContext("2d")
     if (!ctx) return
-    ctx.drawImage(overlayImage, 0, 0, rect.width, rect.height)
+    ctx.drawImage(overlayImage, 0, 0, baseWidth, baseHeight)
   }
   overlayImage.src = overlaySrc
+}
+
+function obtenerCoordenadasMalla(event) {
+  if (!mallaPreviewCanvas) return null
+  const rect = mallaPreviewCanvas.getBoundingClientRect()
+  const dpr = window.devicePixelRatio || 1
+  const baseWidth = mallaPreviewCanvas.width / dpr
+  const baseHeight = mallaPreviewCanvas.height / dpr
+  if (!rect.width || !rect.height || !baseWidth || !baseHeight) return null
+  const scaleX = baseWidth / rect.width
+  const scaleY = baseHeight / rect.height
+  return {
+    x: (event.clientX - rect.left) * scaleX,
+    y: (event.clientY - rect.top) * scaleY
+  }
 }
 
 function establecerModoDibujo(activo) {
@@ -464,9 +487,9 @@ mallaPreviewCanvas?.addEventListener("pointerdown", event => {
   if ((!mallaDrawActive && !mallaEraseActive) || !mallaPreviewCanvas) return
   const ctx = mallaPreviewCanvas.getContext("2d")
   if (!ctx) return
-  const rect = mallaPreviewCanvas.getBoundingClientRect()
-  const x = event.clientX - rect.left
-  const y = event.clientY - rect.top
+  const coords = obtenerCoordenadasMalla(event)
+  if (!coords) return
+  const { x, y } = coords
   if (mallaEraseActive) {
     ctx.strokeStyle = "#ffffff"
     ctx.lineWidth = 18
@@ -486,9 +509,9 @@ mallaPreviewCanvas?.addEventListener("pointermove", event => {
   if (!mallaIsDrawing || !mallaPreviewCanvas) return
   const ctx = mallaPreviewCanvas.getContext("2d")
   if (!ctx) return
-  const rect = mallaPreviewCanvas.getBoundingClientRect()
-  const x = event.clientX - rect.left
-  const y = event.clientY - rect.top
+  const coords = obtenerCoordenadasMalla(event)
+  if (!coords) return
+  const { x, y } = coords
   ctx.lineTo(x, y)
   ctx.stroke()
 })
