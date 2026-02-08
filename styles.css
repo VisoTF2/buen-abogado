@@ -548,12 +548,6 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       overflow: auto;
     }
 
-    body.documentos-sin-fondo .documentos-lista,
-    body.documentos-sin-fondo .documentos-preview {
-      background: transparent;
-      box-shadow: none;
-    }
-
     .documentos-lista {
       background: var(--card);
       border: 1px solid var(--border);
@@ -699,6 +693,13 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       overflow: hidden;
       flex: 1 1 380px;
       min-width: 0;
+    }
+
+    body.documentos-sin-fondo .documentos-lista,
+    body.documentos-sin-fondo .documentos-preview {
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
     }
 
     .documentos-preview h4 {
