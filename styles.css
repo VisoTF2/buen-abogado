@@ -38,8 +38,8 @@
       --danger-solid-border: #b91c1c;
       --danger-solid-text: #fff;
       --card-shadow-elevated: 0 6px 16px rgba(0, 0, 0, 0.1);
-      --panel-surface: rgba(255, 255, 255, 0.76);
-      --panel-surface-muted: rgba(255, 255, 255, 0.6);
+      --panel-surface: rgba(255, 255, 255, 0.38);
+      --panel-surface-muted: rgba(255, 255, 255, 0.24);
     }
 
     body.oscuro {
@@ -75,8 +75,8 @@
       --danger-solid-border: #b91c1c;
       --danger-solid-text: #fff;
       --card-shadow-elevated: 0 12px 26px rgba(0,0,0,0.42);
-      --panel-surface: rgba(15, 23, 42, 0.75);
-      --panel-surface-muted: rgba(15, 23, 42, 0.6);
+      --panel-surface: rgba(15, 23, 42, 0.5);
+      --panel-surface-muted: rgba(15, 23, 42, 0.32);
     }
 
     body {
@@ -550,6 +550,13 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       flex: 1;
       min-height: 0;
       overflow: auto;
+    }
+
+    .documentos-lista,
+    .documentos-preview,
+    .documento-item {
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
     }
 
     .documentos-lista {
@@ -1060,6 +1067,16 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .carpetaBox.carpeta-editor {
   border-style: dashed;
   background: var(--panel-surface-muted);
+}
+
+.carpetaBox,
+.carpetaLista,
+.carpetaDocumentos,
+.carpetaDocumentoChip,
+.sidebarItem,
+.sidebarItemCarpeta {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .carpetaHeader {
