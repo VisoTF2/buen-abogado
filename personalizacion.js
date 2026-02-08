@@ -25,6 +25,7 @@ const scheduleMallaPlaceholder = document.getElementById("scheduleMallaPlacehold
 const mallaPreviewBackdrop = document.getElementById("mallaPreviewBackdrop")
 const mallaPreviewImage = document.getElementById("mallaPreviewImage")
 const mallaPreviewClose = document.getElementById("mallaPreviewClose")
+const mallaPreviewBody = document.querySelector(".malla-preview-body")
 const mallaPreviewCanvasWrap = document.getElementById("mallaPreviewCanvasWrap")
 const mallaPreviewCanvas = document.getElementById("mallaPreviewCanvas")
 const mallaZoomIn = document.getElementById("mallaZoomIn")
@@ -165,8 +166,27 @@ function aplicarMallaImagen(src) {
 
 function actualizarBaseZoomMalla(width, height) {
   if (!mallaPreviewImage) return
-  const baseWidth = width || mallaPreviewImage.getBoundingClientRect().width
-  const baseHeight = height || mallaPreviewImage.getBoundingClientRect().height
+  let baseWidth = width
+  let baseHeight = height
+  if (!baseWidth || !baseHeight) {
+    const naturalWidth = mallaPreviewImage.naturalWidth || 0
+    const naturalHeight = mallaPreviewImage.naturalHeight || 0
+    if (naturalWidth && naturalHeight && mallaPreviewBody) {
+      const availableWidth = mallaPreviewBody.clientWidth || naturalWidth
+      const availableHeight = mallaPreviewBody.clientHeight || naturalHeight
+      const scale = Math.min(
+        availableWidth / naturalWidth,
+        availableHeight / naturalHeight,
+        1
+      )
+      baseWidth = naturalWidth * scale
+      baseHeight = naturalHeight * scale
+    } else {
+      const rect = mallaPreviewImage.getBoundingClientRect()
+      baseWidth = rect.width
+      baseHeight = rect.height
+    }
+  }
   if (!baseWidth || !baseHeight) return
   mallaZoomBase = { width: baseWidth, height: baseHeight }
 }
@@ -215,20 +235,15 @@ function obtenerOverlayMalla() {
 
 function ajustarCanvasMalla() {
   if (!mallaPreviewCanvas || !mallaPreviewImage) return
-  const rect = mallaPreviewImage.getBoundingClientRect()
-  const zoomScaleRaw = getComputedStyle(document.documentElement)
-    .getPropertyValue("--zoom-scale")
-    .trim()
-  const zoomScale = Number.parseFloat(zoomScaleRaw) || 1
-  const baseWidth = mallaPreviewImage.offsetWidth || (rect.width ? rect.width / zoomScale : 0)
-  const baseHeight = mallaPreviewImage.offsetHeight || (rect.height ? rect.height / zoomScale : 0)
+  actualizarBaseZoomMalla()
+  const baseWidth = mallaZoomBase.width
+  const baseHeight = mallaZoomBase.height
   if (!baseWidth || !baseHeight) return
   const dpr = window.devicePixelRatio || 1
   mallaPreviewCanvas.width = Math.round(baseWidth * dpr)
   mallaPreviewCanvas.height = Math.round(baseHeight * dpr)
-  mallaPreviewCanvas.style.width = `${baseWidth}px`
-  mallaPreviewCanvas.style.height = `${baseHeight}px`
-  actualizarBaseZoomMalla(baseWidth, baseHeight)
+  mallaPreviewCanvas.style.width = "100%"
+  mallaPreviewCanvas.style.height = "100%"
   actualizarTamanoZoomMalla()
   const ctx = mallaPreviewCanvas.getContext("2d")
   if (!ctx) return
