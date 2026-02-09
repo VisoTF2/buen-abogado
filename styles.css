@@ -779,6 +779,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       background: var(--card);
       border: 1px solid var(--border);
       box-shadow: var(--card-shadow-elevated);
+      box-sizing: border-box;
       display: flex;
       flex-direction: column;
       gap: 12px;
