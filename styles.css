@@ -768,6 +768,15 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       gap: 12px;
     }
 
+    .media-panel.is-empty {
+      padding-bottom: 8px;
+      gap: 6px;
+    }
+
+    .media-panel.is-empty .media-grid {
+      display: none;
+    }
+
     .media-head {
       display: flex;
       flex-direction: column;
