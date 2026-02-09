@@ -2,15 +2,13 @@ const { app, BrowserWindow } = require("electron");
 const path = require("path");
 const startServer = require("./server");
 
-let mainWindow;
 let server;
 
 async function createWindow() {
 
-  // ✅ Iniciar servidor como Live Server
   server = await startServer();
 
-  mainWindow = new BrowserWindow({
+  const win = new BrowserWindow({
     width: 900,
     height: 800,
     icon: path.join(__dirname, "logo.ico"),
@@ -21,10 +19,9 @@ async function createWindow() {
     }
   });
 
-  // ✅ Cargar desde localhost en vez de file://
-  mainWindow.loadURL("http://localhost:3000");
+  win.loadURL("http://127.0.0.1:3000");
 
-  mainWindow.setMenuBarVisibility(false);
+  win.setMenuBarVisibility(false);
 }
 
 app.whenReady().then(createWindow);
