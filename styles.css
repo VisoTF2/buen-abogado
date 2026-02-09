@@ -766,13 +766,14 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .media-layout {
       width: min(98vw, var(--layout-max-width));
-      margin: 0 auto 32px;
-      padding: 0 var(--layout-padding);
+      margin: 18px auto 32px;
+      padding: 0;
       box-sizing: border-box;
     }
 
     .media-panel {
       margin: 0;
+      width: 100%;
       padding: 16px 18px 20px;
       border-radius: 14px;
       background: var(--card);
