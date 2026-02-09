@@ -1,6 +1,7 @@
 const mediaInput = document.getElementById("mediaInput")
 const mediaAddBtn = document.getElementById("mediaAddBtn")
 const mediaGrid = document.getElementById("mediaGrid")
+const mediaPanel = document.getElementById("mediaPanel")
 const mediaError = document.getElementById("mediaError")
 const MEDIA_STORAGE_KEY = "mediaEmbeds"
 
@@ -150,13 +151,11 @@ const renderMedia = videos => {
   mediaGrid.innerHTML = ""
 
   if (!videos.length) {
-    const empty = document.createElement("div")
-    empty.className = "media-empty"
-    empty.textContent = "Todavía no has agregado videos."
-    mediaGrid.appendChild(empty)
+    mediaPanel?.classList.add("is-empty")
     return
   }
 
+  mediaPanel?.classList.remove("is-empty")
   videos.forEach(video => {
     const card = crearCardVideo(video, id => {
       const updated = videos.filter(item => item.id !== id)
