@@ -1848,6 +1848,12 @@ async function cargarDocumentoProcedimiento(ruta = "/docs/codigo_de_procedimient
   }
 }
 
+function abrirYoutube() {
+  window.electronAPI.abrirVideo(
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+  )
+}
+
 inicializarMenuContextual()
 renderDocumentos()
 ordenarYMostrar()
