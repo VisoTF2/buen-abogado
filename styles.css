@@ -695,6 +695,13 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       min-width: 0;
     }
 
+    body.documentos-sin-fondo .documentos-lista,
+    body.documentos-sin-fondo .documentos-preview {
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
+    }
+
     .documentos-preview h4 {
       margin: 0;
       font-size: 15px;
