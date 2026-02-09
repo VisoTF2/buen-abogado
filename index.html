@@ -227,6 +227,26 @@
             </div>
           </div>
         </div>
+
+        <div class="media-panel" id="mediaPanel">
+          <div class="media-head">
+            <div class="media-title">
+              <h3>Espacio multimedia</h3>
+              <span>Agrega links de YouTube, playlists o transmisiones en vivo.</span>
+            </div>
+            <div class="media-actions">
+              <input
+                type="url"
+                id="mediaInput"
+                class="media-input"
+                placeholder="Pega un link de YouTube"
+              >
+              <button class="media-btn" id="mediaAddBtn" type="button">Agregar</button>
+            </div>
+            <div class="media-error" id="mediaError" role="alert" aria-live="polite"></div>
+          </div>
+          <div class="media-grid" id="mediaGrid"></div>
+        </div>
       </div>
   </div>
 
@@ -331,6 +351,7 @@
 <script src="busqueda.js"></script>
 <script src="schedule.js"></script>
 <script src="app.js"></script>
+<script src="media.js"></script>
   <div class="app-footer" style="font-size:12px;text-align:center;color:#666;padding:8px 0;">Esta app puede cometer errores, se recomienda revisar los códigos.</div>
   <script>
     (function(){
