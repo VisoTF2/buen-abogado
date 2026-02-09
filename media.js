@@ -150,10 +150,6 @@ const renderMedia = videos => {
   mediaGrid.innerHTML = ""
 
   if (!videos.length) {
-    const empty = document.createElement("div")
-    empty.className = "media-empty"
-    empty.textContent = "Todavía no has agregado videos."
-    mediaGrid.appendChild(empty)
     return
   }
 
