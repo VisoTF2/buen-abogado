@@ -1198,6 +1198,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-height: clamp(200px, 32vh, 340px);
+  overflow: auto;
 }
 
 .sidebarGroup {
