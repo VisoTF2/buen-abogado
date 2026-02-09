@@ -640,18 +640,6 @@ function inicializarMenuContextual() {
     mostrarMenuContextual(e.clientX, e.clientY)
   })
 
-  const mostrarMenuDesdeAccion = event => {
-    const editable = esCampoEditable(event.target)
-    if (!editable) return
-    objetivoContextual = editable
-    actualizarEstadoMenuContextual()
-    const { x, y } = obtenerPosicionMenuContextual(editable)
-    mostrarMenuContextual(x, y)
-  }
-
-  document.addEventListener("copy", mostrarMenuDesdeAccion)
-  document.addEventListener("paste", mostrarMenuDesdeAccion)
-
   botonCopiarMenu.addEventListener("click", async () => {
     if (!objetivoContextual || !navigator.clipboard?.writeText) return
 
