@@ -515,13 +515,17 @@ function actualizarBotonesVer() {
   document.querySelectorAll(".documento-ver").forEach(btn => {
     const item = btn.closest(".documento-item")
     const id = item?.dataset.documentoId
+    const eliminarBtn = item?.querySelector(".documento-eliminar")
 
     if (id && id === actual) {
-      btn.textContent = "Cerrar"
+      btn.style.display = "none"
       btn.setAttribute("aria-pressed", "true")
+      if (eliminarBtn) eliminarBtn.style.display = "none"
     } else {
       btn.textContent = "Ver"
+      btn.style.display = "inline-flex"
       btn.setAttribute("aria-pressed", "false")
+      if (eliminarBtn) eliminarBtn.style.display = "inline-flex"
     }
   })
 }
