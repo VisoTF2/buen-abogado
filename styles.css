@@ -2002,7 +2002,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
 .carpetasLista {
@@ -2029,6 +2029,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .sidebarGroupDocumentos {
+  margin-top: var(--space-3);
+}
+
+.sidebarGroupNormativa {
   margin-top: var(--space-3);
 }
 
@@ -2419,6 +2423,13 @@ body.oscuro .sidebarItemCarpeta {
   border: 1px dashed transparent;
   background: transparent;
   transition: box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.sidebarDocumentosLista .carpetaVacia {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  text-align: center;
 }
 
 .sidebarDocumentosLista.drop-activa {
