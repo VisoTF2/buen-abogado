@@ -1344,7 +1344,7 @@ function ordenarYMostrar() {
   renderizarCarpetasSidebar(listaCarpetas, agrupado, sidebar)
 
   const seccionDocumentos = document.createElement("div")
-  seccionDocumentos.className = "sidebarGroup"
+  seccionDocumentos.className = "sidebarGroup sidebarGroupDocumentos"
 
   const tituloDocumentos = document.createElement("div")
   tituloDocumentos.className = "sidebarGroupTitle"

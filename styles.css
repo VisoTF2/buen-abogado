@@ -2028,13 +2028,17 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   gap: 6px;
 }
 
+.sidebarGroupDocumentos {
+  margin-top: var(--space-3);
+}
+
 .carpetaBox {
   --carpeta-slot-height: 0px;
   --carpeta-color: var(--accent);
   position: relative;
   border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
   border-radius: 12px;
-  padding: 14px;
+  padding: 10px 12px;
   background: var(--card);
   box-shadow: none;
   margin-top: var(--space-3);
@@ -2105,7 +2109,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  margin-bottom: var(--space-2);
+  margin-bottom: 6px;
   cursor: grab;
 }
 
@@ -2126,8 +2130,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   background: transparent;
   color: #64748b;
   border-radius: 10px;
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -2148,9 +2152,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  font-size: 17px;
   line-height: 1;
   transform-origin: center;
   transition: transform 0.2s ease;
@@ -2300,13 +2304,13 @@ body.oscuro .carpetaToggle {
   font-weight: 700;
   font-size: 13px;
   color: var(--accent);
-  margin: var(--space-3) 4px 6px;
+  margin: 8px 4px 4px;
 }
 
 .carpetaDocumentos {
   border: 1px dashed transparent;
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: var(--article-bg);
   display: flex;
   flex-direction: column;
@@ -2390,11 +2394,13 @@ body.oscuro .carpetaToggle {
 .carpetaVacia {
   font-size: 13px;
   color: var(--muted-text);
-  padding: 6px 8px;
+  padding: 6px 0;
+  width: 100%;
   min-height: var(--carpeta-slot-height);
   display: flex;
   align-items: center;
   justify-content: center;
+  align-self: stretch;
   text-align: center;
 }
 
