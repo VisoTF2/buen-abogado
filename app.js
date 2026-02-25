@@ -36,6 +36,42 @@ let materiaArrastrada = null
 let materiaArrastradaNormativa = null
 let materiaArrastradaCarpetaId = null
 let documentoSeleccionadoEnCarpetaId = null
+const DOCUMENTOS_SIDEBAR_STORAGE_KEY = "documentosSidebarIds"
+let documentosSidebarIds = cargarDocumentosSidebarIds()
+
+function cargarDocumentosSidebarIds() {
+  try {
+    const guardados = JSON.parse(localStorage.getItem(DOCUMENTOS_SIDEBAR_STORAGE_KEY) || "[]")
+    if (!Array.isArray(guardados)) return []
+    return Array.from(new Set(guardados.filter(id => typeof id === "string" && id.trim())))
+  } catch (error) {
+    return []
+  }
+}
+
+function guardarDocumentosSidebarIds() {
+  localStorage.setItem(DOCUMENTOS_SIDEBAR_STORAGE_KEY, JSON.stringify(documentosSidebarIds))
+}
+
+function agregarDocumentoASidebar(documentoId) {
+  if (!documentoId) return false
+  if (documentosSidebarIds.includes(documentoId)) return false
+  documentosSidebarIds = [...documentosSidebarIds, documentoId]
+  guardarDocumentosSidebarIds()
+  return true
+}
+
+function quitarDocumentoDeSidebar(documentoId) {
+  const totalAntes = documentosSidebarIds.length
+  documentosSidebarIds = documentosSidebarIds.filter(id => id !== documentoId)
+  if (documentosSidebarIds.length !== totalAntes) {
+    guardarDocumentosSidebarIds()
+    return true
+  }
+  return false
+}
+
+window.quitarDocumentoDeSidebar = quitarDocumentoDeSidebar
 
 
 modalConfiguracion?.addEventListener("click", e => {
@@ -401,6 +437,7 @@ function obtenerDocumentoRespaldoEnCarpetas(documentoId) {
 function moverDocumentoACarpeta(documentoId, carpetaId) {
   if (!carpetaId || !documentoId) return
   removerDocumentoDeCarpetas(documentoId)
+  quitarDocumentoDeSidebar(documentoId)
   documentoSeleccionadoEnCarpetaId = documentoId
 
   const documento = documentosCargados.find(doc => doc.id === documentoId)
@@ -928,9 +965,10 @@ function prepararListaDocumentosSidebar(lista) {
     e.preventDefault()
     lista.classList.remove("drop-activa")
     const cambio = removerDocumentoDeCarpetas(documentoId)
+    const agregado = agregarDocumentoASidebar(documentoId)
     documentoSeleccionadoEnCarpetaId = documentoId
     documentoArrastradoId = null
-    if (cambio) ordenarYMostrar()
+    if (cambio || agregado) ordenarYMostrar()
   })
 }
 
@@ -1344,7 +1382,7 @@ function ordenarYMostrar() {
   renderizarCarpetasSidebar(listaCarpetas, agrupado, sidebar)
 
   const seccionDocumentos = document.createElement("div")
-  seccionDocumentos.className = "sidebarGroup"
+  seccionDocumentos.className = "sidebarGroup sidebarGroupDocumentos"
 
   const tituloDocumentos = document.createElement("div")
   tituloDocumentos.className = "sidebarGroupTitle"
@@ -1356,14 +1394,20 @@ function ordenarYMostrar() {
   prepararListaDocumentosSidebar(listaDocumentosSidebar)
 
   const documentosFueraDeCarpeta = documentosCargados.filter(doc => !carpetaDeDocumento(doc.id))
+  const disponiblesPorId = new Map(documentosFueraDeCarpeta.map(doc => [doc.id, doc]))
+  documentosSidebarIds = documentosSidebarIds.filter(id => disponiblesPorId.has(id))
+  guardarDocumentosSidebarIds()
+  const documentosSidebar = documentosSidebarIds
+    .map(id => disponiblesPorId.get(id))
+    .filter(Boolean)
 
-  if (!documentosFueraDeCarpeta.length) {
+  if (!documentosSidebar.length) {
     const aviso = document.createElement("div")
     aviso.className = "carpetaVacia"
     aviso.textContent = "Arrastra documentos aquí"
     listaDocumentosSidebar.appendChild(aviso)
   } else {
-    documentosFueraDeCarpeta.forEach(doc => {
+    documentosSidebar.forEach(doc => {
       listaDocumentosSidebar.appendChild(crearItemDocumentoSidebar(doc, sidebar))
     })
   }
@@ -1378,7 +1422,7 @@ function ordenarYMostrar() {
     if (!nombresMaterias.length) return
 
     const grupo = document.createElement("div")
-    grupo.className = "sidebarGroup"
+    grupo.className = "sidebarGroup sidebarGroupNormativa"
 
     const tituloGrupo = document.createElement("div")
     tituloGrupo.className = "sidebarGroupTitle"

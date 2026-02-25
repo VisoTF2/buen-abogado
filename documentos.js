@@ -392,6 +392,9 @@ function eliminarDocumento(id) {
   documentosCargados = documentosCargados.filter(d => d.id !== id)
 
   removerDocumentoDeCarpetas(id)
+  if (typeof quitarDocumentoDeSidebar === "function") {
+    quitarDocumentoDeSidebar(id)
+  }
 
   if (doc?.url) {
     try { URL.revokeObjectURL(doc.url) } catch (e) { /* noop */ }
