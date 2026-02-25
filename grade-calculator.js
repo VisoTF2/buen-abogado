@@ -143,6 +143,10 @@
       ? controlsRaw.map(control => ({ grade: control?.grade ?? "", weight: control?.weight ?? "" }))
       : Array.from({ length: defaults.controlsCount }, () => ({ grade: "", weight: "" }))
 
+    if (!controls.length) {
+      controls.push({ grade: "", weight: "" })
+    }
+
     return {
       id: String(raw?.id || `subject-${Date.now()}-${Math.random().toString(16).slice(2)}`),
       name: String(raw?.name || "Ramo sin nombre"),
@@ -329,6 +333,11 @@
 
   function renderControls(subject) {
     controlsContainer.innerHTML = ""
+
+    if (!Array.isArray(subject.controls) || subject.controls.length === 0) {
+      subject.controls = [{ grade: "", weight: "" }]
+      saveState()
+    }
 
     subject.controls.forEach((control, index) => {
       const row = document.createElement("div")

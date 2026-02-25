@@ -1393,10 +1393,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       grid-template-columns: minmax(82px, 110px) minmax(150px, 1fr) minmax(150px, 1fr) auto;
       gap: 8px;
       align-items: center;
-      border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+      border: 1px solid color-mix(in srgb, var(--border) 52%, transparent);
       border-radius: 12px;
       padding: 8px;
-      background: color-mix(in srgb, var(--card) 99.7%, transparent);
+      background: color-mix(in srgb, var(--card) 97.8%, white 2.2%);
     }
 
     .grade-control-title {
