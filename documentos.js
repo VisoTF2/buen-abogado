@@ -43,6 +43,62 @@ if (botonDocumentos) {
   })
 }
 
+prepararRecepcionDocumentoDesdeCarpetas()
+
+function restaurarDocumentoDesdeCarpeta(documentoId) {
+  if (!documentoId) return false
+
+  const respaldo =
+    typeof obtenerDocumentoRespaldoEnCarpetas === "function"
+      ? obtenerDocumentoRespaldoEnCarpetas(documentoId)
+      : null
+
+  if (!respaldo) return false
+
+  const existente = documentosCargados.find(d => d.id === documentoId)
+  const base = {
+    id: respaldo.id,
+    nombre: respaldo.nombre || "Documento",
+    extension: respaldo.extension || "",
+    url: respaldo.url || "",
+    texto: respaldo.texto || "",
+    mensaje: respaldo.mensaje || ""
+  }
+
+  const documentoFinal = existente ? { ...existente, ...base } : base
+  documentosCargados = [
+    documentoFinal,
+    ...documentosCargados.filter(d => d.id !== documentoId)
+  ]
+
+  guardarDocumentos()
+  renderDocumentos()
+  mostrarDocumento(documentoId)
+  return true
+}
+
+function prepararRecepcionDocumentoDesdeCarpetas() {
+  const zonas = [listaDocumentos, visorDocumentos].filter(Boolean)
+  if (!zonas.length) return
+
+  zonas.forEach(zona => {
+    zona.addEventListener("dragover", e => {
+      if (!documentoArrastradoId) return
+      e.preventDefault()
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+    })
+
+    zona.addEventListener("drop", e => {
+      e.preventDefault()
+      const id = documentoArrastradoId || e.dataTransfer?.getData("text/plain")
+      if (!id) return
+      restaurarDocumentoDesdeCarpeta(id)
+      documentoArrastradoId = null
+      ordenarYMostrar()
+    })
+  })
+}
+
 function cargarDocumentosGuardados() {
   try {
     const guardados = JSON.parse(localStorage.getItem(DOCUMENTOS_STORAGE_KEY) || "[]")

@@ -387,6 +387,15 @@ function actualizarDocumentoEnCarpetas(documento) {
   if (cambio) guardarCarpetas()
 }
 
+function obtenerDocumentoRespaldoEnCarpetas(documentoId) {
+  if (!documentoId) return null
+  for (const carpeta of carpetas) {
+    const respaldo = carpeta.documentosData?.[documentoId]
+    if (respaldo) return { ...respaldo }
+  }
+  return null
+}
+
 function moverDocumentoACarpeta(documentoId, carpetaId) {
   if (!carpetaId || !documentoId) return
   removerDocumentoDeCarpetas(documentoId)
@@ -950,6 +959,11 @@ function activarArrastreArticulo(box, normativa, materia) {
     }
 
     articuloArrastradoId = box.dataset.id
+    materiaArrastrada = materia
+    materiaArrastradaNormativa = normativa
+    materiaArrastradaCarpetaId = materiaEnCarpeta(normativa, materia)
+    materiaDropProcesado = false
+
     box.classList.add("arrastrando")
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move"
@@ -985,6 +999,7 @@ function activarArrastreArticulo(box, normativa, materia) {
     const contenedor = box.parentElement
     aplicarOrdenDesdeDOM(contenedor, normativa, materia)
     articuloArrastradoId = null
+    if (!materiaDropProcesado) limpiarEstadoArrastreMateria()
   })
 }
 
@@ -1475,26 +1490,98 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
       documentosEnCarpeta.forEach(doc => {
         const chip = document.createElement("div")
         chip.className = "carpetaDocumentoChip"
+        chip.draggable = true
 
         const detalle = document.createElement("div")
         detalle.className = "carpetaDocumentoDetalle"
         detalle.dataset.docId = doc.id
         detalle.textContent = doc.nombre
+        detalle.tabIndex = 0
+        detalle.setAttribute("role", "textbox")
+        detalle.setAttribute("aria-label", "Editar nombre del documento")
 
-        const quitar = document.createElement("button")
-        quitar.type = "button"
-        quitar.className = "carpetaDocumentoQuitar"
-        quitar.textContent = "Quitar"
-        quitar.addEventListener("click", () => {
-          const cambio = removerDocumentoDeCarpetas(doc.id, carpeta.id)
-          if (cambio) {
+        const activarEdicionDocumento = () => {
+          if (chip.querySelector(".documento-nombre-input")) return
+
+          const input = document.createElement("input")
+          input.type = "text"
+          input.className = "documento-nombre-input"
+          input.value = detalle.textContent || "Documento"
+
+          const cancelar = () => {
+            input.replaceWith(detalle)
+            detalle.focus()
+          }
+
+          const guardar = () => {
+            const nuevoNombre = (input.value || "").trim() || "Documento"
+            const docGlobal = documentosCargados.find(d => d.id === doc.id)
+
+            if (docGlobal && typeof actualizarNombreDocumento === "function") {
+              actualizarNombreDocumento(doc.id, nuevoNombre)
+              renderDocumentos()
+            } else {
+              carpetas = carpetas.map(c => {
+                if (!(c.documentosData || {})[doc.id]) return c
+                return {
+                  ...c,
+                  documentosData: {
+                    ...(c.documentosData || {}),
+                    [doc.id]: { ...(c.documentosData?.[doc.id] || {}), nombre: nuevoNombre }
+                  }
+                }
+              })
+              guardarCarpetas()
+            }
+
+            detalle.textContent = nuevoNombre
+            input.replaceWith(detalle)
+            detalle.focus()
             ordenarYMostrar()
-            renderDocumentos()
+          }
+
+          input.addEventListener("keydown", e => {
+            if (e.key === "Enter") {
+              e.preventDefault()
+              guardar()
+            }
+            if (e.key === "Escape") {
+              e.preventDefault()
+              cancelar()
+            }
+          })
+
+          input.addEventListener("blur", guardar)
+          detalle.replaceWith(input)
+          requestAnimationFrame(() => {
+            input.focus()
+            input.select()
+          })
+        }
+
+        detalle.addEventListener("dblclick", activarEdicionDocumento)
+        detalle.addEventListener("keydown", e => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            activarEdicionDocumento()
           }
         })
 
+        chip.addEventListener("dragstart", e => {
+          documentoArrastradoId = doc.id
+          chip.classList.add("documento-arrastrando")
+          if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = "move"
+            e.dataTransfer.setData("text/plain", doc.id)
+          }
+        })
+
+        chip.addEventListener("dragend", () => {
+          chip.classList.remove("documento-arrastrando")
+          documentoArrastradoId = null
+        })
+
         chip.appendChild(detalle)
-        chip.appendChild(quitar)
         listaDocs.appendChild(chip)
       })
 
