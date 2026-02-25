@@ -2311,14 +2311,19 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
 .carpetaDocumentoChip {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   background: var(--article-bg);
-  border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+  border: 1px solid var(--border);
+  border-left: 8px solid color-mix(in srgb, var(--accent) 55%, #ffffff 45%);
   border-radius: 10px;
   padding: 10px 12px;
   cursor: grab;
+  min-width: 0;
 }
 
 .carpetaDocumentoChip.is-selected {
@@ -2331,13 +2336,14 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetaDocumentoDetalle {
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--text);
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
   word-break: break-word;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 
@@ -2371,7 +2377,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   display: flex;
   align-items: center;
   width: 100%;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .sidebarItemDocumento {
@@ -2399,18 +2405,25 @@ body.oscuro .sidebarItemCarpeta {
   color: var(--accent);
 }
 
-      .sidebarItem {
-        padding: 12px 12px;
-        margin-bottom: 0;
-        border-radius: 10px;
-        cursor: grab;
-        font-weight: 600;
-        border-left: 8px solid var(--accent);
-        background: var(--article-bg);
-        transition: 0.15s ease;
-    font-size: 13px;
-    line-height: 1.25;
-  }
+.sidebarItem {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  margin-bottom: 0;
+  border-radius: 10px;
+  cursor: grab;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1.25;
+  border-left: 8px solid var(--accent);
+  background: var(--article-bg);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 
 .modal-backdrop {
   position: fixed;
@@ -2755,6 +2768,9 @@ body.oscuro .modal-close:hover {
       cursor: grab;
       position: relative;
       transition: 0.15s ease;
+      min-width: 0;
+      overflow: hidden;
+      box-sizing: border-box;
     }
 
     .articulo:hover {
@@ -2777,12 +2793,16 @@ body.oscuro .modal-close:hover {
       display: flex;
       align-items: center;
       gap: 10px;
+      min-width: 0;
     }
 
     .articulo-titulo-texto {
-      flex: 0 0 auto;
+      flex: 1 1 auto;
+      min-width: 0;
       display: inline-block;
       white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      word-break: break-word;
       border: none;
       border-radius: 0;
       padding: 0;
