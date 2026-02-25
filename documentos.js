@@ -178,6 +178,7 @@ async function procesarDocumento(archivo) {
     guardarDocumentos()
     renderDocumentos()
     mostrarDocumento(base.id)
+    if (typeof ordenarYMostrar === "function") ordenarYMostrar()
   } catch (err) {
     console.error("No se pudo procesar el documento", err)
     base.mensaje = "No se pudo leer el documento."
@@ -185,6 +186,7 @@ async function procesarDocumento(archivo) {
     guardarDocumentos()
     renderDocumentos()
     mostrarDocumento(base.id)
+    if (typeof ordenarYMostrar === "function") ordenarYMostrar()
   }
 }
 
@@ -362,7 +364,7 @@ function renderDocumentos() {
       item.classList.add("documento-arrastrando")
       if (e.dataTransfer) {
         e.dataTransfer.effectAllowed = "move"
-        e.dataTransfer.setData("text/plain", doc.nombre)
+        e.dataTransfer.setData("text/plain", doc.id)
       }
     })
     item.addEventListener("dragend", () => {
@@ -370,7 +372,7 @@ function renderDocumentos() {
       item.classList.remove("documento-arrastrando")
       document
         .querySelectorAll(".carpetaDocumentos")
-        .forEach(z => z.classList.remove("drop-activa"))
+        .forEach(z => z.classList.remove("drop-activa", "carpetaLista-drop"))
     })
     listaDocumentos.appendChild(item)
   })
@@ -390,7 +392,7 @@ function eliminarDocumento(id) {
 
   guardarDocumentos()
   renderDocumentos()
-  if (cambioCarpeta) ordenarYMostrar()
+  if (typeof ordenarYMostrar === "function") ordenarYMostrar()
 
   const vistaActualId = visorDocumentos?.dataset.docActual
   if (doc && vistaActualId === doc.id) {
@@ -533,6 +535,7 @@ function actualizarNombreDocumento(id, nuevoNombre) {
   doc.nombre = nuevoNombre
   guardarDocumentos()
   actualizarNombreDocumentoEnCarpetas(id, nuevoNombre)
+  if (typeof ordenarYMostrar === "function") ordenarYMostrar()
 
   if (visorDocumentos?.dataset.docActual === id) {
     const titulo = visorDocumentos.querySelector(".documento-preview-titulo")

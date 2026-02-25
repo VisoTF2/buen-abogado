@@ -874,23 +874,23 @@ function prepararZonaDocumentosCarpeta(zona, carpetaId) {
   zona.addEventListener("dragover", e => {
     if (!documentoArrastradoId) return
     e.preventDefault()
-    zona.classList.add("drop-activa")
+    zona.classList.add("drop-activa", "carpetaLista-drop")
     if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
   })
 
   zona.addEventListener("dragenter", () => {
     if (!documentoArrastradoId) return
-    zona.classList.add("drop-activa")
+    zona.classList.add("drop-activa", "carpetaLista-drop")
   })
 
   zona.addEventListener("dragleave", () => {
-    zona.classList.remove("drop-activa")
+    zona.classList.remove("drop-activa", "carpetaLista-drop")
   })
 
   zona.addEventListener("drop", e => {
     if (!documentoArrastradoId) return
     e.preventDefault()
-    zona.classList.remove("drop-activa")
+    zona.classList.remove("drop-activa", "carpetaLista-drop")
     moverDocumentoACarpeta(documentoArrastradoId, carpetaId)
     documentoArrastradoId = null
   })
@@ -1250,6 +1250,7 @@ function ordenarYMostrar() {
   })
 
   renderizarCarpetasSidebar(listaCarpetas, agrupado, sidebar)
+  renderizarDocumentosSidebar(sidebar)
 
   const ordenNormativas = ["civil", "penal", "procedimiento"]
   ordenNormativas.forEach(norm => {
@@ -1402,6 +1403,75 @@ function configurarSemestreEditableCarpeta(carpeta, semestreEl) {
     guardarCarpetas()
     ordenarYMostrar()
   })
+}
+
+function activarArrastreDocumentoSidebar(item, documentoId) {
+  item.draggable = true
+
+  item.addEventListener("dragstart", e => {
+    documentoArrastradoId = documentoId
+    item.classList.add("arrastrando")
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = "move"
+      e.dataTransfer.setData("text/plain", documentoId)
+    }
+  })
+
+  item.addEventListener("dragend", () => {
+    documentoArrastradoId = null
+    item.classList.remove("arrastrando")
+    document
+      .querySelectorAll(".carpetaDocumentos")
+      .forEach(z => z.classList.remove("drop-activa", "carpetaLista-drop"))
+  })
+}
+
+function renderizarDocumentosSidebar(sidebar) {
+  if (!sidebar || typeof documentosCargados === "undefined") return
+
+  const grupo = document.createElement("div")
+  grupo.className = "sidebarGroup"
+
+  const titulo = document.createElement("div")
+  titulo.className = "sidebarGroupTitle"
+  titulo.textContent = "Documentos"
+  grupo.appendChild(titulo)
+
+  const lista = document.createElement("div")
+  lista.className = "sidebarGroupList sidebarGroupListDocumentos"
+  grupo.appendChild(lista)
+
+  if (!documentosCargados.length) {
+    const vacio = document.createElement("div")
+    vacio.className = "carpetaVacia"
+    vacio.textContent = "Sube documentos para organizarlos"
+    lista.appendChild(vacio)
+  } else {
+    const docActual = document.getElementById("visorDocumentos")?.dataset?.docActual || ""
+
+    documentosCargados.forEach(doc => {
+      const item = document.createElement("div")
+      item.className = "sidebarItem sidebarItemDocumento"
+      item.dataset.documentoId = doc.id
+      item.textContent = doc.nombre || "Documento"
+
+      if (doc.id === docActual || doc.id === documentoSeleccionadoEnCarpetaId) {
+        item.classList.add("activa")
+      }
+
+      item.addEventListener("click", () => {
+        documentoSeleccionadoEnCarpetaId = doc.id
+        sidebar.querySelectorAll(".sidebarItemDocumento").forEach(i => i.classList.remove("activa"))
+        item.classList.add("activa")
+        if (typeof mostrarDocumento === "function") mostrarDocumento(doc.id)
+      })
+
+      activarArrastreDocumentoSidebar(item, doc.id)
+      lista.appendChild(item)
+    })
+  }
+
+  sidebar.appendChild(grupo)
 }
 
 function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {

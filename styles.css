@@ -2285,9 +2285,11 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.carpetaDocumentos.drop-activa {
-  box-shadow: inset 0 0 0 2px var(--accent);
-  border-radius: 10px;
+.carpetaDocumentos.drop-activa,
+.sidebarGroupList.drop-activa {
+  border-color: color-mix(in srgb, var(--accent) 65%, transparent);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--article-bg));
 }
 
 .carpetaDocumentosVacio {
@@ -2339,14 +2341,16 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 
-.documento-arrastrando {
+.documento-arrastrando,
+.sidebarItem.arrastrando {
   opacity: 0.9;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
 }
 
 .carpetaLista-drop {
-  box-shadow: inset 0 0 0 2px var(--accent);
-  background: rgba(59, 130, 246, 0.08);
+  border-color: color-mix(in srgb, var(--accent) 65%, transparent);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--article-bg));
 }
 
 
@@ -2366,6 +2370,19 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   min-height: var(--carpeta-slot-height);
   display: flex;
   align-items: center;
+  width: 100%;
+  justify-content: center;
+}
+
+.sidebarItemDocumento {
+  background: var(--article-bg);
+  min-height: 34px;
+  width: 100%;
+  border-left: 8px solid color-mix(in srgb, var(--accent) 55%, #ffffff 45%);
+}
+
+.sidebarGroupListDocumentos {
+  min-height: 34px;
 }
 
 body.oscuro .sidebarItemCarpeta {
@@ -2610,7 +2627,6 @@ body.oscuro .modal-close:hover {
 
     .sidebarItem.arrastrando {
       opacity: 0.9;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
     }
 
 .sidebarGroupList {
@@ -2620,6 +2636,8 @@ body.oscuro .modal-close:hover {
   padding: 4px;
   min-height: 34px;
   border-radius: 10px;
+  border: 1px dashed transparent;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .sidebarGroupList.carpetaLista {
@@ -2627,10 +2645,6 @@ body.oscuro .modal-close:hover {
   min-height: 34px;
 }
 
-.sidebarGroupList.drop-activa {
-  background: rgba(59, 130, 246, 0.06);
-  box-shadow: inset 0 0 0 2px var(--accent);
-}
 
     .mainPanel {
       flex: 1;
