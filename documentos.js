@@ -370,13 +370,15 @@ function eliminarDocumento(id) {
   const doc = documentosCargados.find(d => d.id === id)
   documentosCargados = documentosCargados.filter(d => d.id !== id)
 
+  const cambioCarpeta = removerDocumentoDeCarpetas(id)
+
   if (doc?.url) {
     try { URL.revokeObjectURL(doc.url) } catch (e) { /* noop */ }
   }
 
   guardarDocumentos()
   renderDocumentos()
-  ordenarYMostrar()
+  if (cambioCarpeta) ordenarYMostrar()
 
   const vistaActualId = visorDocumentos?.dataset.docActual
   if (doc && vistaActualId === doc.id) {
