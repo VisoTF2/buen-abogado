@@ -2,7 +2,7 @@
   const STORAGE_KEY = "gradeCalculatorSubjectsV2"
 
   const defaults = {
-    controlsCount: 4,
+    controlsCount: 1,
     directPassGrade: 4.0,
     examThreshold: 3.5,
     exemptionThreshold: 5.5,
@@ -11,11 +11,11 @@
   }
 
   const statusPriority = {
-    "Estado académico: Aprobado sin examen": 1,
-    "Estado académico: Va a examen": 2,
-    "Estado académico: Reprobado": 3,
-    "Estado académico: En progreso": 4,
-    "Estado académico: Revisa los parámetros": 5
+    "Aprobado sin examen": 1,
+    "Va a examen": 2,
+    "Reprobado": 3,
+    "En progreso": 4,
+    "Revisa los parámetros": 5
   }
 
   const panel = document.getElementById("gradeCalculatorPanel")
@@ -290,7 +290,7 @@
       selectedSubjectNameInput.value = ""
       controlsContainer.innerHTML = ""
       validationBox.textContent = "Selecciona o crea un ramo para comenzar."
-      statusText.textContent = "Estado académico: En progreso"
+      statusText.textContent = "En progreso"
       currentAverageText.textContent = "—"
       needExamText.textContent = "Aún no definido"
       remainingWithoutExamText.textContent = "—"
@@ -556,11 +556,11 @@
   }
 
   function resolveAcademicStatus({ isExempt, requiresExam, isDirectFail, summary }) {
-    if (summary.totalWeight < 100) return "Estado académico: En progreso"
-    if (isExempt) return "Estado académico: Aprobado sin examen"
-    if (requiresExam) return "Estado académico: Va a examen"
-    if (isDirectFail) return "Estado académico: Reprobado"
-    return "Estado académico: Revisa los parámetros"
+    if (summary.totalWeight < 100) return "En progreso"
+    if (isExempt) return "Aprobado sin examen"
+    if (requiresExam) return "Va a examen"
+    if (isDirectFail) return "Reprobado"
+    return "Revisa los parámetros"
   }
 
   function formatGrade(value) {

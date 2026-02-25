@@ -1108,7 +1108,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-panel {
       width: 100%;
-      padding: var(--space-4) var(--space-5);
+      padding: 12px 14px;
       border-radius: 14px;
       background: var(--card);
       border: 1px solid var(--border);
@@ -1122,8 +1122,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-subjects-layout {
       display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: var(--space-2);
+      grid-template-columns: 288px 1fr;
+      gap: 10px;
       align-items: start;
     }
 
@@ -1131,7 +1131,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-editor-panel {
       border: 1px solid color-mix(in srgb, var(--border) 95%, transparent);
       border-radius: 12px;
-      padding: 12px;
+      padding: 10px;
       background: color-mix(in srgb, var(--card) 99%, transparent);
     }
 
@@ -1139,14 +1139,14 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 8px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .grade-subject-name-input,
     .grade-selected-name,
     .grade-sort-field select {
       width: 100%;
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-radius: 10px;
       border: 1px solid var(--border);
       background: var(--card);
@@ -1157,20 +1157,27 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-subjects-toolbar {
       display: flex;
-      justify-content: flex-end;
+      justify-content: flex-start;
       margin-bottom: 8px;
     }
 
     .grade-sort-field {
       display: flex;
-      align-items: center;
-      gap: 8px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
       font-size: 12px;
       font-weight: 700;
       color: #374151;
+      width: 100%;
     }
 
-    .grade-sort-field span { white-space: nowrap; }
+    .grade-sort-field span { line-height: 1.1; }
+
+    .grade-sort-field select {
+      width: 100%;
+      min-width: 0;
+    }
 
     body.oscuro .grade-sort-field { color: #d1d5db; }
 
@@ -1186,7 +1193,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-height: 460px;
+      max-height: 420px;
       overflow: auto;
       padding-right: 2px;
     }
@@ -1197,7 +1204,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       background: var(--card);
       color: var(--text);
       text-align: left;
-      padding: 9px 10px;
+      padding: 8px 9px;
       display: flex;
       flex-direction: column;
       gap: 3px;
@@ -1241,23 +1248,23 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-editor-head {
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 10px;
+      gap: 8px;
       margin-bottom: 8px;
     }
 
     .grade-editor-section {
       border-top: 1px solid color-mix(in srgb, var(--border) 92%, transparent);
-      padding-top: 12px;
-      margin-top: 12px;
+      padding-top: 9px;
+      margin-top: 9px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
 
     .grade-editor-section h4 {
       margin: 0;
       color: var(--text);
-      font-size: 15px;
+      font-size: 14px;
     }
 
     .grade-danger-btn {
@@ -1304,8 +1311,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-config-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
+      gap: 8px;
     }
 
     .grade-field {
@@ -1318,7 +1325,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .grade-field span {
-      min-height: 32px;
+      min-height: 28px;
       line-height: 1.35;
       display: flex;
       align-items: flex-end;
@@ -1360,7 +1367,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 8px;
       flex-wrap: wrap;
     }
 
@@ -1370,7 +1377,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       color: white;
       border: none;
       border-radius: 10px;
-      padding: 8px 12px;
+      padding: 7px 10px;
       font-weight: 700;
       cursor: pointer;
       transition: background 0.2s ease, transform 0.12s ease;
@@ -1390,12 +1397,12 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-control-row {
       display: grid;
-      grid-template-columns: minmax(95px, 120px) minmax(170px, 1fr) minmax(170px, 1fr) auto;
-      gap: 10px;
+      grid-template-columns: minmax(82px, 110px) minmax(150px, 1fr) minmax(150px, 1fr) auto;
+      gap: 8px;
       align-items: center;
       border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
       border-radius: 12px;
-      padding: 9px;
+      padding: 8px;
       background: color-mix(in srgb, var(--card) 98%, var(--accent) 2%);
     }
 
@@ -1423,14 +1430,14 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-results-section {
       background: color-mix(in srgb, var(--card) 98%, transparent);
       border-radius: 10px;
-      padding: 12px;
+      padding: 9px;
       border: 1px solid color-mix(in srgb, var(--border) 95%, transparent);
     }
 
     .grade-results {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
     }
 
     .grade-result-row {
@@ -1439,7 +1446,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       align-items: center;
       gap: 10px;
       border-bottom: 1px dashed color-mix(in srgb, var(--border) 85%, transparent);
-      padding: 7px 0;
+      padding: 6px 0;
     }
 
     .grade-result-row:last-child {
@@ -1456,7 +1463,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     body.oscuro .grade-result-row span { color: #d1d5db; }
 
     .grade-result-row strong {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text);
       line-height: 1.3;
       text-align: right;
