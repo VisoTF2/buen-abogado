@@ -314,15 +314,13 @@ function eliminarDocumento(id) {
   const doc = documentosCargados.find(d => d.id === id)
   documentosCargados = documentosCargados.filter(d => d.id !== id)
 
-  const cambioCarpeta = removerDocumentoDeCarpetas(id)
-
   if (doc?.url) {
     try { URL.revokeObjectURL(doc.url) } catch (e) { /* noop */ }
   }
 
   guardarDocumentos()
   renderDocumentos()
-  if (cambioCarpeta) ordenarYMostrar()
+  ordenarYMostrar()
 
   const vistaActualId = visorDocumentos?.dataset.docActual
   if (doc && vistaActualId === doc.id) {
@@ -471,6 +469,11 @@ function actualizarNombreDocumentoEnCarpetas(id, nombre) {
     .forEach(detalle => {
       detalle.textContent = nombre || "Documento"
     })
+
+  const docActual = documentosCargados.find(d => d.id === id)
+  if (docActual && typeof actualizarDocumentoEnCarpetas === "function") {
+    actualizarDocumentoEnCarpetas(docActual)
+  }
 }
 
 function aplicarResaltadoEnTexto(textoFuente, contenedor, termino, indiceActivo) {
