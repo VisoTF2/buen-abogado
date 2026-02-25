@@ -34,6 +34,7 @@
   const remainingWithoutExamText = document.getElementById("gradeNeedForExemption")
   const remainingToFourText = document.getElementById("gradeNeedForFour")
   const neededExamText = document.getElementById("gradeNeedExamMin")
+  const summaryDetails = document.querySelector(".grade-summary-details")
 
   if (
     !panel || !editorPanel || !subjectsList || !addSubjectBtn || !subjectNameInput || !selectedSubjectNameInput ||
@@ -47,7 +48,6 @@
   let ramoArrastradoId = null
 
   bindEvents()
-  ensureAtLeastOneSubject()
   renderAll()
 
   function bindEvents() {
@@ -134,6 +134,13 @@
       event.preventDefault()
       aplicarOrdenRamosDesdeDOM()
     })
+
+    if (summaryDetails) {
+      summaryDetails.addEventListener("toggle", () => {
+        state.summaryExpanded = summaryDetails.open
+        saveState()
+      })
+    }
   }
 
   function loadState() {
@@ -143,10 +150,11 @@
       const subjects = Array.isArray(parsed.subjects) ? parsed.subjects : []
       return {
         subjects: subjects.map(normalizeSubject),
-        selectedSubjectId: parsed.selectedSubjectId || null
+        selectedSubjectId: parsed.selectedSubjectId || null,
+        summaryExpanded: parsed.summaryExpanded !== false
       }
     } catch (_error) {
-      return { subjects: [], selectedSubjectId: null }
+      return { subjects: [], selectedSubjectId: null, summaryExpanded: true }
     }
   }
 
@@ -173,20 +181,6 @@
         controlsWeightForExam: Number(configRaw.controlsWeightForExam) || defaults.controlsWeightForExam
       }
     }
-  }
-
-  function ensureAtLeastOneSubject() {
-    if (state.subjects.length) {
-      if (!state.subjects.some(subject => subject.id === state.selectedSubjectId)) {
-        state.selectedSubjectId = state.subjects[0].id
-      }
-      return
-    }
-
-    const first = createSubject("Ramo 1")
-    state.subjects.push(first)
-    state.selectedSubjectId = first.id
-    saveState()
   }
 
   function createSubjectFromInput() {
@@ -237,6 +231,14 @@
   }
 
   function renderAll() {
+    if (!state.subjects.some(subject => subject.id === state.selectedSubjectId)) {
+      state.selectedSubjectId = state.subjects[0]?.id || null
+    }
+
+    if (summaryDetails) {
+      summaryDetails.open = state.summaryExpanded !== false
+    }
+
     const selected = getSelectedSubject()
     renderSubjectsList(selected)
     renderEditor(selected)
