@@ -518,9 +518,10 @@ function actualizarBotonesVer() {
     const eliminarBtn = item?.querySelector(".documento-eliminar")
 
     if (id && id === actual) {
-      btn.style.display = "none"
+      btn.textContent = "Cerrar"
+      btn.style.display = "inline-flex"
       btn.setAttribute("aria-pressed", "true")
-      if (eliminarBtn) eliminarBtn.style.display = "none"
+      if (eliminarBtn) eliminarBtn.style.display = "inline-flex"
     } else {
       btn.textContent = "Ver"
       btn.style.display = "inline-flex"
