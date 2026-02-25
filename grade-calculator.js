@@ -73,7 +73,8 @@
       const subject = getSelectedSubject()
       if (!subject) return
       subject.name = selectedSubjectNameInput.value.trimStart()
-      saveAndRender()
+      saveState()
+      renderSubjectsList(subject)
     })
 
     deleteSubjectBtn.addEventListener("click", () => {
@@ -105,7 +106,9 @@
         const subject = getSelectedSubject()
         if (!subject) return
         syncConfigFromInputs(subject)
-        saveAndRender(false)
+        saveState()
+        renderSubjectMetrics(subject)
+        renderSubjectsList(subject)
       }))
 
     addControlBtn.addEventListener("click", () => {
@@ -319,21 +322,7 @@
 
     renderControls(subject)
 
-    const metrics = evaluateSubject(subject)
-    if (metrics.validationErrors.length) {
-      validationBox.innerHTML = metrics.validationErrors.map(error => `<div>• ${error}</div>`).join("")
-      panel.classList.add("has-errors")
-    } else {
-      validationBox.textContent = ""
-      panel.classList.remove("has-errors")
-    }
-
-    statusText.textContent = metrics.status
-    currentAverageText.textContent = metrics.displayAverage
-    needExamText.textContent = metrics.needExamText
-    remainingWithoutExamText.textContent = metrics.displayNeededForExemption
-    remainingToFourText.textContent = metrics.displayNeededForFour
-    neededExamText.textContent = metrics.displayNeededExam
+    renderSubjectMetrics(subject)
   }
 
   function renderControls(subject) {
@@ -378,12 +367,16 @@
 
       gradeInput.addEventListener("input", () => {
         control.grade = gradeInput.value
-        saveAndRender(false)
+        saveState()
+        renderSubjectMetrics(subject)
+        renderSubjectsList(subject)
       })
 
       weightInput.addEventListener("input", () => {
         control.weight = weightInput.value
-        saveAndRender(false)
+        saveState()
+        renderSubjectMetrics(subject)
+        renderSubjectsList(subject)
       })
 
       row.appendChild(title)
@@ -561,6 +554,24 @@
     if (requiresExam) return "Va a examen"
     if (isDirectFail) return "Reprobado"
     return "Revisa los parámetros"
+  }
+
+  function renderSubjectMetrics(subject) {
+    const metrics = evaluateSubject(subject)
+    if (metrics.validationErrors.length) {
+      validationBox.innerHTML = metrics.validationErrors.map(error => `<div>• ${error}</div>`).join("")
+      panel.classList.add("has-errors")
+    } else {
+      validationBox.textContent = ""
+      panel.classList.remove("has-errors")
+    }
+
+    statusText.textContent = metrics.status
+    currentAverageText.textContent = metrics.displayAverage
+    needExamText.textContent = metrics.needExamText
+    remainingWithoutExamText.textContent = metrics.displayNeededForExemption
+    remainingToFourText.textContent = metrics.displayNeededForFour
+    neededExamText.textContent = metrics.displayNeededExam
   }
 
   function formatGrade(value) {

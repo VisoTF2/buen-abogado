@@ -1311,22 +1311,22 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-config-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(205px, 1fr));
-      gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+      gap: 6px;
     }
 
     .grade-field {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      font-size: 12px;
+      gap: 4px;
+      font-size: 11px;
       color: #374151;
       font-weight: 700;
     }
 
     .grade-field span {
-      min-height: 28px;
-      line-height: 1.35;
+      min-height: 22px;
+      line-height: 1.2;
       display: flex;
       align-items: flex-end;
     }
@@ -1336,7 +1336,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-field input,
     .grade-control-input {
       width: 100%;
-      padding: 10px 12px;
+      padding: 7px 9px;
       border-radius: 10px;
       border: 1px solid var(--border);
       background: var(--card);
