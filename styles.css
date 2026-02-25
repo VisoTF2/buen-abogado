@@ -1143,8 +1143,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .grade-subject-name-input,
-    .grade-selected-name,
-    .grade-sort-field select {
+    .grade-selected-name {
       width: 100%;
       padding: 8px 10px;
       border-radius: 10px;
@@ -1154,32 +1153,6 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       font-weight: 600;
       box-sizing: border-box;
     }
-
-    .grade-subjects-toolbar {
-      display: flex;
-      justify-content: flex-start;
-      margin-bottom: 6px;
-    }
-
-    .grade-sort-field {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 4px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #374151;
-      width: 100%;
-    }
-
-    .grade-sort-field span { line-height: 1.1; }
-
-    .grade-sort-field select {
-      width: 100%;
-      min-width: 0;
-    }
-
-    body.oscuro .grade-sort-field { color: #d1d5db; }
 
     .grade-subjects-hint {
       font-size: 12px;

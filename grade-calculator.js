@@ -10,14 +10,6 @@
     controlsWeightForExam: 70
   }
 
-  const statusPriority = {
-    "Aprobado sin examen": 1,
-    "Va a examen": 2,
-    "Reprobado": 3,
-    "En progreso": 4,
-    "Revisa los parámetros": 5
-  }
-
   const panel = document.getElementById("gradeCalculatorPanel")
   const editorPanel = document.getElementById("gradeEditorPanel")
   const subjectsList = document.getElementById("gradeSubjectsList")
@@ -26,7 +18,6 @@
   const subjectNameInput = document.getElementById("gradeSubjectNameInput")
   const selectedSubjectNameInput = document.getElementById("gradeSelectedSubjectName")
   const deleteSubjectBtn = document.getElementById("gradeDeleteSubjectBtn")
-  const sortModeSelect = document.getElementById("gradeSortMode")
 
   const controlsContainer = document.getElementById("gradeControlsContainer")
   const controlsCountInput = document.getElementById("gradeControlsCount")
@@ -47,7 +38,7 @@
 
   if (
     !panel || !editorPanel || !subjectsList || !addSubjectBtn || !subjectNameInput || !selectedSubjectNameInput ||
-    !deleteSubjectBtn || !sortModeSelect || !controlsContainer || !controlsCountInput || !directPassInput ||
+    !deleteSubjectBtn || !controlsContainer || !controlsCountInput || !directPassInput ||
     !examThresholdInput || !exemptionThresholdInput || !examWeightInput || !controlsWeightForExamInput ||
     !validationBox || !statusText || !currentAverageText || !needExamText || !remainingWithoutExamText ||
     !remainingToFourText || !neededExamText
@@ -89,11 +80,6 @@
       saveAndRender()
     })
 
-    sortModeSelect.addEventListener("change", () => {
-      state.sortMode = sortModeSelect.value
-      saveAndRender()
-    })
-
     controlsCountInput.addEventListener("change", () => {
       const subject = getSelectedSubject()
       if (!subject) return
@@ -128,11 +114,10 @@
       const subjects = Array.isArray(parsed.subjects) ? parsed.subjects : []
       return {
         subjects: subjects.map(normalizeSubject),
-        selectedSubjectId: parsed.selectedSubjectId || null,
-        sortMode: ["manual", "name", "average", "status"].includes(parsed.sortMode) ? parsed.sortMode : "manual"
+        selectedSubjectId: parsed.selectedSubjectId || null
       }
     } catch (_error) {
-      return { subjects: [], selectedSubjectId: null, sortMode: "manual" }
+      return { subjects: [], selectedSubjectId: null }
     }
   }
 
@@ -227,7 +212,6 @@
 
   function renderAll() {
     const selected = getSelectedSubject()
-    sortModeSelect.value = state.sortMode
     renderSubjectsList(selected)
     renderEditor(selected)
   }
@@ -235,8 +219,7 @@
   function renderSubjectsList(selected) {
     subjectsList.innerHTML = ""
     const sorted = getSortedSubjects()
-    const manualMode = state.sortMode === "manual"
-    subjectsHint.style.display = manualMode ? "block" : "none"
+    subjectsHint.style.display = "block"
 
     sorted.forEach(subject => {
       const metrics = evaluateSubject(subject)
@@ -245,7 +228,7 @@
       item.className = "grade-subject-item"
       if (selected && selected.id === subject.id) item.classList.add("is-active")
       item.dataset.subjectId = subject.id
-      item.draggable = manualMode
+      item.draggable = true
 
       item.innerHTML = `
         <strong>${escapeHtml(subject.name || "Ramo sin nombre")}</strong>
@@ -258,34 +241,32 @@
         saveAndRender(false)
       })
 
-      if (manualMode) {
-        item.addEventListener("dragstart", () => {
-          dragSubjectId = subject.id
-          item.classList.add("is-dragging")
-        })
+      item.addEventListener("dragstart", () => {
+        dragSubjectId = subject.id
+        item.classList.add("is-dragging")
+      })
 
-        item.addEventListener("dragend", () => {
-          dragSubjectId = null
-          item.classList.remove("is-dragging")
-        })
+      item.addEventListener("dragend", () => {
+        dragSubjectId = null
+        item.classList.remove("is-dragging")
+      })
 
-        item.addEventListener("dragover", event => {
-          event.preventDefault()
-          item.classList.add("is-drag-over")
-        })
+      item.addEventListener("dragover", event => {
+        event.preventDefault()
+        item.classList.add("is-drag-over")
+      })
 
-        item.addEventListener("dragleave", () => {
-          item.classList.remove("is-drag-over")
-        })
+      item.addEventListener("dragleave", () => {
+        item.classList.remove("is-drag-over")
+      })
 
-        item.addEventListener("drop", event => {
-          event.preventDefault()
-          item.classList.remove("is-drag-over")
-          if (!dragSubjectId || dragSubjectId === subject.id) return
-          reorderSubjects(dragSubjectId, subject.id)
-          saveAndRender()
-        })
-      }
+      item.addEventListener("drop", event => {
+        event.preventDefault()
+        item.classList.remove("is-drag-over")
+        if (!dragSubjectId || dragSubjectId === subject.id) return
+        reorderSubjects(dragSubjectId, subject.id)
+        saveAndRender()
+      })
 
       subjectsList.appendChild(item)
     })
@@ -466,34 +447,7 @@
   }
 
   function getSortedSubjects() {
-    const list = [...state.subjects]
-    const mode = state.sortMode
-
-    if (mode === "manual") {
-      return list.sort((a, b) => a.order - b.order)
-    }
-
-    if (mode === "name") {
-      return list.sort((a, b) => (a.name || "").localeCompare(b.name || "", "es", { sensitivity: "base" }))
-    }
-
-    if (mode === "average") {
-      return list.sort((a, b) => {
-        const avgA = evaluateSubject(a).currentAverage ?? -1
-        const avgB = evaluateSubject(b).currentAverage ?? -1
-        return avgB - avgA
-      })
-    }
-
-    if (mode === "status") {
-      return list.sort((a, b) => {
-        const statusA = evaluateSubject(a).status
-        const statusB = evaluateSubject(b).status
-        return (statusPriority[statusA] || 99) - (statusPriority[statusB] || 99)
-      })
-    }
-
-    return list
+    return [...state.subjects].sort((a, b) => a.order - b.order)
   }
 
   function reorderSubjects(dragId, targetId) {
