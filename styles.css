@@ -2117,12 +2117,12 @@ body.oscuro .modal-close:hover {
   gap: 12px;
   margin-bottom: 12px;
 }
-.weekly-schedule h3 { margin: 0; color: var(--accent); font-size: 18px; }
+.weekly-schedule h3 { margin: 0; color: var(--accent); font-size: 22px; }
 .weekly-schedule-title {
   cursor: text;
   padding: 0px 0px;
   border-radius: 6px;
-  margin-left: 20px;
+  margin-left: 0;
 }
 .weekly-schedule-title:focus {
   outline: none;
@@ -2294,6 +2294,15 @@ body.malla-activa .schedule-malla {
   align-items: flex-start;
   justify-content: flex-start;
   padding: 6px;
+}
+
+.malla-preview-body.pan-enabled {
+  cursor: grab;
+}
+
+.malla-preview-body.is-panning {
+  cursor: grabbing;
+  user-select: none;
 }
 
 .malla-preview-zoom-area {
