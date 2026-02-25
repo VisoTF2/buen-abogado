@@ -786,7 +786,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .calendar-panel {
       width: 100%;
-      padding: var(--space-3) var(--space-4);
+      padding: var(--space-4) var(--space-5);
       border-radius: 14px;
       background: var(--card);
       border: 1px solid var(--border);
@@ -800,9 +800,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .calendar-head {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       flex-wrap: wrap;
       gap: var(--space-2);
+      margin-bottom: 2px;
     }
 
     .calendar-title {
@@ -1107,7 +1108,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-panel {
       width: 100%;
-      padding: 12px 14px;
+      padding: var(--space-4) var(--space-5);
       border-radius: 14px;
       background: var(--card);
       border: 1px solid var(--border);
@@ -1132,6 +1133,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       border-radius: 12px;
       padding: 10px;
       background: color-mix(in srgb, var(--card) 99.85%, transparent);
+    }
+
+    .grade-subjects-panel {
+      overflow: hidden;
     }
 
     .grade-subjects-create {
@@ -1165,27 +1170,53 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       display: flex;
       flex-direction: column;
       gap: 6px;
-      max-height: 420px;
-      overflow: auto;
-      padding-right: 2px;
+      max-height: none;
+      overflow: hidden;
+      padding-right: 0;
     }
 
     .grade-subject-item {
-      border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+      border: none;
+      border-left: 8px solid var(--accent);
       border-radius: 10px;
       background: var(--article-bg);
       color: var(--text);
       text-align: left;
-      padding: 8px 9px;
+      padding: 12px;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 2px;
       cursor: pointer;
+      transition: 0.15s ease;
+      font-size: 13px;
+      line-height: 1.25;
+      box-shadow: none;
+    }
+
+    .grade-subject-item:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .grade-subject-item:active {
+      transform: translateY(1px);
+    }
+
+    .grade-subject-item.arrastrando {
+      opacity: 0.9;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+    }
+
+    .grade-subject-item:focus,
+    .grade-subject-item:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.18);
     }
 
     .grade-subject-item strong {
-      font-size: 14px;
-      line-height: 1.3;
+      font-size: 13px;
+      line-height: 1.25;
+      font-weight: 700;
     }
 
     .grade-subject-item span {
@@ -1203,9 +1234,14 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     body.oscuro .grade-subject-item small { color: #cbd5e1; }
 
     .grade-subject-item.is-active {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-      background: var(--article-bg);
+      background: var(--accent);
+      color: #fff;
+      box-shadow: none;
+    }
+
+    .grade-subject-item.is-active span,
+    .grade-subject-item.is-active small {
+      color: rgba(255, 255, 255, 0.9);
     }
 
     .grade-editor-head {
@@ -1256,30 +1292,38 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       margin-bottom: 2px;
     }
 
-    .grade-title {
+    .calendar-title,
+    .grade-title,
+    .media-title {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
       align-items: flex-start;
       margin: 0;
       max-width: 780px;
     }
 
-    .grade-title h3 {
+    .calendar-title h3,
+    .grade-title h3,
+    .media-title h3 {
       margin: 0;
       color: var(--accent);
       font-size: 20px;
       line-height: 1.25;
     }
 
-    .grade-title span {
+    .calendar-title span,
+    .grade-title span,
+    .media-title span {
       font-size: 14px;
       line-height: 1.45;
       color: #4b5563;
       margin: 0;
     }
 
-    body.oscuro .grade-title span { color: #e5e7eb; }
+    body.oscuro .calendar-title span,
+    body.oscuro .grade-title span,
+    body.oscuro .media-title span { color: #e5e7eb; }
 
     .grade-config-grid {
       display: grid;
@@ -1551,10 +1595,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       display: flex;
       flex-direction: column;
       gap: var(--space-3);
-    }
-
-    .media-title h3 {
-      margin: 0;
+      margin-bottom: 2px;
     }
 
     .media-actions {
@@ -1958,8 +1999,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .carpetasSection {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  margin-bottom: var(--space-3);
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .carpetasLista {
@@ -1982,7 +2023,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .sidebarGroup {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 6px;
 }
 
 .carpetaBox {
@@ -2080,10 +2121,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .carpetaToggle {
   border: none;
   background: transparent;
-  color: var(--carpeta-color);
+  color: #64748b;
   border-radius: 10px;
-  width: 36px;
-  height: 36px;
+  width: 46px;
+  height: 46px;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -2101,15 +2142,23 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetaToggleIcon {
-  display: grid;
-  place-items: center;
-  font-size: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  font-size: 20px;
   line-height: 1;
+  transform-origin: center;
   transition: transform 0.2s ease;
 }
 
 .carpetaToggle.colapsada .carpetaToggleIcon {
   transform: rotate(-90deg);
+}
+
+body.oscuro .carpetaToggle {
+  color: #94a3b8;
 }
 
 
@@ -2263,6 +2312,12 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
+.carpetaDocumentos.is-empty {
+  background: transparent;
+  border-color: transparent;
+  padding: 0;
+}
+
 .carpetaDocumentos.drop-activa {
   box-shadow: inset 0 0 0 2px var(--accent);
   border-radius: 10px;
@@ -2271,12 +2326,13 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .carpetaDocumentosVacio {
   font-size: 13px;
   color: var(--muted-text);
-  padding: 6px 8px;
-  min-height: var(--carpeta-slot-height);
+  padding: 6px 0;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  background: transparent;
 }
 
 .carpetaDocumentosLista {
@@ -2350,13 +2406,56 @@ body.oscuro .sidebarItemCarpeta {
   background: #111827;
 }
 
+.sidebarDocumentosLista {
+  border: 1px dashed transparent;
+  background: var(--article-bg);
+  transition: box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.sidebarDocumentosLista.drop-activa {
+  box-shadow: inset 0 0 0 2px var(--accent);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.sidebarItemDocumento {
+  cursor: pointer;
+  border-left-color: #10b981;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.sidebarItemDocumentoNombre {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebarItemDocumentoTipo {
+  font-size: 11px;
+  color: var(--muted-text);
+  letter-spacing: 0.03em;
+}
+
+.sidebarItemDocumento.is-selected {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sidebarItemDocumento.is-selected .sidebarItemDocumentoTipo {
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .sidebarGroupTitle {
   font-family: "Poppins", "Segoe UI", sans-serif;
   font-weight: 700;
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  margin: 0;
+  margin: 0 4px;
+  line-height: 1.2;
   color: var(--accent);
 }
 
@@ -2595,7 +2694,7 @@ body.oscuro .modal-close:hover {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 4px;
+  padding: 2px 0;
   min-height: 34px;
   border-radius: 10px;
 }

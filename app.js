@@ -896,6 +896,90 @@ function prepararZonaDocumentosCarpeta(zona, carpetaId) {
   })
 }
 
+function prepararListaDocumentosSidebar(lista) {
+  if (!lista) return
+
+  lista.addEventListener("dragover", e => {
+    if (!documentoArrastradoId) return
+    e.preventDefault()
+    lista.classList.add("drop-activa")
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+  })
+
+  lista.addEventListener("dragenter", () => {
+    if (!documentoArrastradoId) return
+    lista.classList.add("drop-activa")
+  })
+
+  lista.addEventListener("dragleave", () => {
+    lista.classList.remove("drop-activa")
+  })
+
+  lista.addEventListener("drop", e => {
+    if (!documentoArrastradoId) return
+    e.preventDefault()
+    lista.classList.remove("drop-activa")
+    const cambio = removerDocumentoDeCarpetas(documentoArrastradoId)
+    documentoSeleccionadoEnCarpetaId = documentoArrastradoId
+    documentoArrastradoId = null
+    if (cambio) ordenarYMostrar()
+  })
+}
+
+function crearItemDocumentoSidebar(doc, sidebar) {
+  const item = document.createElement("div")
+  item.className = "sidebarItem sidebarItemDocumento"
+  item.draggable = true
+  item.dataset.documentoId = doc.id
+
+  const nombre = document.createElement("span")
+  nombre.className = "sidebarItemDocumentoNombre"
+  nombre.textContent = doc.nombre || "Documento"
+  nombre.title = doc.nombre || "Documento"
+
+  const extension = document.createElement("small")
+  extension.className = "sidebarItemDocumentoTipo"
+  extension.textContent = doc.extension ? doc.extension.toUpperCase() : "Archivo"
+
+  item.appendChild(nombre)
+  item.appendChild(extension)
+
+  const docActualEnPreview = document.getElementById("visorDocumentos")?.dataset.docActual || ""
+  if (doc.id === documentoSeleccionadoEnCarpetaId || doc.id === docActualEnPreview) {
+    item.classList.add("is-selected")
+  }
+
+  item.addEventListener("click", () => {
+    documentoSeleccionadoEnCarpetaId = doc.id
+    if (typeof mostrarDocumento === "function") {
+      mostrarDocumento(doc.id)
+    }
+    sidebar
+      ?.querySelectorAll(".sidebarItemDocumento.is-selected")
+      .forEach(nodo => nodo.classList.remove("is-selected"))
+    item.classList.add("is-selected")
+  })
+
+  item.addEventListener("dragstart", e => {
+    documentoArrastradoId = doc.id
+    item.classList.add("documento-arrastrando")
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = "move"
+      e.dataTransfer.setData("text/plain", doc.id)
+    }
+  })
+
+  item.addEventListener("dragend", () => {
+    item.classList.remove("documento-arrastrando")
+    documentoArrastradoId = null
+    document
+      .querySelectorAll(".carpetaDocumentos, .sidebarDocumentosLista")
+      .forEach(z => z.classList.remove("drop-activa"))
+  })
+
+  return item
+}
+
 function activarArrastreMateria(item, lista, normativa) {
   item.draggable = true
 
@@ -1251,6 +1335,34 @@ function ordenarYMostrar() {
 
   renderizarCarpetasSidebar(listaCarpetas, agrupado, sidebar)
 
+  const seccionDocumentos = document.createElement("div")
+  seccionDocumentos.className = "sidebarGroup"
+
+  const tituloDocumentos = document.createElement("div")
+  tituloDocumentos.className = "sidebarGroupTitle"
+  tituloDocumentos.textContent = "Documentos"
+  seccionDocumentos.appendChild(tituloDocumentos)
+
+  const listaDocumentosSidebar = document.createElement("div")
+  listaDocumentosSidebar.className = "sidebarGroupList sidebarDocumentosLista"
+  prepararListaDocumentosSidebar(listaDocumentosSidebar)
+
+  const documentosFueraDeCarpeta = documentosCargados.filter(doc => !carpetaDeDocumento(doc.id))
+
+  if (!documentosFueraDeCarpeta.length) {
+    const aviso = document.createElement("div")
+    aviso.className = "carpetaVacia"
+    aviso.textContent = "Arrastra documentos aquí"
+    listaDocumentosSidebar.appendChild(aviso)
+  } else {
+    documentosFueraDeCarpeta.forEach(doc => {
+      listaDocumentosSidebar.appendChild(crearItemDocumentoSidebar(doc, sidebar))
+    })
+  }
+
+  seccionDocumentos.appendChild(listaDocumentosSidebar)
+  sidebar.appendChild(seccionDocumentos)
+
   const ordenNormativas = ["civil", "penal", "procedimiento"]
   ordenNormativas.forEach(norm => {
     const materiasObj = agrupado[norm]
@@ -1592,43 +1704,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
         listaDocs.className = "carpetaDocumentosLista"
 
         documentosEnCarpeta.forEach(doc => {
-          const chip = document.createElement("div")
-          chip.className = "carpetaDocumentoChip"
-          chip.draggable = true
-
-          const detalle = document.createElement("div")
-          detalle.className = "carpetaDocumentoDetalle"
-          detalle.dataset.docId = doc.id
-          detalle.textContent = doc.nombre
-
-          if (doc.id === documentoSeleccionadoEnCarpetaId || doc.id === docActualEnPreview) {
-            chip.classList.add("is-selected")
-          }
-
-          chip.addEventListener("dragstart", e => {
-            documentoArrastradoId = doc.id
-            chip.classList.add("documento-arrastrando")
-            if (e.dataTransfer) {
-              e.dataTransfer.effectAllowed = "move"
-              e.dataTransfer.setData("text/plain", doc.id)
-            }
-          })
-
-          chip.addEventListener("dragend", () => {
-            chip.classList.remove("documento-arrastrando")
-            documentoArrastradoId = null
-          })
-
-          chip.addEventListener("click", () => {
-            documentoSeleccionadoEnCarpetaId = doc.id
-            if (typeof mostrarDocumento === "function") {
-              mostrarDocumento(doc.id)
-            }
-            ordenarYMostrar()
-          })
-
-          chip.appendChild(detalle)
-          listaDocs.appendChild(chip)
+          listaDocs.appendChild(crearItemDocumentoSidebar(doc, sidebar))
         })
 
         zonaDocumentos.appendChild(listaDocs)

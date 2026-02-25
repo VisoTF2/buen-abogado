@@ -44,6 +44,7 @@
   ) return
 
   let state = loadState()
+  let ramoArrastradoId = null
 
   bindEvents()
   ensureAtLeastOneSubject()
@@ -102,6 +103,37 @@
         saveAndRender()
       })
     }
+
+    subjectsList.addEventListener("dragover", event => {
+      if (!ramoArrastradoId) return
+      const target = event.target instanceof Element
+        ? event.target.closest(".grade-subject-item")
+        : null
+      if (!(target instanceof HTMLElement)) return
+      if (target.dataset.subjectId === ramoArrastradoId) return
+
+      const dragged = subjectsList.querySelector(
+        `.grade-subject-item[data-subject-id="${ramoArrastradoId}"]`
+      )
+      if (!(dragged instanceof HTMLElement)) return
+
+      event.preventDefault()
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "move"
+
+      const rect = target.getBoundingClientRect()
+      const before = event.clientY < rect.top + rect.height / 2
+      if (before) {
+        subjectsList.insertBefore(dragged, target)
+      } else {
+        subjectsList.insertBefore(dragged, target.nextSibling)
+      }
+    })
+
+    subjectsList.addEventListener("drop", event => {
+      if (!ramoArrastradoId) return
+      event.preventDefault()
+      aplicarOrdenRamosDesdeDOM()
+    })
   }
 
   function loadState() {
@@ -221,7 +253,7 @@
       item.className = "grade-subject-item"
       if (selected && selected.id === subject.id) item.classList.add("is-active")
       item.dataset.subjectId = subject.id
-      item.draggable = false
+      item.draggable = true
 
       item.innerHTML = `
         <strong>${escapeHtml(subject.name || "Ramo sin nombre")}</strong>
@@ -234,8 +266,48 @@
         saveAndRender()
       })
 
+      item.addEventListener("dragstart", event => {
+        ramoArrastradoId = subject.id
+        item.classList.add("arrastrando")
+        if (event.dataTransfer) {
+          event.dataTransfer.effectAllowed = "move"
+          event.dataTransfer.setData("text/plain", subject.id)
+        }
+      })
+
+      item.addEventListener("dragend", () => {
+        item.classList.remove("arrastrando")
+        aplicarOrdenRamosDesdeDOM()
+        ramoArrastradoId = null
+        subjectsList
+          .querySelectorAll(".grade-subject-item.arrastrando")
+          .forEach(el => el.classList.remove("arrastrando"))
+      })
+
       subjectsList.appendChild(item)
     })
+  }
+
+  function aplicarOrdenRamosDesdeDOM() {
+    const idsEnDOM = Array.from(subjectsList.querySelectorAll(".grade-subject-item"))
+      .map(item => item.dataset.subjectId)
+      .filter(Boolean)
+
+    if (!idsEnDOM.length) return
+
+    const mapa = new Map(state.subjects.map(subject => [subject.id, subject]))
+    const reordenados = idsEnDOM
+      .map(id => mapa.get(id))
+      .filter(Boolean)
+
+    if (reordenados.length !== state.subjects.length) return
+
+    const cambio = reordenados.some((subject, index) => subject.id !== state.subjects[index]?.id)
+    if (!cambio) return
+
+    state.subjects = reordenados
+    saveState()
+    renderSubjectsList(getSelectedSubject())
   }
 
   function renderEditor(subject) {
