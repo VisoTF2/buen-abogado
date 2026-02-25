@@ -1508,7 +1508,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetasLista > .carpetaGrupoSemestre .carpetaBox:first-child {
-  margin-top: 32px;
+  margin-top: 36px;
 }
 
 .sidebarGroup {
@@ -1521,6 +1521,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   display: flex;
   flex-direction: column;
   gap: 0;
+  position: relative;
 }
 
 .carpetaBox {
@@ -1536,33 +1537,41 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetaBox.carpeta-apilada {
-  margin-top: -1px;
+  margin-top: 0;
+  border-top: none;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
 
+.carpetaGrupoSemestre .carpetaBox:not(:last-child) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 .carpetaSemestreAleta {
   position: absolute;
-  top: -32px;
-  right: 14px;
-  min-width: 140px;
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 156px;
   max-width: calc(100% - 24px);
-  padding: 6px 12px;
-  border: 2px solid var(--carpeta-color);
+  padding: 7px 14px;
+  border: 1px solid var(--border);
   border-bottom: none;
-  border-radius: 10px 10px 0 0;
+  border-radius: 12px 12px 0 0;
   background: var(--card);
   box-sizing: border-box;
   text-align: center;
+  box-shadow: none;
 }
 
 .carpetaSemestreTexto {
   margin: 0;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: inherit;
+  letter-spacing: 0.08em;
+  color: var(--accent);
   outline: none;
   white-space: nowrap;
   overflow: hidden;
@@ -1570,7 +1579,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetaSemestreTexto:focus {
-  box-shadow: inset 0 -1px 0 currentColor;
+  box-shadow: none;
 }
 
 .carpetaBox.carpeta-editor {
@@ -2407,9 +2416,11 @@ body.oscuro .modal-close:hover {
 /* Celular muy pequeño */
 @media (max-width: 600px) {
   .carpetaSemestreAleta {
-    right: 10px;
+    left: 50%;
+    transform: translateX(-50%);
     min-width: 120px;
     top: -30px;
+    padding: 6px 10px;
   }
 
   .layout {
