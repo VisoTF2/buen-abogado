@@ -38,46 +38,13 @@ let articuloArrastradoId = null
 let materiaArrastrada = null
 let materiaArrastradaNormativa = null
 let materiaArrastradaCarpetaId = null
-let carpetaPointerDragId = null
-let carpetaPointerDropId = null
+let carpetaArrastradaId = null
 let documentoSeleccionadoEnCarpetaId = null
 
 reindexarOrdenCarpetasManual()
 
 modalConfiguracion?.addEventListener("click", e => {
   if (e.target === modalConfiguracion) cerrarModalConfiguracion()
-})
-
-document.addEventListener("pointerup", e => {
-  let requiereReorden = false
-  if (carpetaPointerDragId && carpetaPointerDropId && carpetaPointerDropId !== carpetaPointerDragId) {
-      reordenarCarpetas(carpetaPointerDragId, carpetaPointerDropId)
-      requiereReorden = true
-  }
-
-  carpetaPointerDragId = null
-  carpetaPointerDropId = null
-  document.querySelectorAll(".carpetaBox").forEach(el => {
-    el.classList.remove("is-dragging")
-    el.classList.remove("is-drag-over")
-  })
-
-  if (requiereReorden) {
-    ordenarYMostrar()
-  }
-})
-
-document.addEventListener("pointermove", e => {
-  if (!carpetaPointerDragId || (e.buttons & 1) !== 1) return
-
-  carpetaPointerDropId = null
-  document.querySelectorAll(".carpetaBox").forEach(el => el.classList.remove("is-drag-over"))
-  const targetCard = document.elementFromPoint(e.clientX, e.clientY)?.closest?.(".carpetaBox")
-  if (!targetCard) return
-  const targetId = targetCard.dataset?.carpetaId
-  if (!targetId || targetId === carpetaPointerDragId) return
-  carpetaPointerDropId = targetId
-  targetCard.classList.add("is-drag-over")
 })
 
 function manejarReordenArticulos(e) {
@@ -1513,6 +1480,25 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
       card.style.borderColor = colorCarpeta
       card.draggable = false
 
+      card.addEventListener("dragover", e => {
+        if (!carpetaArrastradaId || carpetaArrastradaId === carpeta.id) return
+        e.preventDefault()
+        if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+        card.classList.add("is-drag-over")
+      })
+
+      card.addEventListener("dragleave", e => {
+        if (!card.contains(e.relatedTarget)) card.classList.remove("is-drag-over")
+      })
+
+      card.addEventListener("drop", e => {
+        if (!carpetaArrastradaId || carpetaArrastradaId === carpeta.id) return
+        e.preventDefault()
+        card.classList.remove("is-drag-over")
+        reordenarCarpetas(carpetaArrastradaId, carpeta.id)
+        ordenarYMostrar()
+      })
+
       if (index === 0) {
         const aleta = document.createElement("div")
         aleta.className = "carpetaSemestreAleta"
@@ -1527,12 +1513,25 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
 
       const header = document.createElement("div")
       header.className = "carpetaHeader"
-      header.draggable = false
-      header.addEventListener("pointerdown", e => {
-        if (e.button !== 0) return
-        carpetaPointerDragId = carpeta.id
-        carpetaPointerDropId = null
+      header.draggable = true
+      header.addEventListener("dragstart", e => {
+        if (e.target instanceof HTMLElement && e.target.closest("button, input, [contenteditable='true']")) {
+          e.preventDefault()
+          return
+        }
+        carpetaArrastradaId = carpeta.id
         card.classList.add("is-dragging")
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = "move"
+          e.dataTransfer.setData("text/plain", carpeta.id)
+        }
+      })
+      header.addEventListener("dragend", () => {
+        carpetaArrastradaId = null
+        document.querySelectorAll(".carpetaBox").forEach(el => {
+          el.classList.remove("is-drag-over")
+          el.classList.remove("is-dragging")
+        })
       })
 
       const tituloWrap = document.createElement("div")

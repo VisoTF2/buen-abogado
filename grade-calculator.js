@@ -219,7 +219,7 @@
   function renderSubjectsList(selected) {
     subjectsList.innerHTML = ""
     const sorted = getSortedSubjects()
-    subjectsHint.style.display = "block"
+    if (subjectsHint) subjectsHint.style.display = "none"
 
     sorted.forEach(subject => {
       const metrics = evaluateSubject(subject)

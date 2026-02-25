@@ -2644,12 +2644,12 @@ body.oscuro .modal-close:hover {
 
    .form-row {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1.2fr;
-  gap: 16px; /* Para que los tres campos respiren igual */
-  align-items: center;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  align-items: end;
 }
     .contenidoArticulos {
-      margin-top: var(--space-3);
+      margin-top: 12px;
       flex: 1 0 auto;
     }
 
@@ -2676,11 +2676,12 @@ body.oscuro .modal-close:hover {
     }
 
     .materia-wrap {
-      margin-top: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
+      margin-top: 2px;
+      margin-bottom: 6px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 12px;
     }
 
     .materia-controls {
@@ -2813,12 +2814,16 @@ body.oscuro .modal-close:hover {
 .materia-title {
   font-size: 21px;
   font-weight: bold;
-  padding-bottom: 6px;
+  padding: 0 0 6px;
   flex: 1;
   cursor: text;
   border-bottom: 2px solid var(--materia-underline);
   transition: color 0.25s ease;
   caret-color: var(--focus-contrast) !important;
+  margin: 0;
+  min-height: 34px;
+  display: flex;
+  align-items: flex-end;
 }
 
 .materia-title:focus {
