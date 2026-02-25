@@ -1162,18 +1162,16 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-subject-name-input::placeholder,
     .grade-selected-name::placeholder {
-      color: color-mix(in srgb, var(--text) 68%, transparent);
+      color: color-mix(in srgb, var(--text) 84%, transparent);
       opacity: 1;
       font-weight: 600;
     }
 
     .grade-subjects-hint {
       font-size: 12px;
-      color: #64748b;
+      color: color-mix(in srgb, var(--text) 78%, transparent);
       margin-bottom: 6px;
     }
-
-    body.oscuro .grade-subjects-hint { color: #cbd5e1; }
 
     .grade-subjects-list {
       display: flex;
@@ -1325,7 +1323,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .media-title span {
       font-size: 14px;
       line-height: 1.45;
-      color: color-mix(in srgb, var(--text) 82%, transparent);
+      color: color-mix(in srgb, var(--text) 90%, transparent);
       margin: 0;
     }
 
@@ -1345,7 +1343,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       flex-direction: column;
       gap: 4px;
       font-size: 11px;
-      color: color-mix(in srgb, var(--text) 86%, transparent);
+      color: color-mix(in srgb, var(--text) 92%, transparent);
       font-weight: 700;
     }
 
@@ -1356,8 +1354,6 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       align-items: flex-end;
       white-space: nowrap;
     }
-
-    body.oscuro .grade-field { color: #d1d5db; }
 
     .grade-field input,
     .grade-control-input {
@@ -1525,11 +1521,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-result-row span {
       font-size: 12px;
-      color: color-mix(in srgb, var(--text) 75%, transparent);
+      color: color-mix(in srgb, var(--text) 88%, transparent);
       line-height: 1.35;
     }
-
-    body.oscuro .grade-result-row span { color: #d1d5db; }
 
     .grade-result-row strong {
       font-size: 13px;
