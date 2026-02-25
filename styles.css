@@ -1124,8 +1124,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-subjects-layout {
       display: grid;
-      grid-template-columns: 288px 1fr;
-      gap: 10px;
+      grid-template-columns: minmax(220px, 0.86fr) minmax(0, 2.14fr);
+      gap: 12px;
       align-items: start;
     }
 
@@ -1133,7 +1133,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-editor-panel {
       border: none;
       border-radius: 12px;
-      padding: 10px;
+      padding: 12px;
       background: color-mix(in srgb, var(--card) 99.85%, transparent);
     }
 
@@ -1328,8 +1328,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-config-grid {
       display: grid;
-      grid-template-columns: repeat(6, minmax(115px, 1fr));
-      gap: 6px;
+      grid-template-columns: repeat(6, minmax(135px, 1fr));
+      gap: 8px;
       align-items: end;
     }
 
@@ -2823,7 +2823,7 @@ body.oscuro .modal-close:hover {
       border-radius: 10px;
       border-left: 6px solid var(--accent);
       margin-top: 0;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.07);
+      box-shadow: none;
       cursor: grab;
       position: relative;
       contain: paint;
