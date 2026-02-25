@@ -2001,8 +2001,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .carpetasSection {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-inline: 4px;
 }
 
 .carpetasLista {
@@ -2025,7 +2026,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .sidebarGroup {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
+  padding-inline: 4px;
 }
 
 .carpetaBox {
@@ -2390,12 +2392,13 @@ body.oscuro .carpetaToggle {
 .carpetaVacia {
   font-size: 13px;
   color: var(--muted-text);
-  padding: 6px 8px;
+  padding: 8px 10px;
   min-height: var(--carpeta-slot-height);
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  line-height: 1.35;
 }
 
 .sidebarItemCarpeta {
@@ -2413,6 +2416,8 @@ body.oscuro .sidebarItemCarpeta {
   border: 1px dashed transparent;
   background: transparent;
   transition: box-shadow 0.15s ease, background 0.15s ease;
+  padding: 4px 6px;
+  min-height: 34px;
 }
 
 .sidebarDocumentosLista.drop-activa {
@@ -2458,9 +2463,11 @@ body.oscuro .sidebarItemCarpeta {
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  margin: 0 4px;
+  margin: 0;
+  padding-inline: 8px;
   line-height: 1.2;
   color: var(--accent);
+  text-align: center;
 }
 
       .sidebarItem {
