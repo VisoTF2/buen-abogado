@@ -1203,18 +1203,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     body.oscuro .grade-subject-item small { color: #cbd5e1; }
 
     .grade-subject-item.is-active {
-      border-color: var(--accent-light);
-      box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.16);
-      background: color-mix(in srgb, var(--article-bg) 88%, var(--accent) 12%);
-    }
-
-    .grade-subject-item.is-dragging {
-      opacity: 0.65;
-    }
-
-    .grade-subject-item.is-drag-over {
-      border-color: var(--accent);
-      background: color-mix(in srgb, var(--article-bg) 86%, var(--accent) 14%);
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+      background: var(--article-bg);
     }
 
     .grade-editor-head {

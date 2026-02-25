@@ -13,7 +13,6 @@
   const panel = document.getElementById("gradeCalculatorPanel")
   const editorPanel = document.getElementById("gradeEditorPanel")
   const subjectsList = document.getElementById("gradeSubjectsList")
-  const subjectsHint = document.getElementById("gradeSubjectsHint")
   const addSubjectBtn = document.getElementById("gradeAddSubjectBtn")
   const subjectNameInput = document.getElementById("gradeSubjectNameInput")
   const selectedSubjectNameInput = document.getElementById("gradeSelectedSubjectName")
@@ -45,7 +44,6 @@
   ) return
 
   let state = loadState()
-  let dragSubjectId = null
 
   bindEvents()
   ensureAtLeastOneSubject()
@@ -76,7 +74,6 @@
       if (state.selectedSubjectId === subject.id) {
         state.selectedSubjectId = state.subjects[0]?.id || null
       }
-      reindexManualOrder()
       saveAndRender()
     })
 
@@ -121,7 +118,7 @@
     }
   }
 
-  function normalizeSubject(raw, index = 0) {
+  function normalizeSubject(raw) {
     const configRaw = raw && typeof raw.config === "object" ? raw.config : {}
     const controlsRaw = Array.isArray(raw?.controls) ? raw.controls : []
     const controls = controlsRaw.length
@@ -135,7 +132,6 @@
     return {
       id: String(raw?.id || `subject-${Date.now()}-${Math.random().toString(16).slice(2)}`),
       name: String(raw?.name || "Ramo sin nombre"),
-      order: Number.isFinite(Number(raw?.order)) ? Number(raw.order) : index,
       controls,
       config: {
         directPassGrade: Number(configRaw.directPassGrade) || defaults.directPassGrade,
@@ -167,7 +163,6 @@
     state.subjects.push(subject)
     state.selectedSubjectId = subject.id
     subjectNameInput.value = ""
-    reindexManualOrder()
     saveAndRender()
   }
 
@@ -175,7 +170,6 @@
     return {
       id: `subject-${Date.now()}-${Math.random().toString(16).slice(2)}`,
       name,
-      order: state.subjects.length,
       controls: Array.from({ length: defaults.controlsCount }, () => ({ grade: "", weight: "" })),
       config: {
         directPassGrade: defaults.directPassGrade,
@@ -218,8 +212,7 @@
 
   function renderSubjectsList(selected) {
     subjectsList.innerHTML = ""
-    const sorted = getSortedSubjects()
-    if (subjectsHint) subjectsHint.style.display = "none"
+    const sorted = state.subjects
 
     sorted.forEach(subject => {
       const metrics = evaluateSubject(subject)
@@ -228,7 +221,7 @@
       item.className = "grade-subject-item"
       if (selected && selected.id === subject.id) item.classList.add("is-active")
       item.dataset.subjectId = subject.id
-      item.draggable = true
+      item.draggable = false
 
       item.innerHTML = `
         <strong>${escapeHtml(subject.name || "Ramo sin nombre")}</strong>
@@ -238,33 +231,6 @@
 
       item.addEventListener("click", () => {
         state.selectedSubjectId = subject.id
-        saveAndRender(false)
-      })
-
-      item.addEventListener("dragstart", () => {
-        dragSubjectId = subject.id
-        item.classList.add("is-dragging")
-      })
-
-      item.addEventListener("dragend", () => {
-        dragSubjectId = null
-        item.classList.remove("is-dragging")
-      })
-
-      item.addEventListener("dragover", event => {
-        event.preventDefault()
-        item.classList.add("is-drag-over")
-      })
-
-      item.addEventListener("dragleave", () => {
-        item.classList.remove("is-drag-over")
-      })
-
-      item.addEventListener("drop", event => {
-        event.preventDefault()
-        item.classList.remove("is-drag-over")
-        if (!dragSubjectId || dragSubjectId === subject.id) return
-        reorderSubjects(dragSubjectId, subject.id)
         saveAndRender()
       })
 
@@ -446,34 +412,8 @@
     }
   }
 
-  function getSortedSubjects() {
-    return [...state.subjects].sort((a, b) => a.order - b.order)
-  }
-
-  function reorderSubjects(dragId, targetId) {
-    const manual = [...state.subjects].sort((a, b) => a.order - b.order)
-    const fromIndex = manual.findIndex(subject => subject.id === dragId)
-    const targetIndex = manual.findIndex(subject => subject.id === targetId)
-    if (fromIndex < 0 || targetIndex < 0) return
-
-    const [moved] = manual.splice(fromIndex, 1)
-    manual.splice(targetIndex, 0, moved)
-
-    state.subjects = manual
-    reindexManualOrder()
-  }
-
-  function reindexManualOrder() {
-    const manual = [...state.subjects].sort((a, b) => a.order - b.order)
-    manual.forEach((subject, index) => {
-      subject.order = index
-    })
-    state.subjects = manual
-  }
-
-  function saveAndRender(save = true) {
-    if (save) saveState()
-    else saveState()
+  function saveAndRender() {
+    saveState()
     renderAll()
   }
 
