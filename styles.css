@@ -2427,6 +2427,7 @@ body.oscuro .sidebarItemCarpeta {
   flex-direction: column;
   align-items: flex-start;
   gap: 2px;
+  padding-block: 9px;
 }
 
 .sidebarItemDocumentoNombre {
@@ -2463,16 +2464,18 @@ body.oscuro .sidebarItemCarpeta {
 }
 
       .sidebarItem {
-        padding: 12px 12px;
+        padding: 10px 10px;
         margin-bottom: 0;
         border-radius: 10px;
         cursor: grab;
         font-weight: 600;
-        border-left: 8px solid var(--accent);
+        border-left: 6px solid var(--accent);
         background: var(--article-bg);
-        transition: 0.15s ease;
-    font-size: 13px;
-    line-height: 1.25;
+        border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+        contain: paint;
+        transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+        font-size: 12px;
+        line-height: 1.2;
   }
 
 .modal-backdrop {
@@ -2675,8 +2678,9 @@ body.oscuro .modal-close:hover {
   }
 }
     .sidebarItem:hover {
-      transform: scale(1.02);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+      background: color-mix(in srgb, var(--article-bg) 88%, var(--accent) 12%);
+      border-color: color-mix(in srgb, var(--border) 45%, var(--accent));
+      box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.18);
     }
 
     .sidebarItem.activa {
@@ -2700,6 +2704,7 @@ body.oscuro .modal-close:hover {
   padding: 2px 0;
   min-height: 34px;
   border-radius: 10px;
+  overflow: clip;
 }
 
 .sidebarGroupList.carpetaLista {
