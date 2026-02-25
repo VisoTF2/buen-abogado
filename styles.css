@@ -1507,24 +1507,74 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   gap: var(--space-3);
 }
 
+.carpetasLista > .carpetaGrupoSemestre .carpetaBox:first-child {
+  margin-top: 32px;
+}
+
 .sidebarGroup {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
 }
 
+.carpetaGrupoSemestre {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
 
 .carpetaBox {
   --carpeta-slot-height: 0px;
   --carpeta-color: var(--accent);
+  position: relative;
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 14px;
   background: var(--card);
   box-shadow: var(--card-shadow-elevated);
+  margin-top: var(--space-4);
+}
+
+.carpetaBox.carpeta-apilada {
+  margin-top: -1px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.carpetaSemestreAleta {
+  position: absolute;
+  top: -32px;
+  right: 14px;
+  min-width: 140px;
+  max-width: calc(100% - 24px);
+  padding: 6px 12px;
+  border: 2px solid var(--carpeta-color);
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  background: var(--card);
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.carpetaSemestreTexto {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: inherit;
+  outline: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.carpetaSemestreTexto:focus {
+  box-shadow: inset 0 -1px 0 currentColor;
 }
 
 .carpetaBox.carpeta-editor {
+  margin-top: 0;
   border-style: dashed;
   background: var(--article-bg);
 }
@@ -2356,6 +2406,12 @@ body.oscuro .modal-close:hover {
 
 /* Celular muy pequeño */
 @media (max-width: 600px) {
+  .carpetaSemestreAleta {
+    right: 10px;
+    min-width: 120px;
+    top: -30px;
+  }
+
   .layout {
     flex-direction: column !important;
     gap: 16px !important;
