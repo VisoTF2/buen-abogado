@@ -46,6 +46,12 @@ let mallaEraseActive = false
 let mallaZoomScale = 1
 let mallaZoomBaseSize = null
 let mallaZoomFocus = false
+let mallaPanActivo = false
+let mallaPanPointerId = null
+let mallaPanStartX = 0
+let mallaPanStartY = 0
+let mallaPanScrollLeft = 0
+let mallaPanScrollTop = 0
 
 function asegurarMallaPreviewEnBody() {
   if (!mallaPreviewBackdrop) return
@@ -227,6 +233,21 @@ function actualizarZoomMalla() {
   mallaPreviewCanvasWrap.style.setProperty("--malla-zoom", mallaZoomScale.toFixed(3))
   mallaPreviewZoomArea.style.width = `${scaledWidth}px`
   mallaPreviewZoomArea.style.height = `${scaledHeight}px`
+  actualizarEstadoPaneoMalla()
+}
+
+function actualizarEstadoPaneoMalla() {
+  if (!mallaPreviewBody || !mallaPreviewBackdrop) return
+  const previewVisible = mallaPreviewBackdrop.classList.contains("visible")
+  const paneoDisponible = previewVisible && mallaZoomScale > 1
+  mallaPreviewBody.classList.toggle("pan-enabled", paneoDisponible)
+  mallaPreviewBody.classList.toggle("is-panning", paneoDisponible && mallaPanActivo)
+}
+
+function detenerPaneoMalla() {
+  mallaPanActivo = false
+  mallaPanPointerId = null
+  actualizarEstadoPaneoMalla()
 }
 
 function aplicarZoomMalla(nivel) {
@@ -380,6 +401,7 @@ function abrirMallaPreview() {
   asegurarMallaPreviewEnBody()
   mallaPreviewBackdrop.classList.add("visible")
   mallaPreviewBackdrop.setAttribute("aria-hidden", "false")
+  actualizarEstadoPaneoMalla()
   window.requestAnimationFrame(() => {
     ajustarCanvasMalla()
     cargarOverlayMalla()
@@ -394,6 +416,7 @@ function cerrarMallaPreview() {
   establecerModoDibujo(false)
   establecerModoBorrador(false)
   mallaZoomFocus = false
+  detenerPaneoMalla()
 }
 
 function aplicarMallaActiva(activa) {
@@ -585,7 +608,45 @@ mallaPreviewCanvasWrap?.addEventListener("pointerdown", () => {
   mallaPreviewCanvasWrap.focus?.()
 })
 
+mallaPreviewBody?.addEventListener("pointerdown", event => {
+  if (event.pointerType !== "mouse" || event.button !== 2) return
+  if (!mallaPreviewBackdrop?.classList.contains("visible")) return
+  if (mallaZoomScale <= 1) return
+  mallaPanActivo = true
+  mallaPanPointerId = event.pointerId
+  mallaPanStartX = event.clientX
+  mallaPanStartY = event.clientY
+  mallaPanScrollLeft = mallaPreviewBody.scrollLeft
+  mallaPanScrollTop = mallaPreviewBody.scrollTop
+  mallaPreviewBody.setPointerCapture?.(event.pointerId)
+  event.preventDefault()
+  actualizarEstadoPaneoMalla()
+})
+
+mallaPreviewBody?.addEventListener("pointermove", event => {
+  if (!mallaPanActivo || event.pointerId !== mallaPanPointerId) return
+  const deltaX = event.clientX - mallaPanStartX
+  const deltaY = event.clientY - mallaPanStartY
+  mallaPreviewBody.scrollLeft = mallaPanScrollLeft - deltaX
+  mallaPreviewBody.scrollTop = mallaPanScrollTop - deltaY
+})
+
+const detenerPaneoPorPointer = event => {
+  if (event.pointerId !== mallaPanPointerId) return
+  mallaPreviewBody?.releasePointerCapture?.(event.pointerId)
+  detenerPaneoMalla()
+}
+
+mallaPreviewBody?.addEventListener("pointerup", detenerPaneoPorPointer)
+mallaPreviewBody?.addEventListener("pointercancel", detenerPaneoPorPointer)
+mallaPreviewBody?.addEventListener("contextmenu", event => {
+  if (!mallaPreviewBackdrop?.classList.contains("visible")) return
+  if (mallaZoomScale <= 1) return
+  event.preventDefault()
+})
+
 mallaPreviewCanvas?.addEventListener("pointerdown", event => {
+  if (event.button !== 0) return
   if ((!mallaDrawActive && !mallaEraseActive) || !mallaPreviewCanvas) return
   const ctx = mallaPreviewCanvas.getContext("2d")
   if (!ctx) return

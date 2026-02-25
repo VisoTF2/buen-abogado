@@ -2296,6 +2296,15 @@ body.malla-activa .schedule-malla {
   padding: 6px;
 }
 
+.malla-preview-body.pan-enabled {
+  cursor: grab;
+}
+
+.malla-preview-body.is-panning {
+  cursor: grabbing;
+  user-select: none;
+}
+
 .malla-preview-zoom-area {
   display: inline-block;
   flex: 0 0 auto;
