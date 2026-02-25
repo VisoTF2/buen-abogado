@@ -1124,8 +1124,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-subjects-layout {
       display: grid;
-      grid-template-columns: 288px 1fr;
-      gap: 10px;
+      grid-template-columns: minmax(220px, 0.86fr) minmax(0, 2.14fr);
+      gap: 12px;
       align-items: start;
     }
 
@@ -1133,7 +1133,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-editor-panel {
       border: none;
       border-radius: 12px;
-      padding: 10px;
+      padding: 12px;
       background: color-mix(in srgb, var(--card) 99.85%, transparent);
     }
 
@@ -1160,13 +1160,18 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       box-sizing: border-box;
     }
 
-    .grade-subjects-hint {
-      font-size: 12px;
-      color: #64748b;
-      margin-bottom: 6px;
+    .grade-subject-name-input::placeholder,
+    .grade-selected-name::placeholder {
+      color: color-mix(in srgb, var(--text) 84%, transparent);
+      opacity: 1;
+      font-weight: 600;
     }
 
-    body.oscuro .grade-subjects-hint { color: #cbd5e1; }
+    .grade-subjects-hint {
+      font-size: 12px;
+      color: color-mix(in srgb, var(--text) 78%, transparent);
+      margin-bottom: 6px;
+    }
 
     .grade-subjects-list {
       display: flex;
@@ -1318,7 +1323,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .media-title span {
       font-size: 14px;
       line-height: 1.45;
-      color: #4b5563;
+      color: color-mix(in srgb, var(--text) 90%, transparent);
       margin: 0;
     }
 
@@ -1328,8 +1333,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-config-grid {
       display: grid;
-      grid-template-columns: repeat(6, minmax(115px, 1fr));
-      gap: 6px;
+      grid-template-columns: repeat(6, minmax(135px, 1fr));
+      gap: 8px;
       align-items: end;
     }
 
@@ -1338,7 +1343,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       flex-direction: column;
       gap: 4px;
       font-size: 11px;
-      color: #374151;
+      color: color-mix(in srgb, var(--text) 92%, transparent);
       font-weight: 700;
     }
 
@@ -1349,8 +1354,6 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       align-items: flex-end;
       white-space: nowrap;
     }
-
-    body.oscuro .grade-field { color: #d1d5db; }
 
     .grade-field input,
     .grade-control-input {
@@ -1518,11 +1521,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-result-row span {
       font-size: 12px;
-      color: #6b7280;
+      color: color-mix(in srgb, var(--text) 88%, transparent);
       line-height: 1.35;
     }
-
-    body.oscuro .grade-result-row span { color: #d1d5db; }
 
     .grade-result-row strong {
       font-size: 13px;
@@ -2728,7 +2729,7 @@ body.oscuro .modal-close:hover {
 
 .form-articulo {
   background: transparent;
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-4);
   border-radius: 12px;
   border: none;
   box-shadow: none;
@@ -2746,7 +2747,12 @@ body.oscuro .modal-close:hover {
 }
     .contenidoArticulos {
       margin-top: 12px;
+      padding: 0 var(--space-4);
       flex: 1 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-sizing: border-box;
     }
 
     .estado-vacio {
@@ -2819,11 +2825,13 @@ body.oscuro .modal-close:hover {
       padding: 16px;
       border-radius: 10px;
       border-left: 6px solid var(--accent);
-      margin-top: 10px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.07);
+      margin-top: 0;
+      box-shadow: none;
       cursor: grab;
       position: relative;
       contain: paint;
+      width: 100%;
+      box-sizing: border-box;
       transform: translateY(0);
       transition: transform 0.15s ease;
     }
@@ -2886,6 +2894,8 @@ body.oscuro .modal-close:hover {
       border: 2px solid transparent;
       white-space: pre-wrap;
       line-height: 1.55;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .articulo-contenido:focus {
