@@ -43,6 +43,62 @@ if (botonDocumentos) {
   })
 }
 
+prepararRecepcionDocumentoDesdeCarpetas()
+
+function restaurarDocumentoDesdeCarpeta(documentoId) {
+  if (!documentoId) return false
+
+  const respaldo =
+    typeof obtenerDocumentoRespaldoEnCarpetas === "function"
+      ? obtenerDocumentoRespaldoEnCarpetas(documentoId)
+      : null
+
+  if (!respaldo) return false
+
+  const existente = documentosCargados.find(d => d.id === documentoId)
+  const base = {
+    id: respaldo.id,
+    nombre: respaldo.nombre || "Documento",
+    extension: respaldo.extension || "",
+    url: respaldo.url || "",
+    texto: respaldo.texto || "",
+    mensaje: respaldo.mensaje || ""
+  }
+
+  const documentoFinal = existente ? { ...existente, ...base } : base
+  documentosCargados = [
+    documentoFinal,
+    ...documentosCargados.filter(d => d.id !== documentoId)
+  ]
+
+  guardarDocumentos()
+  renderDocumentos()
+  mostrarDocumento(documentoId)
+  return true
+}
+
+function prepararRecepcionDocumentoDesdeCarpetas() {
+  const zonas = [listaDocumentos, visorDocumentos].filter(Boolean)
+  if (!zonas.length) return
+
+  zonas.forEach(zona => {
+    zona.addEventListener("dragover", e => {
+      if (!documentoArrastradoId) return
+      e.preventDefault()
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+    })
+
+    zona.addEventListener("drop", e => {
+      e.preventDefault()
+      const id = documentoArrastradoId || e.dataTransfer?.getData("text/plain")
+      if (!id) return
+      restaurarDocumentoDesdeCarpeta(id)
+      documentoArrastradoId = null
+      ordenarYMostrar()
+    })
+  })
+}
+
 function cargarDocumentosGuardados() {
   try {
     const guardados = JSON.parse(localStorage.getItem(DOCUMENTOS_STORAGE_KEY) || "[]")
@@ -64,6 +120,18 @@ function cargarDocumentosGuardados() {
 
 function guardarDocumentos() {
   localStorage.setItem(DOCUMENTOS_STORAGE_KEY, JSON.stringify(documentosCargados))
+}
+
+function guardarTextoDocumentoEditado(id, textoEditado) {
+  const doc = documentosCargados.find(d => d.id === id)
+  if (!doc) return
+
+  doc.texto = textoEditado
+  guardarDocumentos()
+
+  if (typeof actualizarDocumentoEnCarpetas === "function") {
+    actualizarDocumentoEnCarpetas(doc)
+  }
 }
 
 function obtenerExtension(nombre = "") {
@@ -348,7 +416,24 @@ function mostrarDocumento(id, terminoBusqueda = "", indiceCoincidencia = null) {
   if ((doc.extension === "pdf" || doc.extension === "docx") && doc.texto) {
     const texto = document.createElement("div")
     texto.className = "documento-texto"
-    aplicarResaltadoEnTexto(doc.texto, texto, terminoBusqueda, indiceCoincidencia)
+
+    const tieneBusqueda = Boolean((terminoBusqueda || "").trim())
+    if (!tieneBusqueda) {
+      texto.contentEditable = "true"
+      texto.setAttribute("role", "textbox")
+      texto.setAttribute("aria-label", "Editar texto del documento")
+      texto.spellcheck = false
+      texto.textContent = doc.texto
+
+      texto.addEventListener("blur", () => {
+        const nuevoTexto = texto.textContent || ""
+        if (nuevoTexto === doc.texto) return
+        guardarTextoDocumentoEditado(doc.id, nuevoTexto)
+      })
+    } else {
+      aplicarResaltadoEnTexto(doc.texto, texto, terminoBusqueda, indiceCoincidencia)
+    }
+
     visorDocumentos.appendChild(texto)
   } else if (doc.extension === "pdf" && doc.url) {
     const iframe = document.createElement("iframe")
@@ -471,6 +556,11 @@ function actualizarNombreDocumentoEnCarpetas(id, nombre) {
     .forEach(detalle => {
       detalle.textContent = nombre || "Documento"
     })
+
+  const docActual = documentosCargados.find(d => d.id === id)
+  if (docActual && typeof actualizarDocumentoEnCarpetas === "function") {
+    actualizarDocumentoEnCarpetas(docActual)
+  }
 }
 
 function aplicarResaltadoEnTexto(textoFuente, contenedor, termino, indiceActivo) {

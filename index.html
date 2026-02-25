@@ -233,6 +233,24 @@
 
   </div>
 
+  <div class="calendar-layout">
+    <section class="calendar-panel" id="calendarPanel" aria-label="Calendario mensual">
+      <div class="calendar-head">
+        <div class="calendar-title">
+          <h3>Calendario</h3>
+          <span>Organiza recordatorios y tareas por día.</span>
+        </div>
+        <div class="calendar-nav">
+          <button type="button" class="calendar-btn" id="calendarPrevBtn">Anterior</button>
+          <span class="calendar-month" id="calendarMonthLabel"></span>
+          <button type="button" class="calendar-btn" id="calendarNextBtn">Siguiente</button>
+        </div>
+      </div>
+      <div class="calendar-weekdays" id="calendarWeekdays"></div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </section>
+  </div>
+
   <div class="media-layout">
     <div class="media-panel" id="mediaPanel">
       <div class="media-head">
@@ -354,6 +372,7 @@
 <script src="busqueda.js"></script>
 <script src="schedule.js"></script>
 <script src="app.js"></script>
+<script src="calendar.js"></script>
 <script src="media.js"></script>
   <div class="app-footer" style="font-size:12px;text-align:center;color:#666;padding:8px 0;">Esta app puede cometer errores, se recomienda revisar los códigos.</div>
   <script>

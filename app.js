@@ -3,7 +3,12 @@ let articulos = JSON.parse(localStorage.getItem("articulosGuardados") || "[]")
   .map(a => ({ ...a, contenidoHTML: a.contenidoHTML ?? null }))
 let materiasOrden = JSON.parse(localStorage.getItem("materiasOrden") || "{}")
 let carpetas = JSON.parse(localStorage.getItem("carpetasMaterias") || "[]").map(
-  c => ({ ...c, color: c.color || "#1e3a8a", documentos: c.documentos || [] })
+  c => ({
+    ...c,
+    color: c.color || "#1e3a8a",
+    documentos: c.documentos || [],
+    documentosData: c.documentosData || {}
+  })
 )
 let normativaSeleccionada = null
 let materiaSeleccionada = null
@@ -134,6 +139,7 @@ function crearCarpeta(nombre) {
     color: "#1e3a8a",
     materias: [],
     documentos: [],
+    documentosData: {},
     colapsada: false
   }
 }
@@ -276,9 +282,17 @@ function removerDocumentoDeCarpetas(documentoId, carpetaId = null) {
 
   carpetas = carpetas.map(carpeta => {
     if (carpetaId && carpeta.id !== carpetaId) return carpeta
+
     const documentos = (carpeta.documentos || []).filter(id => id !== documentoId)
+    const documentosData = { ...(carpeta.documentosData || {}) }
+
     if (documentos.length !== (carpeta.documentos || []).length) cambio = true
-    return { ...carpeta, documentos }
+    if (documentosData[documentoId]) {
+      delete documentosData[documentoId]
+      cambio = true
+    }
+
+    return { ...carpeta, documentos, documentosData }
   })
 
   if (cambio) guardarCarpetas()
@@ -343,15 +357,61 @@ function moverMateriaACarpeta(normativa, materia, carpetaId) {
   ordenarYMostrar()
 }
 
+function normalizarDocumentoParaCarpeta(documento) {
+  if (!documento || !documento.id) return null
+  return {
+    id: documento.id,
+    nombre: documento.nombre || "Documento",
+    extension: documento.extension || "",
+    url: documento.url || "",
+    texto: documento.texto || "",
+    mensaje: documento.mensaje || ""
+  }
+}
+
+function actualizarDocumentoEnCarpetas(documento) {
+  const base = normalizarDocumentoParaCarpeta(documento)
+  if (!base) return
+
+  let cambio = false
+  carpetas = carpetas.map(carpeta => {
+    if (!(carpeta.documentos || []).includes(base.id) && !(carpeta.documentosData || {})[base.id]) {
+      return carpeta
+    }
+
+    const documentosData = { ...(carpeta.documentosData || {}), [base.id]: base }
+    cambio = true
+    return { ...carpeta, documentosData }
+  })
+
+  if (cambio) guardarCarpetas()
+}
+
+function obtenerDocumentoRespaldoEnCarpetas(documentoId) {
+  if (!documentoId) return null
+  for (const carpeta of carpetas) {
+    const respaldo = carpeta.documentosData?.[documentoId]
+    if (respaldo) return { ...respaldo }
+  }
+  return null
+}
+
 function moverDocumentoACarpeta(documentoId, carpetaId) {
   if (!carpetaId || !documentoId) return
   removerDocumentoDeCarpetas(documentoId)
+
+  const documento = documentosCargados.find(doc => doc.id === documentoId)
+  const documentoBase = normalizarDocumentoParaCarpeta(documento)
 
   carpetas = carpetas.map(carpeta => {
     if (carpeta.id !== carpetaId) return carpeta
     const documentos = new Set(carpeta.documentos || [])
     documentos.add(documentoId)
-    return { ...carpeta, documentos: Array.from(documentos) }
+
+    const documentosData = { ...(carpeta.documentosData || {}) }
+    if (documentoBase) documentosData[documentoId] = documentoBase
+
+    return { ...carpeta, documentos: Array.from(documentos), documentosData }
   })
 
   guardarCarpetas()
@@ -899,6 +959,11 @@ function activarArrastreArticulo(box, normativa, materia) {
     }
 
     articuloArrastradoId = box.dataset.id
+    materiaArrastrada = materia
+    materiaArrastradaNormativa = normativa
+    materiaArrastradaCarpetaId = materiaEnCarpeta(normativa, materia)
+    materiaDropProcesado = false
+
     box.classList.add("arrastrando")
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move"
@@ -934,6 +999,7 @@ function activarArrastreArticulo(box, normativa, materia) {
     const contenedor = box.parentElement
     aplicarOrdenDesdeDOM(contenedor, normativa, materia)
     articuloArrastradoId = null
+    if (!materiaDropProcesado) limpiarEstadoArrastreMateria()
   })
 }
 
@@ -1409,7 +1475,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
     prepararZonaDocumentosCarpeta(zonaDocumentos, carpeta.id)
 
     const documentosEnCarpeta = (carpeta.documentos || [])
-      .map(id => documentosCargados.find(d => d.id === id))
+      .map(id => documentosCargados.find(d => d.id === id) || carpeta.documentosData?.[id])
       .filter(Boolean)
 
     if (!documentosEnCarpeta.length) {
@@ -1424,26 +1490,28 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
       documentosEnCarpeta.forEach(doc => {
         const chip = document.createElement("div")
         chip.className = "carpetaDocumentoChip"
+        chip.draggable = true
 
         const detalle = document.createElement("div")
         detalle.className = "carpetaDocumentoDetalle"
         detalle.dataset.docId = doc.id
         detalle.textContent = doc.nombre
 
-        const quitar = document.createElement("button")
-        quitar.type = "button"
-        quitar.className = "carpetaDocumentoQuitar"
-        quitar.textContent = "Quitar"
-        quitar.addEventListener("click", () => {
-          const cambio = removerDocumentoDeCarpetas(doc.id, carpeta.id)
-          if (cambio) {
-            ordenarYMostrar()
-            renderDocumentos()
+        chip.addEventListener("dragstart", e => {
+          documentoArrastradoId = doc.id
+          chip.classList.add("documento-arrastrando")
+          if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = "move"
+            e.dataTransfer.setData("text/plain", doc.id)
           }
         })
 
+        chip.addEventListener("dragend", () => {
+          chip.classList.remove("documento-arrastrando")
+          documentoArrastradoId = null
+        })
+
         chip.appendChild(detalle)
-        chip.appendChild(quitar)
         listaDocs.appendChild(chip)
       })
 
