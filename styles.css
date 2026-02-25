@@ -962,21 +962,19 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       display: flex;
       flex-direction: column;
       gap: 8px;
-      padding: 8px;
-      border: 1px solid var(--border);
-      border-style: dashed;
-      border-radius: 12px;
-      background: var(--article-bg);
-      box-shadow: var(--card-shadow-elevated);
+      padding: 2px 0 0;
+      border: none;
+      background: transparent;
+      box-shadow: none;
     }
 
     .calendar-event-editor-input {
       width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 6px 8px;
-      font-size: 12px;
-      background: var(--card);
+      border: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+      border-radius: 10px;
+      padding: 7px 10px;
+      font-size: 13px;
+      background: color-mix(in srgb, var(--card) 92%, transparent);
       color: var(--text);
       box-sizing: border-box;
     }
@@ -990,7 +988,6 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .calendar-event-editor-actions {
       display: flex;
       gap: 8px;
-      justify-content: stretch;
       width: 100%;
     }
 
