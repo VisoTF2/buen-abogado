@@ -2791,8 +2791,8 @@ body.malla-activa .schedule-malla {
 .class-editor .editor-row { display: flex; gap: 8px; }
 .class-editor input { padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-weight: 600; flex: 1; min-width: 0; box-sizing: border-box; }
 .class-editor .editor-absences { width: 88px; }
-.class-editor .editor-actions { display:flex; gap:8px; align-items:center; }
-.class-editor .editor-buttons { display:flex; gap:8px; margin-left:auto; }
+.class-editor .editor-actions { display:flex; flex-direction: column; gap:8px; align-items:stretch; }
+.class-editor .editor-buttons { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:8px; flex: 1 1 auto; min-width: 0; margin-left:0; }
 .class-editor .editor-color-input {
   width: 30px;
   height: 30px;
@@ -2804,9 +2804,8 @@ body.malla-activa .schedule-malla {
   appearance: none;
   -webkit-appearance: none;
   flex: 0 0 auto;
-  position: absolute;
-  left: 8px;
-  bottom: 8px;
+  align-self: flex-start;
+  position: static;
 }
 .class-editor .editor-color-input:focus,
 .class-editor .editor-color-input:focus-visible {
@@ -2822,12 +2821,14 @@ body.malla-activa .schedule-malla {
   border-radius: 50%;
 }
 .class-editor .editor-save {
-  min-width: 88px;
+  min-width: 0;
+  width: 100%;
   background: var(--accent);
   color: #fff;
 }
 .class-editor .editor-cancel {
-  min-width: 88px;
+  min-width: 0;
+  width: 100%;
   background: var(--danger-solid-bg);
   color: var(--danger-solid-text);
 }
@@ -2835,6 +2836,17 @@ body.malla-activa .schedule-malla {
 .class-editor .editor-cancel:hover { filter: brightness(0.95); }
 .class-editor .editor-save:active,
 .class-editor .editor-cancel:active { transform: translateY(1px); }
+
+@media (max-width: 420px) {
+  .class-editor .editor-actions {
+    flex-wrap: wrap;
+  }
+
+
+  .class-editor .editor-buttons {
+    width: 100%;
+  }
+}
 
 .class-main { display:flex; flex-direction:column; align-items: flex-start; gap:6px; flex: 1 1 auto; min-width: 0; }
 .class-meta { font-size: 13px; color: var(--text); display:flex; gap:8px; align-items:center; flex-wrap: wrap; font-weight: 600; }
