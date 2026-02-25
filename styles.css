@@ -2112,10 +2112,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .carpetaToggle {
   border: none;
   background: transparent;
-  color: var(--carpeta-color);
+  color: #64748b;
   border-radius: 10px;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -2133,15 +2133,23 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetaToggleIcon {
-  display: grid;
-  place-items: center;
-  font-size: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 17px;
   line-height: 1;
+  transform-origin: center;
   transition: transform 0.2s ease;
 }
 
 .carpetaToggle.colapsada .carpetaToggleIcon {
   transform: rotate(-90deg);
+}
+
+body.oscuro .carpetaToggle {
+  color: #94a3b8;
 }
 
 
