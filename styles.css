@@ -1254,17 +1254,16 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-editor-section {
       border-top: 0;
-      padding-top: 6px;
-      margin-top: 6px;
+      padding-top: 0;
+      margin-top: 0;
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
 
-    .grade-editor-section h4 {
-      margin: 0;
-      color: var(--text);
-      font-size: 14px;
+    .grade-editor-section + .grade-editor-section {
+      padding-top: 6px;
+      margin-top: 6px;
     }
 
     .grade-danger-btn {
@@ -1365,14 +1364,6 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       appearance: textfield;
     }
 
-    .grade-controls-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
     .grade-btn,
     .grade-control-remove {
       background: var(--accent);
@@ -1437,16 +1428,20 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .grade-summary-details {
-      margin-top: 6px;
+      margin-top: 0;
     }
 
     .grade-summary-details summary {
       list-style: none;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
       font-size: 14px;
       font-weight: 700;
       color: var(--text);
-      padding: 6px 2px;
+      padding: 6px 2px 4px;
       user-select: none;
       border-radius: 8px;
     }
@@ -1457,7 +1452,13 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-summary-details summary::after {
       content: "▾";
-      float: right;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      font-size: 17px;
+      line-height: 1;
       color: #64748b;
       transition: transform 0.2s ease;
     }
@@ -1467,7 +1468,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .grade-summary-details .grade-results {
-      margin-top: 2px;
+      margin-top: 0;
     }
 
     .grade-results {
