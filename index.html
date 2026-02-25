@@ -269,7 +269,7 @@
 
           <div class="grade-subjects-toolbar">
             <label class="grade-sort-field" for="gradeSortMode">
-              <span>Ordenar por</span>
+              <span>Orden</span>
               <select id="gradeSortMode">
                 <option value="manual">Manual</option>
                 <option value="name">Nombre (A-Z)</option>
@@ -289,6 +289,8 @@
             <button class="grade-danger-btn" id="gradeDeleteSubjectBtn" type="button">Eliminar ramo</button>
           </div>
 
+          <div class="grade-editor-section">
+            <h4>Parámetros del ramo</h4>
           <div class="grade-config-grid">
             <label class="grade-field">
               <span>Número de controles</span>
@@ -315,38 +317,44 @@
               <input type="number" id="controlsWeightForExam" min="0" max="100" step="0.1" value="70">
             </label>
           </div>
+          </div>
 
+          <div class="grade-editor-section">
           <div class="grade-controls-head">
             <h4>Controles del ramo</h4>
             <button class="grade-btn" id="addGradeControlBtn" type="button">Agregar control</button>
           </div>
           <div class="grade-controls" id="gradeControlsContainer"></div>
           <div class="grade-validation" id="gradeValidation" role="alert" aria-live="polite"></div>
+          </div>
 
-          <div class="grade-results">
-            <div class="grade-result-card">
-              <span>Estado académico</span>
-              <strong id="gradeStatus">Estado académico: En progreso</strong>
-            </div>
-            <div class="grade-result-card">
-              <span>Nota actual (controles ingresados)</span>
-              <strong id="gradeCurrentAverage">—</strong>
-            </div>
-            <div class="grade-result-card">
-              <span>¿Necesita examen?</span>
-              <strong id="gradeNeedExam">Aún no definido</strong>
-            </div>
-            <div class="grade-result-card">
-              <span>Nota mínima en controles restantes para eximirse</span>
-              <strong id="gradeNeedForExemption">—</strong>
-            </div>
-            <div class="grade-result-card">
-              <span>Nota mínima en controles restantes para asegurar 4.0</span>
-              <strong id="gradeNeedForFour">—</strong>
-            </div>
-            <div class="grade-result-card">
-              <span>Nota mínima de examen para aprobar</span>
-              <strong id="gradeNeedExamMin">No aplica</strong>
+          <div class="grade-editor-section grade-results-section">
+            <h4>Resumen</h4>
+            <div class="grade-results">
+              <div class="grade-result-row">
+                <span>Estado académico</span>
+                <strong id="gradeStatus">Estado académico: En progreso</strong>
+              </div>
+              <div class="grade-result-row">
+                <span>Promedio actual</span>
+                <strong id="gradeCurrentAverage">—</strong>
+              </div>
+              <div class="grade-result-row">
+                <span>Necesita examen</span>
+                <strong id="gradeNeedExam">Aún no definido</strong>
+              </div>
+              <div class="grade-result-row">
+                <span>Meta para eximirse (controles restantes)</span>
+                <strong id="gradeNeedForExemption">—</strong>
+              </div>
+              <div class="grade-result-row">
+                <span>Meta para asegurar 4.0 (controles restantes)</span>
+                <strong id="gradeNeedForFour">—</strong>
+              </div>
+              <div class="grade-result-row">
+                <span>Mínimo en examen para aprobar</span>
+                <strong id="gradeNeedExamMin">No aplica</strong>
+              </div>
             </div>
           </div>
         </div>
