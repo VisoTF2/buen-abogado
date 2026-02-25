@@ -824,20 +824,18 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .calendar-btn {
-      border: 1px solid var(--border);
-      background: var(--card);
-      color: var(--text);
+      background: var(--accent);
+      color: white;
+      padding: 10px 16px;
       border-radius: 10px;
-      padding: 8px 12px;
-      cursor: pointer;
+      border: none;
       font-weight: 700;
-      transition: background 0.2s ease, border-color 0.2s ease;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.12s ease;
     }
 
-    .calendar-btn:hover {
-      background: rgba(59, 130, 246, 0.12);
-      border-color: var(--accent-light);
-    }
+    .calendar-btn:hover { background: var(--accent-light); }
+    .calendar-btn:active { transform: translateY(1px); }
 
     .calendar-month {
       min-width: 180px;
