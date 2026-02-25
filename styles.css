@@ -2311,63 +2311,44 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
 .carpetaDocumentoChip {
   display: flex;
-  justify-content: flex-start;
   align-items: center;
-  gap: 8px;
   width: 100%;
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  background: var(--article-bg);
-  border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
-  border-left: 6px solid var(--accent);
-  border-radius: 10px;
-  padding: 14px 16px;
+  background: #1e3a8a;
+  border: 1px solid color-mix(in srgb, #1e3a8a 78%, #ffffff 22%);
+  border-radius: 12px;
+  padding: 10px 14px;
   cursor: grab;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.07);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: filter 0.15s ease, transform 0.15s ease;
 }
 
 .carpetaDocumentoChip.is-selected {
-  border-color: color-mix(in srgb, var(--border) 55%, transparent);
-  box-shadow: none;
+  background: #1d4ed8;
+  border-color: #1d4ed8;
 }
 
 .carpetaDocumentoChip:hover {
-  transform: scale(1.015);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+  filter: brightness(1.05);
+  transform: translateY(-1px);
 }
 
 .carpetaDocumentoChip:active {
   cursor: grabbing;
-}
-
-.carpetaDocumentoQuitar {
-  border: 1px solid var(--danger-solid-border);
-  background: var(--danger-solid-bg);
-  color: var(--danger-solid-text);
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.carpetaDocumentoQuitar:hover {
-  filter: brightness(0.95);
+  transform: translateY(0);
 }
 
 .carpetaDocumentoDetalle {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text);
   width: 100%;
   min-width: 0;
-  white-space: normal;
-  overflow-wrap: break-word;
-  word-break: normal;
-  line-height: 1.35;
+  font-size: 17px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 

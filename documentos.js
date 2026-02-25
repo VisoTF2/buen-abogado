@@ -394,10 +394,6 @@ function retirarDocumentoDeListadoPrincipal(id) {
   guardarDocumentos()
   renderDocumentos()
 
-  if (visorDocumentos?.dataset.docActual === id) {
-    cerrarVistaDocumento()
-  }
-
   return true
 }
 

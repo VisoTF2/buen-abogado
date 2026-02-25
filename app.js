@@ -424,14 +424,6 @@ function moverDocumentoACarpeta(documentoId, carpetaId) {
   ordenarYMostrar()
 }
 
-function devolverDocumentoAColumna(documentoId) {
-  if (!documentoId || typeof restaurarDocumentoDesdeCarpeta !== "function") return
-  const restaurado = restaurarDocumentoDesdeCarpeta(documentoId)
-  if (!restaurado) return
-  documentoSeleccionadoEnCarpetaId = null
-  ordenarYMostrar()
-}
-
 function moverMateriaAFueraDeCarpeta(materia, normativa) {
   const cambio = removerMateriaDeCarpetas(normativa, materia)
   if (cambio) ordenarYMostrar()
@@ -1449,6 +1441,30 @@ function renderizarDocumentosSidebar(sidebar) {
 
   const lista = document.createElement("div")
   lista.className = "sidebarGroupList sidebarGroupListDocumentos"
+
+  lista.addEventListener("dragover", e => {
+    if (!documentoArrastradoId) return
+    e.preventDefault()
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+    lista.classList.add("drop-activa", "carpetaLista-drop")
+  })
+
+  lista.addEventListener("dragleave", () => {
+    lista.classList.remove("drop-activa", "carpetaLista-drop")
+  })
+
+  lista.addEventListener("drop", e => {
+    e.preventDefault()
+    const id = documentoArrastradoId || e.dataTransfer?.getData("text/plain")
+    lista.classList.remove("drop-activa", "carpetaLista-drop")
+    if (!id || typeof restaurarDocumentoDesdeCarpeta !== "function") return
+    const restaurado = restaurarDocumentoDesdeCarpeta(id)
+    if (!restaurado) return
+    documentoArrastradoId = null
+    documentoSeleccionadoEnCarpetaId = null
+    ordenarYMostrar()
+  })
+
   grupo.appendChild(lista)
 
   if (!documentosCargados.length) {
@@ -1681,15 +1697,6 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
           detalle.dataset.docId = doc.id
           detalle.textContent = doc.nombre
 
-          const quitarBtn = document.createElement("button")
-          quitarBtn.className = "carpetaDocumentoQuitar"
-          quitarBtn.type = "button"
-          quitarBtn.textContent = "Sacar"
-          quitarBtn.addEventListener("click", e => {
-            e.stopPropagation()
-            devolverDocumentoAColumna(doc.id)
-          })
-
           if (doc.id === documentoSeleccionadoEnCarpetaId || doc.id === docActualEnPreview) {
             chip.classList.add("is-selected")
           }
@@ -1717,7 +1724,6 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
           })
 
           chip.appendChild(detalle)
-          chip.appendChild(quitarBtn)
           listaDocs.appendChild(chip)
         })
 
