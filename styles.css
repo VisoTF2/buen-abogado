@@ -1135,6 +1135,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       background: color-mix(in srgb, var(--card) 99.85%, transparent);
     }
 
+    .grade-subjects-panel {
+      overflow: hidden;
+    }
+
     .grade-subjects-create {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -1190,12 +1194,17 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .grade-subject-item:hover {
-      transform: scale(1.02);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
     }
 
     .grade-subject-item:active {
       transform: translateY(1px);
+    }
+
+    .grade-subject-item.arrastrando {
+      opacity: 0.9;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
     }
 
     .grade-subject-item:focus,
