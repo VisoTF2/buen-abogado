@@ -210,6 +210,7 @@
     saveBtn.addEventListener("click", saveEvent)
     cancelBtn.addEventListener("click", closeEditor)
     input.addEventListener("keydown", e => {
+      e.stopPropagation()
       if (e.key === "Enter") {
         e.preventDefault()
         saveEvent()
@@ -255,6 +256,7 @@
     input.setAttribute("aria-label", "Editar evento")
 
     input.addEventListener("click", e => e.stopPropagation())
+    input.addEventListener("keydown", e => e.stopPropagation())
     input.addEventListener("change", () => {
       const list = Array.isArray(eventsByDate[dateKey]) ? [...eventsByDate[dateKey]] : []
       if (!list[index]) return
