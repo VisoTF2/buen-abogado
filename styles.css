@@ -43,6 +43,12 @@
       --danger-solid-border: #b91c1c;
       --danger-solid-text: #fff;
       --card-shadow-elevated: 0 6px 16px rgba(0, 0, 0, 0.1);
+      --grade-muted-text: #4b5563;
+      --grade-subtle-text: #374151;
+      --grade-placeholder: #4b5563;
+      --grade-input-bg: #ffffff;
+      --grade-row-bg: #f8fafc;
+      --grade-summary-icon: #475569;
     }
 
     body.oscuro {
@@ -78,6 +84,12 @@
       --danger-solid-border: #b91c1c;
       --danger-solid-text: #fff;
       --card-shadow-elevated: 0 12px 26px rgba(0,0,0,0.42);
+      --grade-muted-text: #d1d5db;
+      --grade-subtle-text: #e5e7eb;
+      --grade-placeholder: #cbd5e1;
+      --grade-input-bg: #0f172a;
+      --grade-row-bg: #1f2937;
+      --grade-summary-icon: #cbd5e1;
     }
 
     body {
@@ -1154,7 +1166,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       padding: 8px 10px;
       border-radius: 10px;
       border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-      background: var(--card);
+      background: var(--grade-input-bg);
       color: var(--text);
       font-weight: 600;
       box-sizing: border-box;
@@ -1162,14 +1174,14 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-subject-name-input::placeholder,
     .grade-selected-name::placeholder {
-      color: color-mix(in srgb, var(--text) 84%, transparent);
+      color: var(--grade-placeholder);
       opacity: 1;
       font-weight: 600;
     }
 
     .grade-subjects-hint {
       font-size: 12px;
-      color: color-mix(in srgb, var(--text) 78%, transparent);
+      color: var(--grade-muted-text);
       margin-bottom: 6px;
     }
 
@@ -1227,17 +1239,13 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-subject-item span {
       font-size: 12px;
-      color: #475569;
+      color: var(--grade-muted-text);
     }
-
-    body.oscuro .grade-subject-item span { color: #cbd5e1; }
 
     .grade-subject-item small {
       font-size: 11px;
-      color: #64748b;
+      color: var(--grade-muted-text);
     }
-
-    body.oscuro .grade-subject-item small { color: #cbd5e1; }
 
     .grade-subject-item.is-active {
       background: var(--accent);
@@ -1323,13 +1331,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .media-title span {
       font-size: 14px;
       line-height: 1.45;
-      color: color-mix(in srgb, var(--text) 90%, transparent);
+      color: var(--grade-subtle-text);
       margin: 0;
     }
-
-    body.oscuro .calendar-title span,
-    body.oscuro .grade-title span,
-    body.oscuro .media-title span { color: #e5e7eb; }
 
     .grade-config-grid {
       display: grid;
@@ -1343,7 +1347,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       flex-direction: column;
       gap: 4px;
       font-size: 11px;
-      color: color-mix(in srgb, var(--text) 92%, transparent);
+      color: var(--grade-subtle-text);
       font-weight: 700;
     }
 
@@ -1361,7 +1365,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       padding: 7px 9px;
       border-radius: 10px;
       border: 1px solid color-mix(in srgb, var(--border) 58%, transparent);
-      background: var(--card);
+      background: var(--grade-input-bg);
       color: var(--text);
       font-weight: 600;
       box-sizing: border-box;
@@ -1417,16 +1421,14 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       border: 1px solid color-mix(in srgb, var(--border) 52%, transparent);
       border-radius: 12px;
       padding: 8px;
-      background: color-mix(in srgb, var(--card) 97.8%, white 2.2%);
+      background: var(--grade-row-bg);
     }
 
     .grade-control-title {
       font-size: 13px;
       font-weight: 700;
-      color: #475569;
+      color: var(--grade-muted-text);
     }
-
-    body.oscuro .grade-control-title { color: #cbd5e1; }
 
     .grade-validation {
       font-size: 13px;
@@ -1483,7 +1485,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       height: 22px;
       font-size: 17px;
       line-height: 1;
-      color: #64748b;
+      color: var(--grade-summary-icon);
       transition: transform 0.2s ease;
     }
 
@@ -1521,7 +1523,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-result-row span {
       font-size: 12px;
-      color: color-mix(in srgb, var(--text) 88%, transparent);
+      color: var(--grade-muted-text);
       line-height: 1.35;
     }
 
