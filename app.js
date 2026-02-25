@@ -6,6 +6,7 @@ let carpetas = JSON.parse(localStorage.getItem("carpetasMaterias") || "[]").map(
   c => ({
     ...c,
     color: c.color || "#1e3a8a",
+    semestre: (c.semestre || "Semestre").trim() || "Semestre",
     documentos: c.documentos || [],
     documentosData: c.documentosData || {}
   })
@@ -137,6 +138,7 @@ function crearCarpeta(nombre) {
     id: `carpeta-${Date.now()}-${Math.random().toString(16).slice(2)}`,
     nombre,
     color: "#1e3a8a",
+    semestre: "Semestre",
     materias: [],
     documentos: [],
     documentosData: {},
@@ -1334,6 +1336,73 @@ function ordenarYMostrar() {
   reaplicarBusqueda()
 }
 
+function normalizarSemestre(valor) {
+  return (valor || "Semestre").trim() || "Semestre"
+}
+
+function claveSemestre(valor) {
+  return normalizarSemestre(valor).toLocaleLowerCase("es")
+}
+
+function valorOrdenSemestre(semestre) {
+  const texto = normalizarSemestre(semestre)
+  const match = texto.match(/\d+/)
+  return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER
+}
+
+function ordenarCarpetasPorSemestre(items) {
+  return [...items].sort((a, b) => {
+    const ordenA = valorOrdenSemestre(a.semestre)
+    const ordenB = valorOrdenSemestre(b.semestre)
+    if (ordenA !== ordenB) return ordenA - ordenB
+    const semCmp = normalizarSemestre(a.semestre).localeCompare(normalizarSemestre(b.semestre), "es", {
+      sensitivity: "base",
+      numeric: true
+    })
+    if (semCmp !== 0) return semCmp
+    return (a.nombre || "").localeCompare(b.nombre || "", "es", { sensitivity: "base" })
+  })
+}
+
+function configurarSemestreEditableCarpeta(carpeta, semestreEl) {
+  if (!semestreEl) return
+  semestreEl.setAttribute("contenteditable", "true")
+  semestreEl.setAttribute("role", "textbox")
+  semestreEl.setAttribute("aria-label", "Editar semestre de carpeta")
+  semestreEl.setAttribute("spellcheck", "false")
+
+  const restaurar = valor => {
+    semestreEl.textContent = normalizarSemestre(valor)
+  }
+
+  let original = normalizarSemestre(carpeta.semestre)
+
+  semestreEl.addEventListener("focus", () => {
+    original = normalizarSemestre(semestreEl.textContent || original)
+  })
+
+  semestreEl.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+      semestreEl.blur()
+    }
+    if (e.key === "Escape") {
+      e.preventDefault()
+      restaurar(original)
+      semestreEl.blur()
+    }
+  })
+
+  semestreEl.addEventListener("blur", () => {
+    const nuevo = normalizarSemestre(semestreEl.textContent)
+    restaurar(nuevo)
+    if (nuevo === original) return
+    carpetas = carpetas.map(c => (c.id === carpeta.id ? { ...c, semestre: nuevo } : c))
+    guardarCarpetas()
+    ordenarYMostrar()
+  })
+}
+
 function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
   contenedor.innerHTML = ""
 
@@ -1345,182 +1414,224 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
     return
   }
 
-  carpetas.forEach(carpeta => {
-    const colorCarpeta = carpeta.color || "#1e3a8a"
+  const carpetasOrdenadas = ordenarCarpetasPorSemestre(carpetas)
+  const grupos = new Map()
 
-    const card = document.createElement("div")
-    card.className = "carpetaBox"
-    card.dataset.carpetaId = carpeta.id
-    if (carpeta.colapsada) card.classList.add("carpeta-colapsada")
-    card.style.setProperty("--carpeta-color", colorCarpeta)
-    card.style.borderColor = colorCarpeta
+  carpetasOrdenadas.forEach(carpeta => {
+    const key = claveSemestre(carpeta.semestre)
+    if (!grupos.has(key)) {
+      grupos.set(key, {
+        semestre: normalizarSemestre(carpeta.semestre),
+        items: []
+      })
+    }
+    grupos.get(key).items.push(carpeta)
+  })
 
-    const header = document.createElement("div")
-    header.className = "carpetaHeader"
+  Array.from(grupos.values()).forEach(grupo => {
+    const grupoEl = document.createElement("div")
+    grupoEl.className = "carpetaGrupoSemestre"
 
-    const tituloWrap = document.createElement("div")
-    tituloWrap.className = "carpetaTituloWrap"
+    grupo.items.forEach((carpeta, index) => {
+      const colorCarpeta = carpeta.color || "#1e3a8a"
 
-    const toggleBtn = document.createElement("button")
-    toggleBtn.className = "carpetaToggle"
-    toggleBtn.type = "button"
-    toggleBtn.setAttribute("aria-expanded", carpeta.colapsada ? "false" : "true")
-    toggleBtn.setAttribute(
-      "aria-label",
-      carpeta.colapsada ? "Expandir carpeta" : "Colapsar carpeta"
-    )
+      const card = document.createElement("div")
+      card.className = "carpetaBox"
+      if (index > 0) card.classList.add("carpeta-apilada")
+      card.dataset.carpetaId = carpeta.id
+      if (carpeta.colapsada) card.classList.add("carpeta-colapsada")
+      card.style.setProperty("--carpeta-color", colorCarpeta)
+      card.style.borderColor = colorCarpeta
 
-    const toggleIcon = document.createElement("span")
-    toggleIcon.className = "carpetaToggleIcon"
-    toggleIcon.textContent = "▾"
-    toggleBtn.appendChild(toggleIcon)
-    if (carpeta.colapsada) toggleBtn.classList.add("colapsada")
-    toggleBtn.addEventListener("click", () => toggleCarpetaColapsada(carpeta.id))
-    toggleBtn.style.color = colorCarpeta
+      if (index === 0) {
+        const aleta = document.createElement("div")
+        aleta.className = "carpetaSemestreAleta"
+        aleta.style.borderColor = colorCarpeta
+        aleta.style.color = colorCarpeta
 
-    const nombreBtn = document.createElement("div")
-    nombreBtn.className = "carpetaNombre"
-    nombreBtn.textContent = carpeta.nombre || "Carpeta sin título"
-    nombreBtn.title = carpeta.nombre || "Carpeta sin título"
-    nombreBtn.style.color = colorCarpeta
-    configurarNombreEditableCarpeta(carpeta, nombreBtn)
+        const semestreLabel = document.createElement("div")
+        semestreLabel.className = "carpetaSemestreTexto"
+        semestreLabel.textContent = normalizarSemestre(carpeta.semestre)
+        configurarSemestreEditableCarpeta(carpeta, semestreLabel)
 
-    const acciones = document.createElement("div")
-    acciones.className = "carpetaActions"
+        aleta.appendChild(semestreLabel)
+        card.appendChild(aleta)
+      }
 
-    const colorInput = document.createElement("input")
-    colorInput.type = "color"
-    colorInput.className = "carpeta-color-input"
-    colorInput.value = colorCarpeta
-    colorInput.addEventListener("click", e => e.stopPropagation())
-    colorInput.addEventListener("input", () => {
-      card.style.setProperty("--carpeta-color", colorInput.value)
-      card.style.borderColor = colorInput.value
-    })
-    colorInput.addEventListener("change", () => {
-      const nuevoColor = colorInput.value
-      carpetas = carpetas.map(c => (c.id === carpeta.id ? { ...c, color: nuevoColor } : c))
-      guardarCarpetas()
-      renderizarCarpetasSidebar(contenedor, agrupado, sidebar)
-    })
+      const header = document.createElement("div")
+      header.className = "carpetaHeader"
 
-    const eliminarBtn = document.createElement("button")
-    eliminarBtn.className = "carpetaEliminar"
-    eliminarBtn.type = "button"
-    eliminarBtn.textContent = "Borrar"
-    eliminarBtn.addEventListener("click", () => eliminarCarpeta(carpeta.id))
+      const tituloWrap = document.createElement("div")
+      tituloWrap.className = "carpetaTituloWrap"
 
-    tituloWrap.appendChild(toggleBtn)
-    tituloWrap.appendChild(nombreBtn)
+      const toggleBtn = document.createElement("button")
+      toggleBtn.className = "carpetaToggle"
+      toggleBtn.type = "button"
+      toggleBtn.setAttribute("aria-expanded", carpeta.colapsada ? "false" : "true")
+      toggleBtn.setAttribute(
+        "aria-label",
+        carpeta.colapsada ? "Expandir carpeta" : "Colapsar carpeta"
+      )
 
-    acciones.appendChild(colorInput)
-    acciones.appendChild(eliminarBtn)
+      const toggleIcon = document.createElement("span")
+      toggleIcon.className = "carpetaToggleIcon"
+      toggleIcon.textContent = "▾"
+      toggleBtn.appendChild(toggleIcon)
+      if (carpeta.colapsada) toggleBtn.classList.add("colapsada")
+      toggleBtn.addEventListener("click", () => toggleCarpetaColapsada(carpeta.id))
+      toggleBtn.style.color = colorCarpeta
 
-    header.appendChild(tituloWrap)
-    header.appendChild(acciones)
-    card.appendChild(header)
+      const nombreBtn = document.createElement("div")
+      nombreBtn.className = "carpetaNombre"
+      nombreBtn.textContent = carpeta.nombre || "Carpeta sin título"
+      nombreBtn.title = carpeta.nombre || "Carpeta sin título"
+      nombreBtn.style.color = colorCarpeta
+      configurarNombreEditableCarpeta(carpeta, nombreBtn)
 
-    const lista = document.createElement("div")
-    lista.className = "sidebarGroupList carpetaLista"
-    lista.dataset.carpetaId = carpeta.id
-    lista.hidden = Boolean(carpeta.colapsada)
+      const acciones = document.createElement("div")
+      acciones.className = "carpetaActions"
 
-    const materiasDisponibles = (carpeta.materias || []).filter(m =>
-      agrupado[m.normativa]?.[m.materia]
-    )
-
-    prepararListaMaterias(lista)
-
-    if (!materiasDisponibles.length) {
-      const aviso = document.createElement("div")
-      aviso.className = "carpetaVacia"
-      aviso.textContent = "Arrastra materias aquí"
-      lista.appendChild(aviso)
-    } else {
-      materiasDisponibles.forEach(({ normativa, materia }) => {
-        const item = document.createElement("div")
-        item.className = "sidebarItem sidebarItemCarpeta"
-        item.textContent = materia
-        item.dataset.normativa = normativa
-        item.dataset.materia = materia
-        item.dataset.carpetaId = carpeta.id
-        item.style.borderLeftColor = obtenerColorMateria(materia)
-
-        if (normativaSeleccionada === normativa && materiaSeleccionada === materia) {
-          item.classList.add("activa")
+      const colorInput = document.createElement("input")
+      colorInput.type = "color"
+      colorInput.className = "carpeta-color-input"
+      colorInput.value = colorCarpeta
+      colorInput.addEventListener("click", e => e.stopPropagation())
+      colorInput.addEventListener("input", () => {
+        card.style.setProperty("--carpeta-color", colorInput.value)
+        card.style.borderColor = colorInput.value
+        const aletaEl = card.querySelector(".carpetaSemestreAleta")
+        if (aletaEl) {
+          aletaEl.style.borderColor = colorInput.value
+          aletaEl.style.color = colorInput.value
         }
-
-        item.addEventListener("click", () => {
-          normativaSeleccionada = normativa
-          materiaSeleccionada = materia
-          sidebar.querySelectorAll(".sidebarItem").forEach(i => i.classList.remove("activa"))
-          item.classList.add("activa")
-          mostrarArticulosDeMateria(normativa, materia, agrupado[normativa][materia])
-        })
-
-        activarArrastreMateria(item, lista, normativa)
-        lista.appendChild(item)
       })
-    }
+      colorInput.addEventListener("change", () => {
+        const nuevoColor = colorInput.value
+        carpetas = carpetas.map(c => (c.id === carpeta.id ? { ...c, color: nuevoColor } : c))
+        guardarCarpetas()
+        renderizarCarpetasSidebar(contenedor, agrupado, sidebar)
+      })
 
-    card.appendChild(lista)
+      const eliminarBtn = document.createElement("button")
+      eliminarBtn.className = "carpetaEliminar"
+      eliminarBtn.type = "button"
+      eliminarBtn.textContent = "Borrar"
+      eliminarBtn.addEventListener("click", () => eliminarCarpeta(carpeta.id))
 
-    const documentosTitulo = document.createElement("div")
-    documentosTitulo.className = "carpetaDocumentosTitulo"
-    documentosTitulo.textContent = "Documentos"
+      tituloWrap.appendChild(toggleBtn)
+      tituloWrap.appendChild(nombreBtn)
 
-    const zonaDocumentos = document.createElement("div")
-    zonaDocumentos.className = "carpetaDocumentos"
-    zonaDocumentos.dataset.carpetaId = carpeta.id
-    prepararZonaDocumentosCarpeta(zonaDocumentos, carpeta.id)
+      acciones.appendChild(colorInput)
+      acciones.appendChild(eliminarBtn)
 
-    const documentosEnCarpeta = (carpeta.documentos || [])
-      .map(id => documentosCargados.find(d => d.id === id) || carpeta.documentosData?.[id])
-      .filter(Boolean)
+      header.appendChild(tituloWrap)
+      header.appendChild(acciones)
+      card.appendChild(header)
 
-    if (!documentosEnCarpeta.length) {
-      const avisoDocs = document.createElement("div")
-      avisoDocs.className = "carpetaDocumentosVacio"
-      avisoDocs.textContent = "Arrastra documentos aquí"
-      zonaDocumentos.appendChild(avisoDocs)
-    } else {
-      const listaDocs = document.createElement("div")
-      listaDocs.className = "carpetaDocumentosLista"
+      const lista = document.createElement("div")
+      lista.className = "sidebarGroupList carpetaLista"
+      lista.dataset.carpetaId = carpeta.id
+      lista.hidden = Boolean(carpeta.colapsada)
 
-      documentosEnCarpeta.forEach(doc => {
-        const chip = document.createElement("div")
-        chip.className = "carpetaDocumentoChip"
-        chip.draggable = true
+      const materiasDisponibles = (carpeta.materias || []).filter(m =>
+        agrupado[m.normativa]?.[m.materia]
+      )
 
-        const detalle = document.createElement("div")
-        detalle.className = "carpetaDocumentoDetalle"
-        detalle.dataset.docId = doc.id
-        detalle.textContent = doc.nombre
+      prepararListaMaterias(lista)
 
-        chip.addEventListener("dragstart", e => {
-          documentoArrastradoId = doc.id
-          chip.classList.add("documento-arrastrando")
-          if (e.dataTransfer) {
-            e.dataTransfer.effectAllowed = "move"
-            e.dataTransfer.setData("text/plain", doc.id)
+      if (!materiasDisponibles.length) {
+        const aviso = document.createElement("div")
+        aviso.className = "carpetaVacia"
+        aviso.textContent = "Arrastra materias aquí"
+        lista.appendChild(aviso)
+      } else {
+        materiasDisponibles.forEach(({ normativa, materia }) => {
+          const item = document.createElement("div")
+          item.className = "sidebarItem sidebarItemCarpeta"
+          item.textContent = materia
+          item.dataset.normativa = normativa
+          item.dataset.materia = materia
+          item.dataset.carpetaId = carpeta.id
+          item.style.borderLeftColor = obtenerColorMateria(materia)
+
+          if (normativaSeleccionada === normativa && materiaSeleccionada === materia) {
+            item.classList.add("activa")
           }
+
+          item.addEventListener("click", () => {
+            normativaSeleccionada = normativa
+            materiaSeleccionada = materia
+            sidebar.querySelectorAll(".sidebarItem").forEach(i => i.classList.remove("activa"))
+            item.classList.add("activa")
+            mostrarArticulosDeMateria(normativa, materia, agrupado[normativa][materia])
+          })
+
+          activarArrastreMateria(item, lista, normativa)
+          lista.appendChild(item)
+        })
+      }
+
+      card.appendChild(lista)
+
+      const documentosTitulo = document.createElement("div")
+      documentosTitulo.className = "carpetaDocumentosTitulo"
+      documentosTitulo.textContent = "Documentos"
+
+      const zonaDocumentos = document.createElement("div")
+      zonaDocumentos.className = "carpetaDocumentos"
+      zonaDocumentos.dataset.carpetaId = carpeta.id
+      prepararZonaDocumentosCarpeta(zonaDocumentos, carpeta.id)
+
+      const documentosEnCarpeta = (carpeta.documentos || [])
+        .map(id => documentosCargados.find(d => d.id === id) || carpeta.documentosData?.[id])
+        .filter(Boolean)
+
+      if (!documentosEnCarpeta.length) {
+        const avisoDocs = document.createElement("div")
+        avisoDocs.className = "carpetaDocumentosVacio"
+        avisoDocs.textContent = "Arrastra documentos aquí"
+        zonaDocumentos.appendChild(avisoDocs)
+      } else {
+        const listaDocs = document.createElement("div")
+        listaDocs.className = "carpetaDocumentosLista"
+
+        documentosEnCarpeta.forEach(doc => {
+          const chip = document.createElement("div")
+          chip.className = "carpetaDocumentoChip"
+          chip.draggable = true
+
+          const detalle = document.createElement("div")
+          detalle.className = "carpetaDocumentoDetalle"
+          detalle.dataset.docId = doc.id
+          detalle.textContent = doc.nombre
+
+          chip.addEventListener("dragstart", e => {
+            documentoArrastradoId = doc.id
+            chip.classList.add("documento-arrastrando")
+            if (e.dataTransfer) {
+              e.dataTransfer.effectAllowed = "move"
+              e.dataTransfer.setData("text/plain", doc.id)
+            }
+          })
+
+          chip.addEventListener("dragend", () => {
+            chip.classList.remove("documento-arrastrando")
+            documentoArrastradoId = null
+          })
+
+          chip.appendChild(detalle)
+          listaDocs.appendChild(chip)
         })
 
-        chip.addEventListener("dragend", () => {
-          chip.classList.remove("documento-arrastrando")
-          documentoArrastradoId = null
-        })
+        zonaDocumentos.appendChild(listaDocs)
+      }
 
-        chip.appendChild(detalle)
-        listaDocs.appendChild(chip)
-      })
+      card.appendChild(documentosTitulo)
+      card.appendChild(zonaDocumentos)
+      grupoEl.appendChild(card)
+    })
 
-      zonaDocumentos.appendChild(listaDocs)
-    }
-
-    card.appendChild(documentosTitulo)
-    card.appendChild(zonaDocumentos)
-    contenedor.appendChild(card)
+    contenedor.appendChild(grupoEl)
   })
 }
 

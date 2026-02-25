@@ -6,8 +6,6 @@ const BANNER_FILL_ENABLED_KEY = "bannerColorFondoActivo"
 const bannerFillToggle = document.getElementById("bannerFillToggle")
 const fondoInput = document.getElementById("fondoInput")
 const FONDO_STORAGE_KEY = "fondoImagenApp"
-const documentosFondoToggle = document.getElementById("documentosFondoToggle")
-const DOCUMENTOS_FONDO_KEY = "documentosFondoTransparente"
 const mallaInput = document.getElementById("mallaInput")
 const mallaToggle = document.getElementById("mallaToggle")
 const MALLA_STORAGE_KEY = "mallaImagenHorario"
@@ -144,17 +142,6 @@ function restablecerFondo() {
   localStorage.removeItem(FONDO_STORAGE_KEY)
   if (fondoInput) fondoInput.value = ""
 }
-
-function aplicarFondoDocumentos(activo) {
-  document.body.classList.toggle("documentos-sin-fondo", activo)
-  if (documentosFondoToggle) documentosFondoToggle.checked = activo
-}
-
-documentosFondoToggle?.addEventListener("change", () => {
-  const activo = documentosFondoToggle.checked
-  aplicarFondoDocumentos(activo)
-  localStorage.setItem(DOCUMENTOS_FONDO_KEY, activo ? "true" : "false")
-})
 
 fondoInput?.addEventListener("change", e => {
   const archivo = e.target.files?.[0]
@@ -731,7 +718,6 @@ aplicarModoGuardado()
 aplicarBanner(localStorage.getItem(BANNER_STORAGE_KEY) || "")
 aplicarFondoBannerActivo(localStorage.getItem(BANNER_FILL_ENABLED_KEY) !== "false")
 aplicarFondo(localStorage.getItem(FONDO_STORAGE_KEY) || "")
-aplicarFondoDocumentos(localStorage.getItem(DOCUMENTOS_FONDO_KEY) === "true")
 const storedDisplayMalla = localStorage.getItem(MALLA_STORAGE_KEY) || ""
 const storedBaseMalla = localStorage.getItem(MALLA_BASE_KEY) || storedDisplayMalla
 if (storedBaseMalla && !localStorage.getItem(MALLA_BASE_KEY)) {
