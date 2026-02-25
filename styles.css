@@ -1230,8 +1230,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .documento-texto[contenteditable="true"]:focus {
       outline: none;
-      border-color: var(--accent-light);
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+      border-color: var(--border);
+      box-shadow: none;
     }
 
     .documento-alerta {
