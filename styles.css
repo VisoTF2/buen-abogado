@@ -586,17 +586,17 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       min-width: 0;
       cursor: grab;
       contain: paint;
-      transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      transform: translateY(0);
+      transition: transform 0.15s ease;
     }
 
     .documento-item:hover {
-      background: color-mix(in srgb, var(--article-bg) 85%, var(--accent) 15%);
-      border-color: color-mix(in srgb, var(--border) 45%, var(--accent));
-      box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.18);
+      transform: translateY(-1px);
     }
 
     .documento-item:active {
       cursor: grabbing;
+      transform: translateY(1px);
     }
 
     .documento-info {
@@ -1197,7 +1197,6 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-subject-item:hover {
       transform: translateY(-1px);
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
     }
 
     .grade-subject-item:active {
@@ -1206,7 +1205,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-subject-item.arrastrando {
       opacity: 0.9;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+      transform: translateY(-1px);
     }
 
     .grade-subject-item:focus,
@@ -2378,7 +2377,7 @@ body.oscuro .carpetaToggle {
 
 .documento-arrastrando {
   opacity: 0.9;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+  transform: translateY(-1px);
 }
 
 .carpetaLista-drop {
@@ -2473,7 +2472,8 @@ body.oscuro .sidebarItemCarpeta {
         background: var(--article-bg);
         border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
         contain: paint;
-        transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+        transform: translateY(0);
+        transition: transform 0.15s ease;
         font-size: 12px;
         line-height: 1.2;
   }
@@ -2678,9 +2678,7 @@ body.oscuro .modal-close:hover {
   }
 }
     .sidebarItem:hover {
-      background: color-mix(in srgb, var(--article-bg) 88%, var(--accent) 12%);
-      border-color: color-mix(in srgb, var(--border) 45%, var(--accent));
-      box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.18);
+      transform: translateY(-1px);
     }
 
     .sidebarItem.activa {
@@ -2694,7 +2692,7 @@ body.oscuro .modal-close:hover {
 
     .sidebarItem.arrastrando {
       opacity: 0.9;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+      transform: translateY(-1px);
     }
 
 .sidebarGroupList {
@@ -2826,22 +2824,22 @@ body.oscuro .modal-close:hover {
       cursor: grab;
       position: relative;
       contain: paint;
-      transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      transform: translateY(0);
+      transition: transform 0.15s ease;
     }
 
     .articulo:hover {
-      background: color-mix(in srgb, var(--article-bg) 86%, var(--accent) 14%);
-      border-left-color: var(--accent-light);
-      box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.16);
+      transform: translateY(-1px);
     }
 
     .articulo:active {
       cursor: grabbing;
+      transform: translateY(1px);
     }
 
     .articulo.arrastrando {
       opacity: 0.9;
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+      transform: translateY(-1px);
     }
 
     .articulo-titulo {
@@ -3460,7 +3458,7 @@ body.oscuro .action-buttons .edit-btn:hover { background: rgba(96, 165, 250, 0.3
 
 .class-actions { padding-right: 0; }
 
-.class-card:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(16,24,40,0.06); }
+.class-card:hover { transform: translateY(-2px); }
 
 .action-buttons .class-delete { color: var(--danger-solid-bg); }
 .action-buttons .class-delete:hover { background: var(--danger-solid-bg); color: #fff; }
