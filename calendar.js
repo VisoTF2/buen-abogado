@@ -13,6 +13,7 @@
 
   let eventsByDate = loadEvents()
   let currentDate = new Date()
+  let creatingEventDateKey = null
   currentDate.setDate(1)
 
   renderWeekdays()
@@ -20,11 +21,13 @@
 
   prevBtn.addEventListener("click", () => {
     currentDate.setMonth(currentDate.getMonth() - 1)
+    creatingEventDateKey = null
     renderCalendar()
   })
 
   nextBtn.addEventListener("click", () => {
     currentDate.setMonth(currentDate.getMonth() + 1)
+    creatingEventDateKey = null
     renderCalendar()
   })
 
@@ -91,11 +94,15 @@
       const outsideDate = new Date(year, month + 1, i)
       grid.appendChild(createDayCell(outsideDate, true))
     }
+
+    if (creatingEventDateKey) {
+      const inputToFocus = grid.querySelector(`.calendar-event-editor[data-date-key="${creatingEventDateKey}"] .calendar-event-editor-input`)
+      inputToFocus?.focus()
+    }
   }
 
   function createDayCell(date, outsideMonth) {
-    const cell = document.createElement("button")
-    cell.type = "button"
+    const cell = document.createElement("div")
     cell.className = "calendar-day"
     if (outsideMonth) cell.classList.add("calendar-day--outside")
 
@@ -124,24 +131,101 @@
       eventsWrap.appendChild(createEventElement(dateKey, event, index))
     })
 
-    if (!outsideMonth) {
-      cell.addEventListener("click", () => {
-        const text = window.prompt("Nuevo evento:")
-        if (!text) return
-        const cleanText = text.trim()
-        if (!cleanText) return
+    if (!outsideMonth && creatingEventDateKey === dateKey) {
+      eventsWrap.appendChild(createEventEditor(dateKey))
+    }
 
-        const nextEvents = Array.isArray(eventsByDate[dateKey]) ? [...eventsByDate[dateKey]] : []
-        nextEvents.push({ text: cleanText, completed: false })
-        eventsByDate[dateKey] = nextEvents
-        saveEvents()
+    if (!outsideMonth) {
+      cell.setAttribute("role", "button")
+      cell.setAttribute("tabindex", "0")
+      cell.setAttribute("aria-label", `Agregar evento para el día ${date.getDate()}`)
+
+      const openEditor = () => {
+        creatingEventDateKey = dateKey
         renderCalendar()
+      }
+
+      cell.addEventListener("click", () => {
+        if (creatingEventDateKey === dateKey) return
+        openEditor()
       })
-    } else {
-      cell.disabled = true
+
+      cell.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault()
+          if (creatingEventDateKey === dateKey) return
+          openEditor()
+        }
+      })
     }
 
     return cell
+  }
+
+  function createEventEditor(dateKey) {
+    const wrapper = document.createElement("div")
+    wrapper.className = "calendar-event-editor"
+    wrapper.dataset.dateKey = dateKey
+    wrapper.addEventListener("click", e => e.stopPropagation())
+
+    const input = document.createElement("input")
+    input.type = "text"
+    input.className = "calendar-event-editor-input"
+    input.placeholder = "Escribe un evento"
+    input.setAttribute("aria-label", "Nuevo evento")
+
+    const actions = document.createElement("div")
+    actions.className = "calendar-event-editor-actions"
+
+    const saveBtn = document.createElement("button")
+    saveBtn.type = "button"
+    saveBtn.className = "calendar-event-editor-save"
+    saveBtn.textContent = "Guardar"
+
+    const cancelBtn = document.createElement("button")
+    cancelBtn.type = "button"
+    cancelBtn.className = "calendar-event-editor-cancel"
+    cancelBtn.textContent = "Cancelar"
+
+    const closeEditor = () => {
+      creatingEventDateKey = null
+      renderCalendar()
+    }
+
+    const saveEvent = () => {
+      const cleanText = input.value.trim()
+      if (!cleanText) {
+        input.focus()
+        return
+      }
+
+      const nextEvents = Array.isArray(eventsByDate[dateKey]) ? [...eventsByDate[dateKey]] : []
+      nextEvents.push({ text: cleanText, completed: false })
+      eventsByDate[dateKey] = nextEvents
+      saveEvents()
+      creatingEventDateKey = null
+      renderCalendar()
+    }
+
+    saveBtn.addEventListener("click", saveEvent)
+    cancelBtn.addEventListener("click", closeEditor)
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        e.preventDefault()
+        saveEvent()
+      }
+      if (e.key === "Escape") {
+        e.preventDefault()
+        closeEditor()
+      }
+    })
+
+    actions.appendChild(saveBtn)
+    actions.appendChild(cancelBtn)
+    wrapper.appendChild(input)
+    wrapper.appendChild(actions)
+
+    return wrapper
   }
 
   function createEventElement(dateKey, event, index) {
