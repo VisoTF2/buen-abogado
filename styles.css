@@ -2350,6 +2350,48 @@ body.oscuro .sidebarItemCarpeta {
   background: #111827;
 }
 
+.sidebarDocumentosLista {
+  border: 1px dashed transparent;
+  background: var(--article-bg);
+  transition: box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.sidebarDocumentosLista.drop-activa {
+  box-shadow: inset 0 0 0 2px var(--accent);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.sidebarItemDocumento {
+  cursor: pointer;
+  border-left-color: #10b981;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.sidebarItemDocumentoNombre {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebarItemDocumentoTipo {
+  font-size: 11px;
+  color: var(--muted-text);
+  letter-spacing: 0.03em;
+}
+
+.sidebarItemDocumento.is-selected {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sidebarItemDocumento.is-selected .sidebarItemDocumentoTipo {
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .sidebarGroupTitle {
   font-family: "Poppins", "Segoe UI", sans-serif;
   font-weight: 700;

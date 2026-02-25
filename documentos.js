@@ -177,6 +177,7 @@ async function procesarDocumento(archivo) {
     documentosCargados = [base, ...documentosCargados.filter(d => d.nombre !== base.nombre)]
     guardarDocumentos()
     renderDocumentos()
+    if (typeof ordenarYMostrar === "function") ordenarYMostrar()
     mostrarDocumento(base.id)
   } catch (err) {
     console.error("No se pudo procesar el documento", err)
@@ -184,6 +185,7 @@ async function procesarDocumento(archivo) {
     documentosCargados = [base, ...documentosCargados]
     guardarDocumentos()
     renderDocumentos()
+    if (typeof ordenarYMostrar === "function") ordenarYMostrar()
     mostrarDocumento(base.id)
   }
 }
@@ -382,7 +384,7 @@ function eliminarDocumento(id) {
   const doc = documentosCargados.find(d => d.id === id)
   documentosCargados = documentosCargados.filter(d => d.id !== id)
 
-  const cambioCarpeta = removerDocumentoDeCarpetas(id)
+  removerDocumentoDeCarpetas(id)
 
   if (doc?.url) {
     try { URL.revokeObjectURL(doc.url) } catch (e) { /* noop */ }
@@ -390,7 +392,7 @@ function eliminarDocumento(id) {
 
   guardarDocumentos()
   renderDocumentos()
-  if (cambioCarpeta) ordenarYMostrar()
+  if (typeof ordenarYMostrar === "function") ordenarYMostrar()
 
   const vistaActualId = visorDocumentos?.dataset.docActual
   if (doc && vistaActualId === doc.id) {
@@ -537,7 +539,8 @@ function actualizarNombreDocumento(id, nuevoNombre) {
 
   doc.nombre = nuevoNombre
   guardarDocumentos()
-  actualizarNombreDocumentoEnCarpetas(id, nuevoNombre)
+  actualizarNombreDocumentoEnCarpetas(id)
+  if (typeof ordenarYMostrar === "function") ordenarYMostrar()
 
   if (visorDocumentos?.dataset.docActual === id) {
     const titulo = visorDocumentos.querySelector(".documento-preview-titulo")
@@ -555,13 +558,7 @@ function normalizarNombreDocumento(id, input) {
   actualizarNombreDocumento(id, nombreFinal)
 }
 
-function actualizarNombreDocumentoEnCarpetas(id, nombre) {
-  document
-    .querySelectorAll(`.carpetaDocumentoDetalle[data-doc-id="${id}"]`)
-    .forEach(detalle => {
-      detalle.textContent = nombre || "Documento"
-    })
-
+function actualizarNombreDocumentoEnCarpetas(id) {
   const docActual = documentosCargados.find(d => d.id === id)
   if (docActual && typeof actualizarDocumentoEnCarpetas === "function") {
     actualizarDocumentoEnCarpetas(docActual)
