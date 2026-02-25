@@ -1166,14 +1166,14 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       display: flex;
       flex-direction: column;
       gap: 6px;
-      max-height: 420px;
-      overflow: auto;
-      padding-right: 2px;
+      max-height: none;
+      overflow: hidden;
+      padding-right: 0;
     }
 
     .grade-subject-item {
       border: none;
-      border-left: 8px solid #10b981;
+      border-left: 8px solid var(--accent);
       border-radius: 10px;
       background: var(--article-bg);
       color: var(--text);
