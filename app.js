@@ -1695,11 +1695,13 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
         .filter(Boolean)
 
       if (!documentosEnCarpeta.length) {
+        zonaDocumentos.classList.add("is-empty")
         const avisoDocs = document.createElement("div")
         avisoDocs.className = "carpetaDocumentosVacio"
         avisoDocs.textContent = "Arrastra documentos aquí"
         zonaDocumentos.appendChild(avisoDocs)
       } else {
+        zonaDocumentos.classList.remove("is-empty")
         const listaDocs = document.createElement("div")
         listaDocs.className = "carpetaDocumentosLista"
 

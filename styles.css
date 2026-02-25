@@ -2312,6 +2312,12 @@ body.oscuro .carpetaToggle {
   transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 
+.carpetaDocumentos.is-empty {
+  background: transparent;
+  border-color: transparent;
+  padding: 0;
+}
+
 .carpetaDocumentos.drop-activa {
   box-shadow: inset 0 0 0 2px var(--accent);
   border-radius: 10px;
@@ -2320,12 +2326,13 @@ body.oscuro .carpetaToggle {
 .carpetaDocumentosVacio {
   font-size: 13px;
   color: var(--muted-text);
-  padding: 6px 8px;
-  min-height: var(--carpeta-slot-height);
+  padding: 6px 0;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  background: transparent;
 }
 
 .carpetaDocumentosLista {
