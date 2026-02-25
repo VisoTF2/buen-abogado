@@ -2117,7 +2117,7 @@ body.oscuro .modal-close:hover {
   gap: 12px;
   margin-bottom: 12px;
 }
-.weekly-schedule h3 { margin: 0; color: var(--accent); font-size: 22px; }
+.weekly-schedule h3 { margin: 0; color: var(--accent); font-size: 20px; }
 .weekly-schedule-title {
   cursor: text;
   padding: 0px 0px;
