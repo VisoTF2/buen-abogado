@@ -399,9 +399,12 @@ function retirarDocumentoDeListadoPrincipal(id) {
 
 function eliminarDocumento(id) {
   const doc = documentosCargados.find(d => d.id === id)
-  documentosCargados = documentosCargados.filter(d => d.id !== id)
+  const vistaActualId = visorDocumentos?.dataset.docActual
 
+  documentosCargados = documentosCargados.filter(d => d.id !== id)
   const cambioCarpeta = removerDocumentoDeCarpetas(id)
+
+  if (!doc && !cambioCarpeta) return
 
   if (doc?.url) {
     try { URL.revokeObjectURL(doc.url) } catch (e) { /* noop */ }
@@ -411,16 +414,38 @@ function eliminarDocumento(id) {
   renderDocumentos()
   if (typeof ordenarYMostrar === "function") ordenarYMostrar()
 
-  const vistaActualId = visorDocumentos?.dataset.docActual
-  if (doc && vistaActualId === doc.id) {
-    mostrarDocumento(documentosCargados[0]?.id)
+  if (vistaActualId === id) {
+    cerrarVistaDocumento()
   }
+}
+
+function obtenerDocumentoParaVista(id) {
+  if (!id) return null
+
+  const local = documentosCargados.find(d => d.id === id)
+  if (local) return local
+
+  if (typeof obtenerDocumentoRespaldoEnCarpetas === "function") {
+    const respaldo = obtenerDocumentoRespaldoEnCarpetas(id)
+    if (respaldo) {
+      return {
+        id: respaldo.id,
+        nombre: respaldo.nombre || "Documento",
+        extension: respaldo.extension || "",
+        url: respaldo.url || "",
+        texto: respaldo.texto || "",
+        mensaje: respaldo.mensaje || ""
+      }
+    }
+  }
+
+  return null
 }
 
 function mostrarDocumento(id, terminoBusqueda = "", indiceCoincidencia = null) {
   if (!visorDocumentos) return
 
-  const doc = documentosCargados.find(d => d.id === id)
+  const doc = obtenerDocumentoParaVista(id)
 
   if (!doc) {
     cerrarVistaDocumento()
@@ -431,6 +456,7 @@ function mostrarDocumento(id, terminoBusqueda = "", indiceCoincidencia = null) {
   visorDocumentos.dataset.docActual = doc.id
 
   visorDocumentos.appendChild(construirEncabezadoVista(doc))
+  visorDocumentos.appendChild(construirAccionesVista(doc.id))
 
   if ((doc.extension === "pdf" || doc.extension === "docx") && doc.texto) {
     const texto = document.createElement("div")
@@ -481,6 +507,27 @@ function mostrarDocumento(id, terminoBusqueda = "", indiceCoincidencia = null) {
   }
 
   actualizarBotonesVer()
+}
+
+function construirAccionesVista(documentoId) {
+  const acciones = document.createElement("div")
+  acciones.className = "documento-preview-acciones"
+
+  const cerrar = document.createElement("button")
+  cerrar.type = "button"
+  cerrar.className = "documento-preview-btn-cerrar"
+  cerrar.textContent = "Cerrar"
+  cerrar.addEventListener("click", cerrarVistaDocumento)
+
+  const eliminar = document.createElement("button")
+  eliminar.type = "button"
+  eliminar.className = "documento-eliminar"
+  eliminar.textContent = "Eliminar"
+  eliminar.addEventListener("click", () => eliminarDocumento(documentoId))
+
+  acciones.appendChild(cerrar)
+  acciones.appendChild(eliminar)
+  return acciones
 }
 
 function construirEncabezadoVista(doc) {

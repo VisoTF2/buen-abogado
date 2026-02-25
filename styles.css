@@ -777,7 +777,35 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       color: #e5e7eb;
     }
 
-    .documentos-vacio {
+    
+.documento-preview-acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.documento-preview-acciones .documento-preview-btn-cerrar,
+.documento-preview-acciones .documento-eliminar {
+  min-width: 110px;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.documento-preview-btn-cerrar {
+  border: 1px solid var(--border);
+  background: #f3f4f6;
+  color: var(--text);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+body.oscuro .documento-preview-btn-cerrar {
+  background: #0f172a;
+  color: #e5e7eb;
+}
+
+.documentos-vacio {
       color: #6b7280;
       font-size: 14px;
       line-height: 1.5;
@@ -2312,40 +2340,23 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .carpetaDocumentoChip {
   display: flex;
   align-items: center;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  background: #1e3a8a;
-  border: 1px solid color-mix(in srgb, #1e3a8a 78%, #ffffff 22%);
-  border-radius: 12px;
-  padding: 10px 14px;
+  justify-content: flex-start;
+  min-height: 34px;
   cursor: grab;
-  transition: filter 0.15s ease, transform 0.15s ease;
 }
 
 .carpetaDocumentoChip.is-selected {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
-}
-
-.carpetaDocumentoChip:hover {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
-}
-
-.carpetaDocumentoChip:active {
-  cursor: grabbing;
-  transform: translateY(0);
+  background: color-mix(in srgb, var(--accent) 12%, var(--article-bg));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .carpetaDocumentoDetalle {
   width: 100%;
   min-width: 0;
-  font-size: 17px;
-  font-weight: 700;
-  color: #ffffff;
-  line-height: 1.2;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

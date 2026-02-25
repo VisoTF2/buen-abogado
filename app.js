@@ -1689,7 +1689,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
 
         documentosEnCarpeta.forEach(doc => {
           const chip = document.createElement("div")
-          chip.className = "carpetaDocumentoChip"
+          chip.className = "carpetaDocumentoChip sidebarItem sidebarItemDocumento"
           chip.draggable = true
 
           const detalle = document.createElement("div")
