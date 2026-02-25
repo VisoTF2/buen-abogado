@@ -585,11 +585,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       gap: var(--space-3);
       min-width: 0;
       cursor: grab;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      transition: box-shadow 0.15s ease;
     }
 
     .documento-item:hover {
-      transform: scale(1.02);
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
     }
 
@@ -2408,7 +2407,7 @@ body.oscuro .sidebarItemCarpeta {
 
 .sidebarDocumentosLista {
   border: 1px dashed transparent;
-  background: var(--article-bg);
+  background: transparent;
   transition: box-shadow 0.15s ease, background 0.15s ease;
 }
 
@@ -2817,11 +2816,10 @@ body.oscuro .modal-close:hover {
       box-shadow: 0 3px 8px rgba(0,0,0,0.07);
       cursor: grab;
       position: relative;
-      transition: 0.15s ease;
+      transition: box-shadow 0.15s ease;
     }
 
     .articulo:hover {
-      transform: scale(1.015);
       box-shadow: 0 6px 14px rgba(0,0,0,0.12);
     }
 
