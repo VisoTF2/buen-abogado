@@ -1559,10 +1559,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   border: 1px solid var(--border);
   border-bottom: none;
   border-radius: 12px 12px 0 0;
-  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  background: var(--card);
   box-sizing: border-box;
   text-align: center;
-  box-shadow: 0 -2px 8px rgba(15, 23, 42, 0.08);
+  box-shadow: none;
 }
 
 .carpetaSemestreTexto {
@@ -1580,16 +1580,6 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
 .carpetaSemestreTexto:focus {
   box-shadow: none;
-}
-
-body.oscuro .carpetaSemestreAleta {
-  background: linear-gradient(180deg, #1f2d5e 0%, #182448 100%);
-  border-color: rgba(148, 163, 184, 0.45);
-  box-shadow: 0 -2px 8px rgba(2, 6, 23, 0.45);
-}
-
-body.oscuro .carpetaSemestreTexto {
-  color: #c7d2fe;
 }
 
 .carpetaBox.carpeta-editor {
