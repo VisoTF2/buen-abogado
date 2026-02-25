@@ -871,7 +871,6 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       font-weight: 700;
       letter-spacing: 0;
       color: var(--text);
-      text-transform: capitalize;
       white-space: nowrap;
       padding: 0 4px;
     }
@@ -1263,13 +1262,16 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       display: flex;
       flex-direction: column;
       gap: var(--space-3);
+      margin-bottom: 2px;
     }
 
     .grade-title {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
       align-items: flex-start;
+      margin: 0;
+      max-width: 780px;
     }
 
     .grade-title h3 {
@@ -1283,6 +1285,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       font-size: 14px;
       line-height: 1.45;
       color: #4b5563;
+      margin: 0;
     }
 
     body.oscuro .grade-title span { color: #e5e7eb; }
