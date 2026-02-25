@@ -418,8 +418,10 @@ function moverDocumentoACarpeta(documentoId, carpetaId) {
   })
 
   guardarCarpetas()
+  if (typeof retirarDocumentoDeListadoPrincipal === "function") {
+    retirarDocumentoDeListadoPrincipal(documentoId)
+  }
   ordenarYMostrar()
-  renderDocumentos()
 }
 
 function moverMateriaAFueraDeCarpeta(materia, normativa) {
@@ -1663,7 +1665,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
 
         documentosEnCarpeta.forEach(doc => {
           const chip = document.createElement("div")
-          chip.className = "carpetaDocumentoChip sidebarItemDocumento"
+          chip.className = "carpetaDocumentoChip"
           chip.draggable = true
 
           const detalle = document.createElement("div")

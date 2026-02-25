@@ -380,6 +380,23 @@ function renderDocumentos() {
   actualizarBotonesVer()
 }
 
+
+function retirarDocumentoDeListadoPrincipal(id) {
+  if (!id) return false
+  const existe = documentosCargados.some(d => d.id === id)
+  if (!existe) return false
+
+  documentosCargados = documentosCargados.filter(d => d.id !== id)
+  guardarDocumentos()
+  renderDocumentos()
+
+  if (visorDocumentos?.dataset.docActual === id) {
+    cerrarVistaDocumento()
+  }
+
+  return true
+}
+
 function eliminarDocumento(id) {
   const doc = documentosCargados.find(d => d.id === id)
   documentosCargados = documentosCargados.filter(d => d.id !== id)

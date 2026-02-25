@@ -2316,14 +2316,16 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   gap: 8px;
   width: 100%;
   max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
   background: var(--article-bg);
-  border: 1px solid var(--border);
-  border-left: 8px solid color-mix(in srgb, var(--accent) 55%, #ffffff 45%);
+  border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+  border-left: 6px solid var(--accent);
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: 14px 16px;
   cursor: grab;
-  min-width: 0;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.07);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .carpetaDocumentoChip.is-selected {
@@ -2331,19 +2333,25 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   box-shadow: none;
 }
 
+.carpetaDocumentoChip:hover {
+  transform: scale(1.015);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
 .carpetaDocumentoChip:active {
   cursor: grabbing;
 }
 
 .carpetaDocumentoDetalle {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--text);
+  color: var(--accent);
   width: 100%;
   min-width: 0;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: break-word;
+  line-height: 1.35;
 }
 
 
