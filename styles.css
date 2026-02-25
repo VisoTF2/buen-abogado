@@ -1129,10 +1129,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-subjects-panel,
     .grade-editor-panel {
-      border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+      border: none;
       border-radius: 12px;
       padding: 10px;
-      background: color-mix(in srgb, var(--card) 99.8%, transparent);
+      background: color-mix(in srgb, var(--card) 99.85%, transparent);
     }
 
     .grade-subjects-create {
@@ -1417,7 +1417,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-validation:empty { display: none; }
 
     .grade-panel.has-errors {
-      border-color: color-mix(in srgb, #dc2626 40%, var(--border));
+      border-color: var(--border);
     }
 
     .grade-results-section {
@@ -1985,18 +1985,40 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .carpetasSection {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
   margin-bottom: var(--space-3);
 }
+
+.carpetasToolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.carpetasSortField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.carpetasSortSelect {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--card);
+  color: var(--text);
+}
+
+body.oscuro .carpetasSortField { color: #cbd5e1; }
 
 .carpetasLista {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-}
-
-.carpetasLista > .carpetaGrupoSemestre .carpetaBox:first-child {
-  margin-top: 36px;
+  gap: var(--space-2);
 }
 
 .sidebarGroup {
@@ -2005,52 +2027,37 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   gap: var(--space-2);
 }
 
-.carpetaGrupoSemestre {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  position: relative;
-}
-
 .carpetaBox {
   --carpeta-slot-height: 0px;
   --carpeta-color: var(--accent);
   position: relative;
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
   border-radius: 12px;
   padding: 14px;
   background: var(--card);
   box-shadow: var(--card-shadow-elevated);
-  margin-top: var(--space-4);
-}
-
-.carpetaBox.carpeta-apilada {
   margin-top: 0;
-  border-top: none;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
 }
 
-.carpetaGrupoSemestre .carpetaBox:not(:last-child) {
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
+.carpetaBox.is-dragging { opacity: 0.72; }
+
+.carpetaBox.is-drag-over {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .carpetaSemestreAleta {
-  position: absolute;
-  top: -35px;
-  left: 50%;
-  transform: translateX(-50%);
-  min-width: 156px;
-  max-width: calc(100% - 24px);
-  padding: 7px 14px;
-  border: 1px solid var(--border);
-  border-bottom: none;
-  border-radius: 12px 12px 0 0;
-  background: var(--card);
+  position: static;
+  min-width: 0;
+  max-width: 100%;
+  width: fit-content;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 96%, transparent);
   box-sizing: border-box;
   text-align: center;
   box-shadow: none;
+  margin-bottom: 8px;
 }
 
 .carpetaSemestreTexto {
@@ -2093,18 +2100,18 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetaToggle {
-  border: 1px solid var(--border);
-  background: var(--card);
+  border: none;
+  background: transparent;
   color: var(--carpeta-color);
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.12s ease, color 0.15s ease;
+  transition: background 0.18s ease, transform 0.12s ease, color 0.18s ease;
 }
 
 .carpetaToggle:hover {
@@ -2118,9 +2125,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .carpetaToggleIcon {
   display: grid;
   place-items: center;
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1;
-  transition: transform 0.18s ease;
+  transition: transform 0.2s ease;
 }
 
 .carpetaToggle.colapsada .carpetaToggleIcon {
@@ -2306,10 +2313,15 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   align-items: center;
   gap: 8px;
   background: var(--article-bg);
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
   border-radius: 10px;
   padding: 10px 12px;
   cursor: grab;
+}
+
+.carpetaDocumentoChip.is-selected {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .carpetaDocumentoChip:active {

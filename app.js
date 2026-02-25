@@ -2,13 +2,16 @@ let codigoActual = {}
 let articulos = JSON.parse(localStorage.getItem("articulosGuardados") || "[]")
   .map(a => ({ ...a, contenidoHTML: a.contenidoHTML ?? null }))
 let materiasOrden = JSON.parse(localStorage.getItem("materiasOrden") || "{}")
+const CARPETAS_SORT_STORAGE_KEY = "carpetasSortMode"
+let carpetasSortMode = localStorage.getItem(CARPETAS_SORT_STORAGE_KEY) === "name" ? "name" : "manual"
 let carpetas = JSON.parse(localStorage.getItem("carpetasMaterias") || "[]").map(
-  c => ({
+  (c, index) => ({
     ...c,
     color: c.color || "#1e3a8a",
     semestre: (c.semestre || "Semestre").trim() || "Semestre",
     documentos: c.documentos || [],
-    documentosData: c.documentosData || {}
+    documentosData: c.documentosData || {},
+    order: Number.isFinite(Number(c.order)) ? Number(c.order) : index
   })
 )
 let normativaSeleccionada = null
@@ -37,6 +40,10 @@ let articuloArrastradoId = null
 let materiaArrastrada = null
 let materiaArrastradaNormativa = null
 let materiaArrastradaCarpetaId = null
+let carpetaArrastradaId = null
+let documentoSeleccionadoEnCarpetaId = null
+
+reindexarOrdenCarpetasManual()
 
 modalConfiguracion?.addEventListener("click", e => {
   if (e.target === modalConfiguracion) cerrarModalConfiguracion()
@@ -133,6 +140,45 @@ function guardarCarpetas() {
   localStorage.setItem("carpetasMaterias", JSON.stringify(carpetas))
 }
 
+function guardarModoOrdenCarpetas() {
+  localStorage.setItem(CARPETAS_SORT_STORAGE_KEY, carpetasSortMode)
+}
+
+function reindexarOrdenCarpetasManual() {
+  carpetas = [...carpetas]
+    .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
+    .map((carpeta, index) => ({ ...carpeta, order: index }))
+}
+
+function siguienteOrdenCarpeta() {
+  if (!carpetas.length) return 0
+  return Math.max(...carpetas.map(c => Number(c.order) || 0)) + 1
+}
+
+function obtenerCarpetasOrdenadas() {
+  const lista = [...carpetas]
+  if (carpetasSortMode === "name") {
+    return lista.sort((a, b) =>
+      (a.nombre || "").localeCompare(b.nombre || "", "es", { sensitivity: "base" })
+    )
+  }
+
+  return lista.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
+}
+
+function reordenarCarpetas(dragId, targetId) {
+  const ordenManual = [...carpetas].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
+  const fromIndex = ordenManual.findIndex(c => c.id === dragId)
+  const targetIndex = ordenManual.findIndex(c => c.id === targetId)
+  if (fromIndex < 0 || targetIndex < 0) return
+
+  const [moved] = ordenManual.splice(fromIndex, 1)
+  ordenManual.splice(targetIndex, 0, moved)
+  carpetas = ordenManual
+  reindexarOrdenCarpetasManual()
+  guardarCarpetas()
+}
+
 function crearCarpeta(nombre) {
   return {
     id: `carpeta-${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -142,7 +188,8 @@ function crearCarpeta(nombre) {
     materias: [],
     documentos: [],
     documentosData: {},
-    colapsada: false
+    colapsada: false,
+    order: siguienteOrdenCarpeta()
   }
 }
 
@@ -401,6 +448,7 @@ function obtenerDocumentoRespaldoEnCarpetas(documentoId) {
 function moverDocumentoACarpeta(documentoId, carpetaId) {
   if (!carpetaId || !documentoId) return
   removerDocumentoDeCarpetas(documentoId)
+  documentoSeleccionadoEnCarpetaId = documentoId
 
   const documento = documentosCargados.find(doc => doc.id === documentoId)
   const documentoBase = normalizarDocumentoParaCarpeta(documento)
@@ -1218,9 +1266,29 @@ function ordenarYMostrar() {
   const tituloCarpetas = document.createElement("div")
   tituloCarpetas.className = "sidebarGroupTitle"
   tituloCarpetas.textContent = "Carpetas"
+  const toolbarCarpetas = document.createElement("div")
+  toolbarCarpetas.className = "carpetasToolbar"
+  const sortLabel = document.createElement("label")
+  sortLabel.className = "carpetasSortField"
+  sortLabel.textContent = "Orden"
+  const sortSelect = document.createElement("select")
+  sortSelect.className = "carpetasSortSelect"
+  sortSelect.innerHTML = `
+    <option value="manual">Manual</option>
+    <option value="name">Nombre (A-Z)</option>
+  `
+  sortSelect.value = carpetasSortMode
+  sortSelect.addEventListener("change", () => {
+    carpetasSortMode = sortSelect.value === "name" ? "name" : "manual"
+    guardarModoOrdenCarpetas()
+    ordenarYMostrar()
+  })
+  sortLabel.appendChild(sortSelect)
+  toolbarCarpetas.appendChild(sortLabel)
   const listaCarpetas = document.createElement("div")
   listaCarpetas.className = "carpetasLista"
   seccionCarpetas.appendChild(tituloCarpetas)
+  seccionCarpetas.appendChild(toolbarCarpetas)
   seccionCarpetas.appendChild(listaCarpetas)
   sidebar.appendChild(seccionCarpetas)
   nuevaCarpetaBtn.addEventListener("click", () => insertarEditorCarpeta(listaCarpetas))
@@ -1414,46 +1482,63 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
     return
   }
 
-  const carpetasOrdenadas = ordenarCarpetasPorSemestre(carpetas)
-  const grupos = new Map()
+  const carpetasOrdenadas = obtenerCarpetasOrdenadas()
+  const docActualEnPreview = document.getElementById("visorDocumentos")?.dataset.docActual || ""
 
   carpetasOrdenadas.forEach(carpeta => {
-    const key = claveSemestre(carpeta.semestre)
-    if (!grupos.has(key)) {
-      grupos.set(key, {
-        semestre: normalizarSemestre(carpeta.semestre),
-        items: []
-      })
-    }
-    grupos.get(key).items.push(carpeta)
-  })
-
-  Array.from(grupos.values()).forEach(grupo => {
-    const grupoEl = document.createElement("div")
-    grupoEl.className = "carpetaGrupoSemestre"
-
-    grupo.items.forEach((carpeta, index) => {
       const colorCarpeta = carpeta.color || "#1e3a8a"
 
       const card = document.createElement("div")
       card.className = "carpetaBox"
-      if (index > 0) card.classList.add("carpeta-apilada")
       card.dataset.carpetaId = carpeta.id
       if (carpeta.colapsada) card.classList.add("carpeta-colapsada")
       card.style.setProperty("--carpeta-color", colorCarpeta)
       card.style.borderColor = colorCarpeta
+      card.draggable = carpetasSortMode === "manual"
 
-      if (index === 0) {
-        const aleta = document.createElement("div")
-        aleta.className = "carpetaSemestreAleta"
-        const semestreLabel = document.createElement("div")
-        semestreLabel.className = "carpetaSemestreTexto"
-        semestreLabel.textContent = normalizarSemestre(carpeta.semestre)
-        configurarSemestreEditableCarpeta(carpeta, semestreLabel)
+      card.addEventListener("dragstart", e => {
+        if (carpetasSortMode !== "manual") return
+        carpetaArrastradaId = carpeta.id
+        card.classList.add("is-dragging")
+        if (e.dataTransfer) {
+          e.dataTransfer.effectAllowed = "move"
+          e.dataTransfer.setData("text/plain", carpeta.id)
+        }
+      })
 
-        aleta.appendChild(semestreLabel)
-        card.appendChild(aleta)
-      }
+      card.addEventListener("dragend", () => {
+        card.classList.remove("is-dragging")
+        card.classList.remove("is-drag-over")
+        carpetaArrastradaId = null
+        document.querySelectorAll(".carpetaBox").forEach(el => el.classList.remove("is-drag-over"))
+      })
+
+      card.addEventListener("dragover", e => {
+        if (carpetasSortMode !== "manual" || !carpetaArrastradaId) return
+        e.preventDefault()
+        card.classList.add("is-drag-over")
+      })
+
+      card.addEventListener("dragleave", () => card.classList.remove("is-drag-over"))
+
+      card.addEventListener("drop", e => {
+        if (carpetasSortMode !== "manual") return
+        e.preventDefault()
+        card.classList.remove("is-drag-over")
+        if (!carpetaArrastradaId || carpetaArrastradaId === carpeta.id) return
+        reordenarCarpetas(carpetaArrastradaId, carpeta.id)
+        ordenarYMostrar()
+      })
+
+      const aleta = document.createElement("div")
+      aleta.className = "carpetaSemestreAleta"
+      const semestreLabel = document.createElement("div")
+      semestreLabel.className = "carpetaSemestreTexto"
+      semestreLabel.textContent = normalizarSemestre(carpeta.semestre)
+      configurarSemestreEditableCarpeta(carpeta, semestreLabel)
+
+      aleta.appendChild(semestreLabel)
+      card.appendChild(aleta)
 
       const header = document.createElement("div")
       header.className = "carpetaHeader"
@@ -1597,6 +1682,10 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
           detalle.dataset.docId = doc.id
           detalle.textContent = doc.nombre
 
+          if (doc.id === documentoSeleccionadoEnCarpetaId || doc.id === docActualEnPreview) {
+            chip.classList.add("is-selected")
+          }
+
           chip.addEventListener("dragstart", e => {
             documentoArrastradoId = doc.id
             chip.classList.add("documento-arrastrando")
@@ -1611,6 +1700,14 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
             documentoArrastradoId = null
           })
 
+          chip.addEventListener("click", () => {
+            documentoSeleccionadoEnCarpetaId = doc.id
+            if (typeof mostrarDocumento === "function") {
+              mostrarDocumento(doc.id)
+            }
+            ordenarYMostrar()
+          })
+
           chip.appendChild(detalle)
           listaDocs.appendChild(chip)
         })
@@ -1620,10 +1717,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
 
       card.appendChild(documentosTitulo)
       card.appendChild(zonaDocumentos)
-      grupoEl.appendChild(card)
-    })
-
-    contenedor.appendChild(grupoEl)
+      contenedor.appendChild(card)
   })
 }
 
