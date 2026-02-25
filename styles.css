@@ -2734,10 +2734,10 @@ body.malla-activa .schedule-malla {
 .malla-preview-body img {
   width: auto;
   height: auto;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--article-bg);
-  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  padding: 0;
   box-sizing: border-box;
 }
 
