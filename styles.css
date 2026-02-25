@@ -1124,8 +1124,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-subjects-layout {
       display: grid;
-      grid-template-columns: minmax(220px, 0.86fr) minmax(0, 2.14fr);
-      gap: 12px;
+      grid-template-columns: 288px 1fr;
+      gap: 10px;
       align-items: start;
     }
 
@@ -1133,7 +1133,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-editor-panel {
       border: none;
       border-radius: 12px;
-      padding: 12px;
+      padding: 10px;
       background: color-mix(in srgb, var(--card) 99.85%, transparent);
     }
 
@@ -1328,8 +1328,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-config-grid {
       display: grid;
-      grid-template-columns: repeat(6, minmax(135px, 1fr));
-      gap: 8px;
+      grid-template-columns: repeat(6, minmax(115px, 1fr));
+      gap: 6px;
       align-items: end;
     }
 
@@ -2728,7 +2728,7 @@ body.oscuro .modal-close:hover {
 
 .form-articulo {
   background: transparent;
-  padding: var(--space-4);
+  padding: var(--space-4) var(--space-5);
   border-radius: 12px;
   border: none;
   box-shadow: none;
@@ -2746,12 +2746,7 @@ body.oscuro .modal-close:hover {
 }
     .contenidoArticulos {
       margin-top: 12px;
-      padding: 0 var(--space-4);
       flex: 1 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      box-sizing: border-box;
     }
 
     .estado-vacio {
@@ -2824,13 +2819,11 @@ body.oscuro .modal-close:hover {
       padding: 16px;
       border-radius: 10px;
       border-left: 6px solid var(--accent);
-      margin-top: 0;
-      box-shadow: none;
+      margin-top: 10px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.07);
       cursor: grab;
       position: relative;
       contain: paint;
-      width: 100%;
-      box-sizing: border-box;
       transform: translateY(0);
       transition: transform 0.15s ease;
     }
@@ -2893,8 +2886,6 @@ body.oscuro .modal-close:hover {
       border: 2px solid transparent;
       white-space: pre-wrap;
       line-height: 1.55;
-      width: 100%;
-      box-sizing: border-box;
     }
 
     .articulo-contenido:focus {
