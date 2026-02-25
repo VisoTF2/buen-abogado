@@ -122,6 +122,18 @@ function guardarDocumentos() {
   localStorage.setItem(DOCUMENTOS_STORAGE_KEY, JSON.stringify(documentosCargados))
 }
 
+function guardarTextoDocumentoEditado(id, textoEditado) {
+  const doc = documentosCargados.find(d => d.id === id)
+  if (!doc) return
+
+  doc.texto = textoEditado
+  guardarDocumentos()
+
+  if (typeof actualizarDocumentoEnCarpetas === "function") {
+    actualizarDocumentoEnCarpetas(doc)
+  }
+}
+
 function obtenerExtension(nombre = "") {
   const partes = nombre.split(".")
   return partes.length > 1 ? partes.pop().toLowerCase() : ""
@@ -404,7 +416,24 @@ function mostrarDocumento(id, terminoBusqueda = "", indiceCoincidencia = null) {
   if ((doc.extension === "pdf" || doc.extension === "docx") && doc.texto) {
     const texto = document.createElement("div")
     texto.className = "documento-texto"
-    aplicarResaltadoEnTexto(doc.texto, texto, terminoBusqueda, indiceCoincidencia)
+
+    const tieneBusqueda = Boolean((terminoBusqueda || "").trim())
+    if (!tieneBusqueda) {
+      texto.contentEditable = "true"
+      texto.setAttribute("role", "textbox")
+      texto.setAttribute("aria-label", "Editar texto del documento")
+      texto.spellcheck = false
+      texto.textContent = doc.texto
+
+      texto.addEventListener("blur", () => {
+        const nuevoTexto = texto.textContent || ""
+        if (nuevoTexto === doc.texto) return
+        guardarTextoDocumentoEditado(doc.id, nuevoTexto)
+      })
+    } else {
+      aplicarResaltadoEnTexto(doc.texto, texto, terminoBusqueda, indiceCoincidencia)
+    }
+
     visorDocumentos.appendChild(texto)
   } else if (doc.extension === "pdf" && doc.url) {
     const iframe = document.createElement("iframe")

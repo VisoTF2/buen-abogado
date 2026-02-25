@@ -579,6 +579,17 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       justify-content: space-between;
       gap: 14px;
       min-width: 0;
+      cursor: grab;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .documento-item:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    }
+
+    .documento-item:active {
+      cursor: grabbing;
     }
 
     .documento-info {
@@ -1213,6 +1224,16 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       overflow-y: auto;
     }
 
+    .documento-texto[contenteditable="true"] {
+      cursor: text;
+    }
+
+    .documento-texto[contenteditable="true"]:focus {
+      outline: none;
+      border-color: var(--accent-light);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+    }
+
     .documento-alerta {
       padding: 12px;
       border-radius: 10px;
@@ -1750,7 +1771,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
 
 .documento-arrastrando {
-  opacity: 0.6;
+  opacity: 0.9;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
 }
 
 .carpetaLista-drop {
