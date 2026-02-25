@@ -28,6 +28,11 @@
       --layout-max-width: 1450px;
       --layout-padding: 22px;
       --panel-min-height: clamp(440px, 68vh, 680px);
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --section-gap: 18px;
       --danger-bg: #fef2f2;
       --danger-hover-bg: #fee2e2;
       --danger-border: rgba(220, 38, 38, 0.42);
@@ -227,7 +232,7 @@ body.banner-sin-fondo header:not(.banner-con-imagen)::after {
 .container {
   width: min(98vw, var(--layout-max-width));
   max-width: none;
-  margin: 18px auto 26px;
+  margin: var(--section-gap) auto 24px;
   background: var(--card);
   padding: var(--layout-padding);
   border-radius: 14px;
@@ -448,8 +453,8 @@ body.oscuro .btn-secondary {
 body.oscuro .btn-secondary:hover { background: #334155; }
 
 .documentos-panel {
-  margin: 8px 0 0;
-  padding: 14px 16px 22px;
+  margin: 0;
+  padding: var(--space-4) var(--space-4) var(--space-5);
   border: none;
   border-radius: 14px;
   background: transparent;
@@ -466,9 +471,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 14px;
+      gap: var(--space-3);
       flex-wrap: wrap;
-      margin-bottom: 12px;
+      margin-bottom: var(--space-3);
     }
 
     .documentos-title,
@@ -499,7 +504,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .documentos-acciones {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: var(--space-3);
       flex-wrap: wrap;
     }
 
@@ -546,8 +551,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .documentos-body {
       display: grid;
       grid-template-columns: minmax(0, 0.55fr) minmax(0, 1.45fr);
-      gap: 14px;
-      margin-top: 14px;
+      gap: var(--space-4);
+      margin-top: var(--space-3);
       align-items: stretch;
       flex: 1;
       min-height: 0;
@@ -558,10 +563,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 12px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: var(--space-3);
       min-height: 260px;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
       min-width: 0;
@@ -577,7 +582,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 14px;
+      gap: var(--space-3);
       min-width: 0;
       cursor: grab;
       transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -665,7 +670,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .documento-eliminar {
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 8px 10px;
+      padding: 10px 12px;
       cursor: pointer;
       font-weight: 700;
       transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
@@ -704,7 +709,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       background: var(--card);
       min-height: 320px;
       max-height: 100%;
-      padding: 12px;
+      padding: 14px;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
       display: flex;
       flex-direction: column;
@@ -772,14 +777,14 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .calendar-layout {
       width: min(98vw, var(--layout-max-width));
-      margin: 18px auto;
+      margin: var(--section-gap) auto;
       padding: 0;
       box-sizing: border-box;
     }
 
     .calendar-panel {
       width: 100%;
-      padding: 16px 18px 20px;
+      padding: var(--space-4) var(--space-5);
       border-radius: 14px;
       background: var(--card);
       border: 1px solid var(--border);
@@ -787,7 +792,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: var(--space-3);
     }
 
     .calendar-head {
@@ -795,7 +800,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: var(--space-3);
     }
 
     .calendar-title {
@@ -1054,7 +1059,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .media-layout {
       width: min(98vw, var(--layout-max-width));
-      margin: 18px auto;
+      margin: var(--section-gap) auto;
       padding: 0;
       box-sizing: border-box;
     }
@@ -1062,7 +1067,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .media-panel {
       margin: 0;
       width: 100%;
-      padding: 16px 18px;
+      padding: var(--space-4) var(--space-5);
       border-radius: 14px;
       background: var(--card);
       border: 1px solid var(--border);
@@ -1070,7 +1075,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: var(--space-3);
     }
 
     .media-panel.is-empty {
@@ -1085,7 +1090,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .media-head {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: var(--space-3);
     }
 
     .media-title h3 {
@@ -1094,7 +1099,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .media-actions {
       display: flex;
-      gap: 10px;
+      gap: var(--space-3);
       flex-wrap: wrap;
     }
 
@@ -1149,7 +1154,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .media-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 10px;
+      gap: var(--space-3);
     }
 
     .media-card {
@@ -1173,8 +1178,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 10px;
-      gap: 10px;
+      padding: 10px 12px;
+      gap: var(--space-3);
       flex-wrap: wrap;
     }
 
@@ -1219,7 +1224,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       line-height: 1.6;
       font-size: 14px;
       color: var(--text);
-      padding: 12px;
+      padding: 14px;
       border-radius: 10px;
       border: 1px solid var(--border);
       background: var(--article-bg);
@@ -1238,7 +1243,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .documento-alerta {
-      padding: 12px;
+      padding: 14px;
       border-radius: 10px;
       background: rgba(220, 38, 38, 0.08);
       border: 1px solid rgba(220, 38, 38, 0.18);
@@ -1431,7 +1436,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .layout {
   display: flex;
   align-items: stretch;
-  gap: 18px;
+  gap: var(--space-4);
   height: 100%;
   min-height: var(--panel-min-height);
 }
@@ -1439,7 +1444,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .sidebarMaterias {
   width: 270px;
   background: transparent;
-  padding: 8px 0 12px;
+  padding: var(--space-3) 0;
   border-radius: 14px;
   box-shadow: none;
   overflow-y: auto;
@@ -1458,8 +1463,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
   padding: 0;
   border: none;
   border-radius: 12px;
@@ -1492,20 +1497,20 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .carpetasSection {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
 }
 
 .carpetasLista {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-3);
 }
 
 .sidebarGroup {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-2);
 }
 
 
@@ -1514,7 +1519,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   --carpeta-color: var(--accent);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 12px;
+  padding: 14px;
   background: var(--card);
   box-shadow: var(--card-shadow-elevated);
 }
@@ -1528,8 +1533,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 6px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
 .carpetaTituloWrap {
@@ -1688,8 +1693,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
 
 .carpetaLista {
-  gap: 4px;
-  padding: 6px;
+  gap: var(--space-2);
+  padding: var(--space-2);
   border-radius: 10px;
   border: 1px dashed transparent;
   background: var(--article-bg);
@@ -1711,17 +1716,17 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   font-weight: 700;
   font-size: 13px;
   color: var(--accent);
-  margin: 8px 4px 4px;
+  margin: var(--space-3) 4px 6px;
 }
 
 .carpetaDocumentos {
   border: 1px dashed transparent;
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   background: var(--article-bg);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
   min-height: var(--carpeta-slot-height);
   transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
@@ -1745,7 +1750,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .carpetaDocumentosLista {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .carpetaDocumentoChip {
@@ -1756,7 +1761,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   background: var(--article-bg);
   border: 1px solid var(--border);
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   cursor: grab;
 }
 
@@ -1838,7 +1843,7 @@ body.oscuro .sidebarItemCarpeta {
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 12px;
+  padding: 14px;
   z-index: 999;
 }
 
@@ -1925,7 +1930,7 @@ body.oscuro .modal-close:hover {
 
 .modal-actions .btn-primary {
   width: 100%;
-  padding: 8px 10px;
+  padding: 10px 12px;
   font-weight: 700;
   font-size: 13px;
   border-radius: 8px;
@@ -1983,7 +1988,7 @@ body.oscuro .modal-close:hover {
   grid-template-columns: 1fr auto;
   align-items: center;
   column-gap: 8px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--card);
@@ -2072,7 +2077,7 @@ body.oscuro .modal-close:hover {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: var(--space-3);
       align-self: stretch;
       min-height: 100%;
       height: 100%;
@@ -2081,14 +2086,14 @@ body.oscuro .modal-close:hover {
 
 .form-articulo {
   background: transparent;
-  padding: 16px 20px;
+  padding: var(--space-4) var(--space-5);
   border-radius: 12px;
   border: none;
   box-shadow: none;
 }
     
 .form-articulo h2 {
-  margin-top: 10px;
+  margin-top: 0;
 }
 
    .form-row {
@@ -2098,7 +2103,7 @@ body.oscuro .modal-close:hover {
   align-items: center;
 }
     .contenidoArticulos {
-      margin-top: 10px;
+      margin-top: var(--space-3);
       flex: 1 0 auto;
     }
 
@@ -2327,7 +2332,7 @@ body.oscuro .modal-close:hover {
       display: none;
       background: #dc2626;
       color: white;
-      padding: 12px;
+      padding: 14px;
       border-radius: 8px;
       margin-top: 15px;
       font-weight: bold;
@@ -2388,9 +2393,9 @@ body.oscuro .modal-close:hover {
 .weekly-schedule-layout {
   width: min(98vw, var(--layout-max-width));
   box-sizing: border-box;
-  margin: 18px auto;
+  margin: var(--section-gap) auto;
   display: flex;
-  gap: 16px;
+  gap: var(--space-4);
   align-items: flex-start;
 }
 
@@ -2508,7 +2513,7 @@ body.oscuro .class-card.light-bg .class-actions .absences {
   background: var(--card);
   border: 1.5px solid var(--border);
   border-radius: 12px;
-  padding: 12px;
+  padding: 14px;
   box-shadow: 0 6px 18px rgba(16, 24, 40, 0.04);
   display: flex;
   flex-direction: column;
