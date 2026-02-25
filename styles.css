@@ -1151,9 +1151,16 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       display: flex;
       flex-direction: column;
       gap: 6px;
-      font-size: 13px;
+      font-size: 12px;
       color: #374151;
       font-weight: 700;
+    }
+
+    .grade-field span {
+      min-height: 32px;
+      line-height: 1.35;
+      display: flex;
+      align-items: flex-end;
     }
 
     body.oscuro .grade-field { color: #d1d5db; }
@@ -1175,6 +1182,17 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       outline: none;
       border-color: var(--accent-light);
       box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.18);
+    }
+
+    .grade-panel input[type="number"]::-webkit-outer-spin-button,
+    .grade-panel input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .grade-panel input[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
     }
 
     .grade-controls-head {
