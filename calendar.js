@@ -67,7 +67,8 @@
       year: "numeric"
     })
 
-    monthLabel.textContent = monthFormatter.format(currentDate)
+    const monthText = monthFormatter.format(currentDate)
+    monthLabel.textContent = monthText.charAt(0).toUpperCase() + monthText.slice(1)
     grid.innerHTML = ""
 
     const year = currentDate.getFullYear()

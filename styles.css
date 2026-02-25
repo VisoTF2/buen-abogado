@@ -871,7 +871,6 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       font-weight: 700;
       letter-spacing: 0;
       color: var(--text);
-      text-transform: capitalize;
       white-space: nowrap;
       padding: 0 4px;
     }
@@ -1108,7 +1107,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-panel {
       width: 100%;
-      padding: var(--space-4) var(--space-5);
+      padding: 12px 14px;
       border-radius: 14px;
       background: var(--card);
       border: 1px solid var(--border);
@@ -1116,64 +1115,48 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      gap: var(--space-3);
+      gap: 8px;
     }
 
 
     .grade-subjects-layout {
       display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: var(--space-3);
+      grid-template-columns: 288px 1fr;
+      gap: 10px;
       align-items: start;
     }
 
     .grade-subjects-panel,
     .grade-editor-panel {
-      border: 1px solid color-mix(in srgb, var(--border) 92%, transparent);
+      border: none;
       border-radius: 12px;
-      padding: 12px;
-      background: color-mix(in srgb, var(--card) 97%, transparent);
+      padding: 10px;
+      background: color-mix(in srgb, var(--card) 99.85%, transparent);
     }
 
     .grade-subjects-create {
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 6px;
+      margin-bottom: 8px;
     }
 
     .grade-subject-name-input,
-    .grade-selected-name,
-    .grade-sort-field select {
+    .grade-selected-name {
       width: 100%;
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-radius: 10px;
-      border: 1px solid var(--border);
+      border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
       background: var(--card);
       color: var(--text);
       font-weight: 600;
       box-sizing: border-box;
     }
 
-    .grade-subjects-toolbar {
-      margin-bottom: 8px;
-    }
-
-    .grade-sort-field {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #374151;
-    }
-
-    body.oscuro .grade-sort-field { color: #d1d5db; }
-
     .grade-subjects-hint {
       font-size: 12px;
       color: #64748b;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     body.oscuro .grade-subjects-hint { color: #cbd5e1; }
@@ -1181,19 +1164,19 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-subjects-list {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      max-height: 460px;
+      gap: 6px;
+      max-height: 420px;
       overflow: auto;
       padding-right: 2px;
     }
 
     .grade-subject-item {
-      border: 1px solid var(--border);
+      border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
       border-radius: 10px;
-      background: var(--card);
+      background: var(--article-bg);
       color: var(--text);
       text-align: left;
-      padding: 9px 10px;
+      padding: 8px 9px;
       display: flex;
       flex-direction: column;
       gap: 3px;
@@ -1220,24 +1203,30 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     body.oscuro .grade-subject-item small { color: #cbd5e1; }
 
     .grade-subject-item.is-active {
-      border-color: var(--accent-light);
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.14);
-    }
-
-    .grade-subject-item.is-dragging {
-      opacity: 0.65;
-    }
-
-    .grade-subject-item.is-drag-over {
-      border-color: var(--accent);
-      background: color-mix(in srgb, var(--card) 92%, var(--accent) 8%);
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+      background: var(--article-bg);
     }
 
     .grade-editor-head {
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 10px;
-      margin-bottom: 10px;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .grade-editor-section {
+      border-top: 0;
+      padding-top: 0;
+      margin-top: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .grade-editor-section + .grade-editor-section {
+      padding-top: 6px;
+      margin-top: 6px;
     }
 
     .grade-danger-btn {
@@ -1260,11 +1249,20 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       opacity: 0.8;
     }
 
-    .grade-head,
+    .grade-head {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      margin-bottom: 2px;
+    }
+
     .grade-title {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
+      align-items: flex-start;
+      margin: 0;
+      max-width: 780px;
     }
 
     .grade-title h3 {
@@ -1278,30 +1276,33 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       font-size: 14px;
       line-height: 1.45;
       color: #4b5563;
+      margin: 0;
     }
 
     body.oscuro .grade-title span { color: #e5e7eb; }
 
     .grade-config-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: var(--space-3);
+      grid-template-columns: repeat(6, minmax(115px, 1fr));
+      gap: 6px;
+      align-items: end;
     }
 
     .grade-field {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      font-size: 12px;
+      gap: 4px;
+      font-size: 11px;
       color: #374151;
       font-weight: 700;
     }
 
     .grade-field span {
-      min-height: 32px;
-      line-height: 1.35;
+      min-height: 22px;
+      line-height: 1.2;
       display: flex;
       align-items: flex-end;
+      white-space: nowrap;
     }
 
     body.oscuro .grade-field { color: #d1d5db; }
@@ -1309,9 +1310,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-field input,
     .grade-control-input {
       width: 100%;
-      padding: 10px 12px;
+      padding: 7px 9px;
       border-radius: 10px;
-      border: 1px solid var(--border);
+      border: 1px solid color-mix(in srgb, var(--border) 58%, transparent);
       background: var(--card);
       color: var(--text);
       font-weight: 600;
@@ -1336,27 +1337,13 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       appearance: textfield;
     }
 
-    .grade-controls-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .grade-controls-head h4 {
-      margin: 0;
-      color: var(--text);
-      font-size: 17px;
-    }
-
     .grade-btn,
     .grade-control-remove {
       background: var(--accent);
       color: white;
       border: none;
       border-radius: 10px;
-      padding: 8px 12px;
+      padding: 7px 10px;
       font-weight: 700;
       cursor: pointer;
       transition: background 0.2s ease, transform 0.12s ease;
@@ -1371,18 +1358,18 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-controls {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 6px;
     }
 
     .grade-control-row {
       display: grid;
-      grid-template-columns: minmax(95px, 120px) minmax(170px, 1fr) minmax(170px, 1fr) auto;
-      gap: 10px;
+      grid-template-columns: minmax(82px, 110px) minmax(150px, 1fr) minmax(150px, 1fr) auto;
+      gap: 8px;
       align-items: center;
-      border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+      border: 1px solid color-mix(in srgb, var(--border) 52%, transparent);
       border-radius: 12px;
-      padding: 10px;
-      background: color-mix(in srgb, var(--card) 96%, var(--accent) 4%);
+      padding: 8px;
+      background: color-mix(in srgb, var(--card) 97.8%, white 2.2%);
     }
 
     .grade-control-title {
@@ -1403,41 +1390,107 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-validation:empty { display: none; }
 
     .grade-panel.has-errors {
-      border-color: color-mix(in srgb, #dc2626 40%, var(--border));
+      border-color: var(--border);
+    }
+
+    .grade-results-section {
+      background: transparent;
+      border-radius: 10px;
+      padding: 0;
+      border: none;
+    }
+
+    .grade-summary-details {
+      margin-top: 0;
+    }
+
+    .grade-summary-details summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      min-height: 40px;
+      padding: 8px 10px;
+      user-select: none;
+      border-radius: 10px;
+      border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+      background: var(--card);
+    }
+
+    .grade-summary-details summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .grade-summary-details summary::after {
+      content: "▾";
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      font-size: 17px;
+      line-height: 1;
+      color: #64748b;
+      transition: transform 0.2s ease;
+    }
+
+    .grade-summary-details:not([open]) summary::after {
+      transform: rotate(-90deg);
+    }
+
+    .grade-summary-details .grade-results {
+      margin-top: 6px;
+      border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+      border-radius: 10px;
+      padding: 6px 8px;
+      background: color-mix(in srgb, var(--card) 99.7%, transparent);
     }
 
     .grade-results {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: var(--space-3);
-    }
-
-    .grade-result-card {
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: color-mix(in srgb, var(--card) 95%, transparent);
-      padding: 11px 12px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      min-height: 88px;
+      gap: 4px;
     }
 
-    .grade-result-card span {
+    .grade-result-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 8px;
+      border-bottom: none;
+      padding: 4px 0;
+    }
+
+    .grade-result-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .grade-result-row span {
       font-size: 12px;
       color: #6b7280;
       line-height: 1.35;
     }
 
-    body.oscuro .grade-result-card span { color: #d1d5db; }
+    body.oscuro .grade-result-row span { color: #d1d5db; }
 
-    .grade-result-card strong {
-      font-size: 15px;
+    .grade-result-row strong {
+      font-size: 13px;
       color: var(--text);
       line-height: 1.3;
+      text-align: right;
     }
 
     @media (max-width: 980px) {
+      .grade-config-grid {
+        grid-template-columns: repeat(3, minmax(130px, 1fr));
+      }
+
       .grade-subjects-layout {
         grid-template-columns: 1fr;
       }
@@ -1448,6 +1501,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     @media (max-width: 820px) {
+      .grade-config-grid {
+        grid-template-columns: repeat(2, minmax(130px, 1fr));
+      }
+
       .grade-control-row,
       .grade-editor-head,
       .grade-subjects-create {
@@ -1901,24 +1958,18 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .carpetasSection {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
   margin-bottom: var(--space-3);
 }
 
 .carpetasLista {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .carpetasLista > .carpetaGrupoSemestre .carpetaBox:first-child {
-  margin-top: 36px;
-}
-
-.sidebarGroup {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  margin-top: 34px;
 }
 
 .carpetaGrupoSemestre {
@@ -1928,16 +1979,22 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   position: relative;
 }
 
+.sidebarGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
 .carpetaBox {
   --carpeta-slot-height: 0px;
   --carpeta-color: var(--accent);
   position: relative;
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
   border-radius: 12px;
   padding: 14px;
   background: var(--card);
   box-shadow: var(--card-shadow-elevated);
-  margin-top: var(--space-4);
+  margin-top: var(--space-3);
 }
 
 .carpetaBox.carpeta-apilada {
@@ -1952,21 +2009,28 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   border-bottom-right-radius: 0;
 }
 
+.carpetaBox.is-dragging { opacity: 0.72; }
+
+.carpetaBox.is-drag-over {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
 .carpetaSemestreAleta {
   position: absolute;
-  top: -35px;
+  top: -32px;
   left: 50%;
   transform: translateX(-50%);
-  min-width: 156px;
+  min-width: 120px;
   max-width: calc(100% - 24px);
-  padding: 7px 14px;
-  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
   border-bottom: none;
   border-radius: 12px 12px 0 0;
-  background: var(--card);
+  background: color-mix(in srgb, var(--card) 96%, transparent);
   box-sizing: border-box;
   text-align: center;
   box-shadow: none;
+  margin-bottom: 0;
 }
 
 .carpetaSemestreTexto {
@@ -1998,6 +2062,11 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   justify-content: space-between;
   gap: var(--space-3);
   margin-bottom: var(--space-2);
+  cursor: grab;
+}
+
+.carpetaHeader:active {
+  cursor: grabbing;
 }
 
 .carpetaTituloWrap {
@@ -2009,18 +2078,18 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetaToggle {
-  border: 1px solid var(--border);
-  background: var(--card);
+  border: none;
+  background: transparent;
   color: var(--carpeta-color);
-  border-radius: 8px;
-  width: 32px;
-  height: 32px;
+  border-radius: 10px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.12s ease, color 0.15s ease;
+  transition: background 0.18s ease, transform 0.12s ease, color 0.18s ease;
 }
 
 .carpetaToggle:hover {
@@ -2034,9 +2103,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .carpetaToggleIcon {
   display: grid;
   place-items: center;
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1;
-  transition: transform 0.18s ease;
+  transition: transform 0.2s ease;
 }
 
 .carpetaToggle.colapsada .carpetaToggleIcon {
@@ -2222,10 +2291,15 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   align-items: center;
   gap: 8px;
   background: var(--article-bg);
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
   border-radius: 10px;
   padding: 10px 12px;
   cursor: grab;
+}
+
+.carpetaDocumentoChip.is-selected {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .carpetaDocumentoChip:active {
@@ -2561,12 +2635,12 @@ body.oscuro .modal-close:hover {
 
    .form-row {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1.2fr;
-  gap: 16px; /* Para que los tres campos respiren igual */
-  align-items: center;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  align-items: end;
 }
     .contenidoArticulos {
-      margin-top: var(--space-3);
+      margin-top: 12px;
       flex: 1 0 auto;
     }
 
@@ -2593,11 +2667,12 @@ body.oscuro .modal-close:hover {
     }
 
     .materia-wrap {
-      margin-top: 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
+      margin-top: 2px;
+      margin-bottom: 6px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      gap: 12px;
     }
 
     .materia-controls {
@@ -2730,12 +2805,16 @@ body.oscuro .modal-close:hover {
 .materia-title {
   font-size: 21px;
   font-weight: bold;
-  padding-bottom: 6px;
+  padding: 0 0 6px;
   flex: 1;
   cursor: text;
   border-bottom: 2px solid var(--materia-underline);
   transition: color 0.25s ease;
   caret-color: var(--focus-contrast) !important;
+  margin: 0;
+  min-height: 34px;
+  display: flex;
+  align-items: flex-end;
 }
 
 .materia-title:focus {

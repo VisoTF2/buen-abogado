@@ -2,15 +2,13 @@ let codigoActual = {}
 let articulos = JSON.parse(localStorage.getItem("articulosGuardados") || "[]")
   .map(a => ({ ...a, contenidoHTML: a.contenidoHTML ?? null }))
 let materiasOrden = JSON.parse(localStorage.getItem("materiasOrden") || "{}")
-let carpetas = JSON.parse(localStorage.getItem("carpetasMaterias") || "[]").map(
-  c => ({
-    ...c,
-    color: c.color || "#1e3a8a",
-    semestre: (c.semestre || "Semestre").trim() || "Semestre",
-    documentos: c.documentos || [],
-    documentosData: c.documentosData || {}
-  })
-)
+let carpetas = JSON.parse(localStorage.getItem("carpetasMaterias") || "[]").map(c => ({
+  ...c,
+  color: c.color || "#1e3a8a",
+  semestre: (c.semestre || "Semestre").trim() || "Semestre",
+  documentos: c.documentos || [],
+  documentosData: c.documentosData || {}
+}))
 let normativaSeleccionada = null
 let materiaSeleccionada = null
 let materiaDropProcesado = false
@@ -37,6 +35,8 @@ let articuloArrastradoId = null
 let materiaArrastrada = null
 let materiaArrastradaNormativa = null
 let materiaArrastradaCarpetaId = null
+let documentoSeleccionadoEnCarpetaId = null
+
 
 modalConfiguracion?.addEventListener("click", e => {
   if (e.target === modalConfiguracion) cerrarModalConfiguracion()
@@ -401,6 +401,7 @@ function obtenerDocumentoRespaldoEnCarpetas(documentoId) {
 function moverDocumentoACarpeta(documentoId, carpetaId) {
   if (!carpetaId || !documentoId) return
   removerDocumentoDeCarpetas(documentoId)
+  documentoSeleccionadoEnCarpetaId = documentoId
 
   const documento = documentosCargados.find(doc => doc.id === documentoId)
   const documentoBase = normalizarDocumentoParaCarpeta(documento)
@@ -1415,6 +1416,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
   }
 
   const carpetasOrdenadas = ordenarCarpetasPorSemestre(carpetas)
+  const docActualEnPreview = document.getElementById("visorDocumentos")?.dataset.docActual || ""
   const grupos = new Map()
 
   carpetasOrdenadas.forEach(carpeta => {
@@ -1429,8 +1431,8 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
   })
 
   Array.from(grupos.values()).forEach(grupo => {
-    const grupoEl = document.createElement("div")
-    grupoEl.className = "carpetaGrupoSemestre"
+      const grupoEl = document.createElement("div")
+      grupoEl.className = "carpetaGrupoSemestre"
 
     grupo.items.forEach((carpeta, index) => {
       const colorCarpeta = carpeta.color || "#1e3a8a"
@@ -1442,6 +1444,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
       if (carpeta.colapsada) card.classList.add("carpeta-colapsada")
       card.style.setProperty("--carpeta-color", colorCarpeta)
       card.style.borderColor = colorCarpeta
+      card.draggable = false
 
       if (index === 0) {
         const aleta = document.createElement("div")
@@ -1457,6 +1460,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
 
       const header = document.createElement("div")
       header.className = "carpetaHeader"
+      header.draggable = false
 
       const tituloWrap = document.createElement("div")
       tituloWrap.className = "carpetaTituloWrap"
@@ -1597,6 +1601,10 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
           detalle.dataset.docId = doc.id
           detalle.textContent = doc.nombre
 
+          if (doc.id === documentoSeleccionadoEnCarpetaId || doc.id === docActualEnPreview) {
+            chip.classList.add("is-selected")
+          }
+
           chip.addEventListener("dragstart", e => {
             documentoArrastradoId = doc.id
             chip.classList.add("documento-arrastrando")
@@ -1611,6 +1619,14 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
             documentoArrastradoId = null
           })
 
+          chip.addEventListener("click", () => {
+            documentoSeleccionadoEnCarpetaId = doc.id
+            if (typeof mostrarDocumento === "function") {
+              mostrarDocumento(doc.id)
+            }
+            ordenarYMostrar()
+          })
+
           chip.appendChild(detalle)
           listaDocs.appendChild(chip)
         })
@@ -1623,7 +1639,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
       grupoEl.appendChild(card)
     })
 
-    contenedor.appendChild(grupoEl)
+      contenedor.appendChild(grupoEl)
   })
 }
 
