@@ -251,6 +251,78 @@
     </section>
   </div>
 
+  <div class="grade-layout">
+    <section class="grade-panel" id="gradeCalculatorPanel" aria-label="Calculadora de notas académicas">
+      <div class="grade-head">
+        <div class="grade-title">
+          <h3>Calculadora de notas académicas</h3>
+          <span>Configura tus reglas y proyecta si apruebas directo, con examen o si repruebas.</span>
+        </div>
+      </div>
+
+      <div class="grade-config-grid">
+        <label class="grade-field">
+          <span>Número de controles</span>
+          <input type="number" id="gradeControlsCount" min="1" max="30" step="1" value="4">
+        </label>
+        <label class="grade-field">
+          <span>Nota aprobación directa</span>
+          <input type="number" id="directPassGrade" min="1" max="7" step="0.1" value="4.0">
+        </label>
+        <label class="grade-field">
+          <span>Nota mínima para examen</span>
+          <input type="number" id="examThresholdGrade" min="1" max="7" step="0.1" value="3.5">
+        </label>
+        <label class="grade-field">
+          <span>Nota mínima para eximirse</span>
+          <input type="number" id="exemptionThresholdGrade" min="1" max="7" step="0.1" value="5.5">
+        </label>
+        <label class="grade-field">
+          <span>Porcentaje examen (%)</span>
+          <input type="number" id="examWeight" min="0" max="100" step="0.1" value="30">
+        </label>
+        <label class="grade-field">
+          <span>Ponderación controles en examen (%)</span>
+          <input type="number" id="controlsWeightForExam" min="0" max="100" step="0.1" value="70">
+        </label>
+      </div>
+
+      <div class="grade-controls-head">
+        <h4>Controles</h4>
+        <button class="grade-btn" id="addGradeControlBtn" type="button">Agregar control</button>
+      </div>
+      <div class="grade-controls" id="gradeControlsContainer"></div>
+      <div class="grade-validation" id="gradeValidation" role="alert" aria-live="polite"></div>
+
+      <div class="grade-results">
+        <div class="grade-result-card">
+          <span>Estado académico</span>
+          <strong id="gradeStatus">Estado académico: En progreso</strong>
+        </div>
+        <div class="grade-result-card">
+          <span>Nota actual (controles ingresados)</span>
+          <strong id="gradeCurrentAverage">—</strong>
+        </div>
+        <div class="grade-result-card">
+          <span>¿Necesita examen?</span>
+          <strong id="gradeNeedExam">Aún no definido</strong>
+        </div>
+        <div class="grade-result-card">
+          <span>Nota mínima en controles restantes para eximirse</span>
+          <strong id="gradeNeedForExemption">—</strong>
+        </div>
+        <div class="grade-result-card">
+          <span>Nota mínima en controles restantes para asegurar 4.0</span>
+          <strong id="gradeNeedForFour">—</strong>
+        </div>
+        <div class="grade-result-card">
+          <span>Nota mínima de examen para aprobar</span>
+          <strong id="gradeNeedExamMin">No aplica</strong>
+        </div>
+      </div>
+    </section>
+  </div>
+
   <div class="media-layout">
     <div class="media-panel" id="mediaPanel">
       <div class="media-head">
@@ -360,6 +432,7 @@
 <script src="schedule.js"></script>
 <script src="app.js"></script>
 <script src="calendar.js"></script>
+<script src="grade-calculator.js"></script>
 <script src="media.js"></script>
   <div class="app-footer" style="font-size:12px;text-align:center;color:#666;padding:8px 0;">Esta app puede cometer errores, se recomienda revisar los códigos.</div>
   <script>
