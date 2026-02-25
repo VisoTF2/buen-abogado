@@ -2,8 +2,6 @@ let codigoActual = {}
 let articulos = JSON.parse(localStorage.getItem("articulosGuardados") || "[]")
   .map(a => ({ ...a, contenidoHTML: a.contenidoHTML ?? null }))
 let materiasOrden = JSON.parse(localStorage.getItem("materiasOrden") || "{}")
-const CARPETAS_SORT_STORAGE_KEY = "carpetasSortMode"
-let carpetasSortMode = localStorage.getItem(CARPETAS_SORT_STORAGE_KEY) === "name" ? "name" : "manual"
 let carpetas = JSON.parse(localStorage.getItem("carpetasMaterias") || "[]").map(
   (c, index) => ({
     ...c,
@@ -140,10 +138,6 @@ function guardarCarpetas() {
   localStorage.setItem("carpetasMaterias", JSON.stringify(carpetas))
 }
 
-function guardarModoOrdenCarpetas() {
-  localStorage.setItem(CARPETAS_SORT_STORAGE_KEY, carpetasSortMode)
-}
-
 function reindexarOrdenCarpetasManual() {
   carpetas = [...carpetas]
     .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
@@ -156,14 +150,7 @@ function siguienteOrdenCarpeta() {
 }
 
 function obtenerCarpetasOrdenadas() {
-  const lista = [...carpetas]
-  if (carpetasSortMode === "name") {
-    return lista.sort((a, b) =>
-      (a.nombre || "").localeCompare(b.nombre || "", "es", { sensitivity: "base" })
-    )
-  }
-
-  return lista.sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
+  return [...carpetas].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
 }
 
 function reordenarCarpetas(dragId, targetId) {
@@ -1266,29 +1253,9 @@ function ordenarYMostrar() {
   const tituloCarpetas = document.createElement("div")
   tituloCarpetas.className = "sidebarGroupTitle"
   tituloCarpetas.textContent = "Carpetas"
-  const toolbarCarpetas = document.createElement("div")
-  toolbarCarpetas.className = "carpetasToolbar"
-  const sortLabel = document.createElement("label")
-  sortLabel.className = "carpetasSortField"
-  sortLabel.textContent = "Orden"
-  const sortSelect = document.createElement("select")
-  sortSelect.className = "carpetasSortSelect"
-  sortSelect.innerHTML = `
-    <option value="manual">Manual</option>
-    <option value="name">Nombre (A-Z)</option>
-  `
-  sortSelect.value = carpetasSortMode
-  sortSelect.addEventListener("change", () => {
-    carpetasSortMode = sortSelect.value === "name" ? "name" : "manual"
-    guardarModoOrdenCarpetas()
-    ordenarYMostrar()
-  })
-  sortLabel.appendChild(sortSelect)
-  toolbarCarpetas.appendChild(sortLabel)
   const listaCarpetas = document.createElement("div")
   listaCarpetas.className = "carpetasLista"
   seccionCarpetas.appendChild(tituloCarpetas)
-  seccionCarpetas.appendChild(toolbarCarpetas)
   seccionCarpetas.appendChild(listaCarpetas)
   sidebar.appendChild(seccionCarpetas)
   nuevaCarpetaBtn.addEventListener("click", () => insertarEditorCarpeta(listaCarpetas))
@@ -1494,10 +1461,9 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
       if (carpeta.colapsada) card.classList.add("carpeta-colapsada")
       card.style.setProperty("--carpeta-color", colorCarpeta)
       card.style.borderColor = colorCarpeta
-      card.draggable = carpetasSortMode === "manual"
+      card.draggable = true
 
       card.addEventListener("dragstart", e => {
-        if (carpetasSortMode !== "manual") return
         carpetaArrastradaId = carpeta.id
         card.classList.add("is-dragging")
         if (e.dataTransfer) {
@@ -1514,7 +1480,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
       })
 
       card.addEventListener("dragover", e => {
-        if (carpetasSortMode !== "manual" || !carpetaArrastradaId) return
+        if (!carpetaArrastradaId) return
         e.preventDefault()
         card.classList.add("is-drag-over")
       })
@@ -1522,7 +1488,6 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
       card.addEventListener("dragleave", () => card.classList.remove("is-drag-over"))
 
       card.addEventListener("drop", e => {
-        if (carpetasSortMode !== "manual") return
         e.preventDefault()
         card.classList.remove("is-drag-over")
         if (!carpetaArrastradaId || carpetaArrastradaId === carpeta.id) return

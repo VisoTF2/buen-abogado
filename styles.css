@@ -1989,32 +1989,6 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   margin-bottom: var(--space-3);
 }
 
-.carpetasToolbar {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.carpetasSortField {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #334155;
-}
-
-.carpetasSortSelect {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 6px 10px;
-  font-size: 13px;
-  font-weight: 600;
-  background: var(--card);
-  color: var(--text);
-}
-
-body.oscuro .carpetasSortField { color: #cbd5e1; }
-
 .carpetasLista {
   display: flex;
   flex-direction: column;
