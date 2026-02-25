@@ -1203,8 +1203,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     body.oscuro .grade-subject-item small { color: #cbd5e1; }
 
     .grade-subject-item.is-active {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+      border-color: color-mix(in srgb, var(--border) 45%, transparent);
+      box-shadow: none;
       background: var(--article-bg);
     }
 
@@ -2298,8 +2298,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetaDocumentoChip.is-selected {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  border-color: color-mix(in srgb, var(--border) 55%, transparent);
+  box-shadow: none;
 }
 
 .carpetaDocumentoChip:active {
