@@ -1446,9 +1446,6 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
       if (index === 0) {
         const aleta = document.createElement("div")
         aleta.className = "carpetaSemestreAleta"
-        aleta.style.borderColor = colorCarpeta
-        aleta.style.color = colorCarpeta
-
         const semestreLabel = document.createElement("div")
         semestreLabel.className = "carpetaSemestreTexto"
         semestreLabel.textContent = normalizarSemestre(carpeta.semestre)
@@ -1499,11 +1496,6 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
       colorInput.addEventListener("input", () => {
         card.style.setProperty("--carpeta-color", colorInput.value)
         card.style.borderColor = colorInput.value
-        const aletaEl = card.querySelector(".carpetaSemestreAleta")
-        if (aletaEl) {
-          aletaEl.style.borderColor = colorInput.value
-          aletaEl.style.color = colorInput.value
-        }
       })
       colorInput.addEventListener("change", () => {
         const nuevoColor = colorInput.value
