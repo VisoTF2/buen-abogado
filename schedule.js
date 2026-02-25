@@ -150,7 +150,6 @@
   function crearEditorNodo(values, onSave, onCancel){
     const li = document.createElement('li')
     li.className = 'class-editor'
-    const colorValue = values.bgColor || '#ffffff'
     li.innerHTML = `
       <div class="editor-row">
         <input class="editor-name" placeholder="Clase" value="${escapeHtml(values.name || '')}">
@@ -161,7 +160,6 @@
         <input class="editor-absences" type="number" min="0" placeholder="Faltas" value="${escapeHtml(values.absences || 0)}">
       </div>
       <div class="editor-actions">
-        <input class="editor-color-input" type="color" value="${escapeHtml(colorValue)}" aria-label="Seleccionar color">
         <div class="editor-buttons">
           <button type="button" class="editor-save">Guardar</button>
           <button type="button" class="editor-cancel">Cancelar</button>
@@ -174,14 +172,13 @@
       const time = li.querySelector('.editor-time').value
       const teacher = li.querySelector('.editor-teacher').value
       const absences = parseInt(li.querySelector('.editor-absences').value || '0', 10) || 0
-      const bgColor = li.querySelector('.editor-color-input').value
       if (!nombre || !nombre.trim()) { li.querySelector('.editor-name').focus(); return }
       onSave({
         name: nombre.trim(),
         time: time.trim(),
         teacher: teacher.trim(),
         absences,
-        bgColor: esColorBlanco(bgColor) ? '' : bgColor,
+        bgColor: values.bgColor || '',
       })
     })
 
