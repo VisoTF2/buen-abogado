@@ -45,6 +45,12 @@ if (botonDocumentos) {
 
 prepararRecepcionDocumentoDesdeCarpetas()
 
+function sincronizarSidebarDocumentos() {
+  if (typeof ordenarYMostrar === "function") {
+    ordenarYMostrar()
+  }
+}
+
 function restaurarDocumentoDesdeCarpeta(documentoId) {
   if (!documentoId) return false
 
@@ -74,6 +80,7 @@ function restaurarDocumentoDesdeCarpeta(documentoId) {
   guardarDocumentos()
   renderDocumentos()
   mostrarDocumento(documentoId)
+  sincronizarSidebarDocumentos()
   return true
 }
 
@@ -94,7 +101,7 @@ function prepararRecepcionDocumentoDesdeCarpetas() {
       if (!id) return
       restaurarDocumentoDesdeCarpeta(id)
       documentoArrastradoId = null
-      ordenarYMostrar()
+      sincronizarSidebarDocumentos()
     })
   })
 }
@@ -178,6 +185,7 @@ async function procesarDocumento(archivo) {
     guardarDocumentos()
     renderDocumentos()
     mostrarDocumento(base.id)
+    sincronizarSidebarDocumentos()
   } catch (err) {
     console.error("No se pudo procesar el documento", err)
     base.mensaje = "No se pudo leer el documento."
@@ -185,6 +193,7 @@ async function procesarDocumento(archivo) {
     guardarDocumentos()
     renderDocumentos()
     mostrarDocumento(base.id)
+    sincronizarSidebarDocumentos()
   }
 }
 
@@ -362,7 +371,7 @@ function renderDocumentos() {
       item.classList.add("documento-arrastrando")
       if (e.dataTransfer) {
         e.dataTransfer.effectAllowed = "move"
-        e.dataTransfer.setData("text/plain", doc.nombre)
+        e.dataTransfer.setData("text/plain", doc.id)
       }
     })
     item.addEventListener("dragend", () => {
@@ -382,7 +391,7 @@ function eliminarDocumento(id) {
   const doc = documentosCargados.find(d => d.id === id)
   documentosCargados = documentosCargados.filter(d => d.id !== id)
 
-  const cambioCarpeta = removerDocumentoDeCarpetas(id)
+  removerDocumentoDeCarpetas(id)
 
   if (doc?.url) {
     try { URL.revokeObjectURL(doc.url) } catch (e) { /* noop */ }
@@ -390,7 +399,7 @@ function eliminarDocumento(id) {
 
   guardarDocumentos()
   renderDocumentos()
-  if (cambioCarpeta) ordenarYMostrar()
+  sincronizarSidebarDocumentos()
 
   const vistaActualId = visorDocumentos?.dataset.docActual
   if (doc && vistaActualId === doc.id) {
@@ -538,6 +547,7 @@ function actualizarNombreDocumento(id, nuevoNombre) {
   doc.nombre = nuevoNombre
   guardarDocumentos()
   actualizarNombreDocumentoEnCarpetas(id, nuevoNombre)
+  sincronizarSidebarDocumentos()
 
   if (visorDocumentos?.dataset.docActual === id) {
     const titulo = visorDocumentos.querySelector(".documento-preview-titulo")
