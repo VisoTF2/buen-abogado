@@ -1,5 +1,5 @@
 (function () {
-  const STORAGE_KEY = "gradeCalculatorConfig"
+  const STORAGE_KEY = "gradeCalculatorSubjectsV2"
 
   const defaults = {
     controlsCount: 4,
@@ -10,7 +10,24 @@
     controlsWeightForExam: 70
   }
 
+  const statusPriority = {
+    "Estado académico: Aprobado sin examen": 1,
+    "Estado académico: Va a examen": 2,
+    "Estado académico: Reprobado": 3,
+    "Estado académico: En progreso": 4,
+    "Estado académico: Revisa los parámetros": 5
+  }
+
   const panel = document.getElementById("gradeCalculatorPanel")
+  const editorPanel = document.getElementById("gradeEditorPanel")
+  const subjectsList = document.getElementById("gradeSubjectsList")
+  const subjectsHint = document.getElementById("gradeSubjectsHint")
+  const addSubjectBtn = document.getElementById("gradeAddSubjectBtn")
+  const subjectNameInput = document.getElementById("gradeSubjectNameInput")
+  const selectedSubjectNameInput = document.getElementById("gradeSelectedSubjectName")
+  const deleteSubjectBtn = document.getElementById("gradeDeleteSubjectBtn")
+  const sortModeSelect = document.getElementById("gradeSortMode")
+
   const controlsContainer = document.getElementById("gradeControlsContainer")
   const controlsCountInput = document.getElementById("gradeControlsCount")
   const directPassInput = document.getElementById("directPassGrade")
@@ -19,6 +36,7 @@
   const examWeightInput = document.getElementById("examWeight")
   const controlsWeightForExamInput = document.getElementById("controlsWeightForExam")
   const validationBox = document.getElementById("gradeValidation")
+  const addControlBtn = document.getElementById("addGradeControlBtn")
 
   const statusText = document.getElementById("gradeStatus")
   const currentAverageText = document.getElementById("gradeCurrentAverage")
@@ -27,104 +45,301 @@
   const remainingToFourText = document.getElementById("gradeNeedForFour")
   const neededExamText = document.getElementById("gradeNeedExamMin")
 
-  const addControlBtn = document.getElementById("addGradeControlBtn")
-
   if (
-    !panel ||
-    !controlsContainer ||
-    !controlsCountInput ||
-    !directPassInput ||
-    !examThresholdInput ||
-    !exemptionThresholdInput ||
-    !examWeightInput ||
-    !controlsWeightForExamInput ||
-    !validationBox
+    !panel || !editorPanel || !subjectsList || !addSubjectBtn || !subjectNameInput || !selectedSubjectNameInput ||
+    !deleteSubjectBtn || !sortModeSelect || !controlsContainer || !controlsCountInput || !directPassInput ||
+    !examThresholdInput || !exemptionThresholdInput || !examWeightInput || !controlsWeightForExamInput ||
+    !validationBox || !statusText || !currentAverageText || !needExamText || !remainingWithoutExamText ||
+    !remainingToFourText || !neededExamText || !addControlBtn
   ) return
 
-  let controls = []
+  let state = loadState()
+  let dragSubjectId = null
 
-  const savedConfig = loadConfig()
-  setupConfigInputs(savedConfig)
-  setControlsCount(savedConfig.controlsCount)
   bindEvents()
-  recalculate()
-
-  function loadConfig() {
-    try {
-      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")
-      return { ...defaults, ...(parsed && typeof parsed === "object" ? parsed : {}) }
-    } catch (_error) {
-      return { ...defaults }
-    }
-  }
-
-  function saveConfig() {
-    const config = {
-      controlsCount: Number(controlsCountInput.value) || defaults.controlsCount,
-      directPassGrade: Number(directPassInput.value) || defaults.directPassGrade,
-      examThreshold: Number(examThresholdInput.value) || defaults.examThreshold,
-      exemptionThreshold: Number(exemptionThresholdInput.value) || defaults.exemptionThreshold,
-      examWeight: Number(examWeightInput.value) || defaults.examWeight,
-      controlsWeightForExam: Number(controlsWeightForExamInput.value) || defaults.controlsWeightForExam
-    }
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
-  }
-
-  function setupConfigInputs(config) {
-    controlsCountInput.value = config.controlsCount
-    directPassInput.value = config.directPassGrade
-    examThresholdInput.value = config.examThreshold
-    exemptionThresholdInput.value = config.exemptionThreshold
-    examWeightInput.value = config.examWeight
-    controlsWeightForExamInput.value = config.controlsWeightForExam
-  }
+  ensureAtLeastOneSubject()
+  renderAll()
 
   function bindEvents() {
-    const recalculateAndSave = () => {
-      saveConfig()
-      recalculate()
-    }
+    addSubjectBtn.addEventListener("click", createSubjectFromInput)
+    subjectNameInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        event.preventDefault()
+        createSubjectFromInput()
+      }
+    })
+
+    selectedSubjectNameInput.addEventListener("input", () => {
+      const subject = getSelectedSubject()
+      if (!subject) return
+      subject.name = selectedSubjectNameInput.value.trimStart()
+      saveAndRender()
+    })
+
+    deleteSubjectBtn.addEventListener("click", () => {
+      const subject = getSelectedSubject()
+      if (!subject) return
+
+      state.subjects = state.subjects.filter(item => item.id !== subject.id)
+      if (state.selectedSubjectId === subject.id) {
+        state.selectedSubjectId = state.subjects[0]?.id || null
+      }
+      reindexManualOrder()
+      saveAndRender()
+    })
+
+    sortModeSelect.addEventListener("change", () => {
+      state.sortMode = sortModeSelect.value
+      saveAndRender()
+    })
 
     controlsCountInput.addEventListener("change", () => {
-      setControlsCount(Number(controlsCountInput.value) || 1)
-      recalculateAndSave()
+      const subject = getSelectedSubject()
+      if (!subject) return
+      setControlsCount(subject, Number(controlsCountInput.value) || 1)
+      saveAndRender()
     })
 
-    ;[
-      directPassInput,
-      examThresholdInput,
-      exemptionThresholdInput,
-      examWeightInput,
-      controlsWeightForExamInput
-    ].forEach(input => input.addEventListener("input", recalculateAndSave))
+    ;[directPassInput, examThresholdInput, exemptionThresholdInput, examWeightInput, controlsWeightForExamInput]
+      .forEach(input => input.addEventListener("input", () => {
+        const subject = getSelectedSubject()
+        if (!subject) return
+        syncConfigFromInputs(subject)
+        saveAndRender(false)
+      }))
 
-    addControlBtn?.addEventListener("click", () => {
-      setControlsCount(controls.length + 1)
-      controlsCountInput.value = controls.length
-      recalculateAndSave()
+    addControlBtn.addEventListener("click", () => {
+      const subject = getSelectedSubject()
+      if (!subject) return
+      setControlsCount(subject, subject.controls.length + 1)
+      saveAndRender()
     })
   }
 
-  function setControlsCount(count) {
-    const safeCount = Math.max(1, Math.min(30, Math.floor(Number(count) || 1)))
-
-    if (safeCount > controls.length) {
-      for (let i = controls.length; i < safeCount; i += 1) {
-        controls.push({ grade: "", weight: "" })
+  function loadState() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")
+      if (!parsed || typeof parsed !== "object") throw new Error("invalid")
+      const subjects = Array.isArray(parsed.subjects) ? parsed.subjects : []
+      return {
+        subjects: subjects.map(normalizeSubject),
+        selectedSubjectId: parsed.selectedSubjectId || null,
+        sortMode: ["manual", "name", "average", "status"].includes(parsed.sortMode) ? parsed.sortMode : "manual"
       }
-    } else if (safeCount < controls.length) {
-      controls = controls.slice(0, safeCount)
+    } catch (_error) {
+      return { subjects: [], selectedSubjectId: null, sortMode: "manual" }
+    }
+  }
+
+  function normalizeSubject(raw, index = 0) {
+    const configRaw = raw && typeof raw.config === "object" ? raw.config : {}
+    const controlsRaw = Array.isArray(raw?.controls) ? raw.controls : []
+    const controls = controlsRaw.length
+      ? controlsRaw.map(control => ({ grade: control?.grade ?? "", weight: control?.weight ?? "" }))
+      : Array.from({ length: defaults.controlsCount }, () => ({ grade: "", weight: "" }))
+
+    return {
+      id: String(raw?.id || `subject-${Date.now()}-${Math.random().toString(16).slice(2)}`),
+      name: String(raw?.name || "Ramo sin nombre"),
+      order: Number.isFinite(Number(raw?.order)) ? Number(raw.order) : index,
+      controls,
+      config: {
+        directPassGrade: Number(configRaw.directPassGrade) || defaults.directPassGrade,
+        examThreshold: Number(configRaw.examThreshold) || defaults.examThreshold,
+        exemptionThreshold: Number(configRaw.exemptionThreshold) || defaults.exemptionThreshold,
+        examWeight: Number(configRaw.examWeight) || defaults.examWeight,
+        controlsWeightForExam: Number(configRaw.controlsWeightForExam) || defaults.controlsWeightForExam
+      }
+    }
+  }
+
+  function ensureAtLeastOneSubject() {
+    if (state.subjects.length) {
+      if (!state.subjects.some(subject => subject.id === state.selectedSubjectId)) {
+        state.selectedSubjectId = state.subjects[0].id
+      }
+      return
     }
 
-    controlsCountInput.value = safeCount
-    renderControls()
+    const first = createSubject("Ramo 1")
+    state.subjects.push(first)
+    state.selectedSubjectId = first.id
+    saveState()
   }
 
-  function renderControls() {
+  function createSubjectFromInput() {
+    const name = subjectNameInput.value.trim() || `Ramo ${state.subjects.length + 1}`
+    const subject = createSubject(name)
+    state.subjects.push(subject)
+    state.selectedSubjectId = subject.id
+    subjectNameInput.value = ""
+    reindexManualOrder()
+    saveAndRender()
+  }
+
+  function createSubject(name) {
+    return {
+      id: `subject-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      name,
+      order: state.subjects.length,
+      controls: Array.from({ length: defaults.controlsCount }, () => ({ grade: "", weight: "" })),
+      config: {
+        directPassGrade: defaults.directPassGrade,
+        examThreshold: defaults.examThreshold,
+        exemptionThreshold: defaults.exemptionThreshold,
+        examWeight: defaults.examWeight,
+        controlsWeightForExam: defaults.controlsWeightForExam
+      }
+    }
+  }
+
+  function getSelectedSubject() {
+    return state.subjects.find(subject => subject.id === state.selectedSubjectId) || null
+  }
+
+  function setControlsCount(subject, count) {
+    const safeCount = Math.max(1, Math.min(30, Math.floor(Number(count) || 1)))
+    if (safeCount > subject.controls.length) {
+      for (let i = subject.controls.length; i < safeCount; i += 1) {
+        subject.controls.push({ grade: "", weight: "" })
+      }
+    } else if (safeCount < subject.controls.length) {
+      subject.controls = subject.controls.slice(0, safeCount)
+    }
+  }
+
+  function syncConfigFromInputs(subject) {
+    subject.config.directPassGrade = Number(directPassInput.value) || defaults.directPassGrade
+    subject.config.examThreshold = Number(examThresholdInput.value) || defaults.examThreshold
+    subject.config.exemptionThreshold = Number(exemptionThresholdInput.value) || defaults.exemptionThreshold
+    subject.config.examWeight = Number(examWeightInput.value) || defaults.examWeight
+    subject.config.controlsWeightForExam = Number(controlsWeightForExamInput.value) || defaults.controlsWeightForExam
+  }
+
+  function renderAll() {
+    const selected = getSelectedSubject()
+    sortModeSelect.value = state.sortMode
+    renderSubjectsList(selected)
+    renderEditor(selected)
+  }
+
+  function renderSubjectsList(selected) {
+    subjectsList.innerHTML = ""
+    const sorted = getSortedSubjects()
+    const manualMode = state.sortMode === "manual"
+    subjectsHint.style.display = manualMode ? "block" : "none"
+
+    sorted.forEach(subject => {
+      const metrics = evaluateSubject(subject)
+      const item = document.createElement("button")
+      item.type = "button"
+      item.className = "grade-subject-item"
+      if (selected && selected.id === subject.id) item.classList.add("is-active")
+      item.dataset.subjectId = subject.id
+      item.draggable = manualMode
+
+      item.innerHTML = `
+        <strong>${escapeHtml(subject.name || "Ramo sin nombre")}</strong>
+        <span>${metrics.displayAverage}</span>
+        <small>${metrics.status}</small>
+      `
+
+      item.addEventListener("click", () => {
+        state.selectedSubjectId = subject.id
+        saveAndRender(false)
+      })
+
+      if (manualMode) {
+        item.addEventListener("dragstart", () => {
+          dragSubjectId = subject.id
+          item.classList.add("is-dragging")
+        })
+
+        item.addEventListener("dragend", () => {
+          dragSubjectId = null
+          item.classList.remove("is-dragging")
+        })
+
+        item.addEventListener("dragover", event => {
+          event.preventDefault()
+          item.classList.add("is-drag-over")
+        })
+
+        item.addEventListener("dragleave", () => {
+          item.classList.remove("is-drag-over")
+        })
+
+        item.addEventListener("drop", event => {
+          event.preventDefault()
+          item.classList.remove("is-drag-over")
+          if (!dragSubjectId || dragSubjectId === subject.id) return
+          reorderSubjects(dragSubjectId, subject.id)
+          saveAndRender()
+        })
+      }
+
+      subjectsList.appendChild(item)
+    })
+  }
+
+  function renderEditor(subject) {
+    const isDisabled = !subject
+    editorPanel.classList.toggle("is-disabled", isDisabled)
+
+    if (isDisabled) {
+      selectedSubjectNameInput.value = ""
+      controlsContainer.innerHTML = ""
+      validationBox.textContent = "Selecciona o crea un ramo para comenzar."
+      statusText.textContent = "Estado académico: En progreso"
+      currentAverageText.textContent = "—"
+      needExamText.textContent = "Aún no definido"
+      remainingWithoutExamText.textContent = "—"
+      remainingToFourText.textContent = "—"
+      neededExamText.textContent = "No aplica"
+      return
+    }
+
+    selectedSubjectNameInput.disabled = false
+    deleteSubjectBtn.disabled = false
+    controlsCountInput.disabled = false
+    directPassInput.disabled = false
+    examThresholdInput.disabled = false
+    exemptionThresholdInput.disabled = false
+    examWeightInput.disabled = false
+    controlsWeightForExamInput.disabled = false
+    addControlBtn.disabled = false
+
+    selectedSubjectNameInput.value = subject.name
+    controlsCountInput.value = subject.controls.length
+    directPassInput.value = subject.config.directPassGrade
+    examThresholdInput.value = subject.config.examThreshold
+    exemptionThresholdInput.value = subject.config.exemptionThreshold
+    examWeightInput.value = subject.config.examWeight
+    controlsWeightForExamInput.value = subject.config.controlsWeightForExam
+
+    renderControls(subject)
+
+    const metrics = evaluateSubject(subject)
+    if (metrics.validationErrors.length) {
+      validationBox.innerHTML = metrics.validationErrors.map(error => `<div>• ${error}</div>`).join("")
+      panel.classList.add("has-errors")
+    } else {
+      validationBox.textContent = ""
+      panel.classList.remove("has-errors")
+    }
+
+    statusText.textContent = metrics.status
+    currentAverageText.textContent = metrics.displayAverage
+    needExamText.textContent = metrics.needExamText
+    remainingWithoutExamText.textContent = metrics.displayNeededForExemption
+    remainingToFourText.textContent = metrics.displayNeededForFour
+    neededExamText.textContent = metrics.displayNeededExam
+  }
+
+  function renderControls(subject) {
     controlsContainer.innerHTML = ""
 
-    controls.forEach((control, index) => {
+    subject.controls.forEach((control, index) => {
       const row = document.createElement("div")
       row.className = "grade-control-row"
 
@@ -140,7 +355,6 @@
       gradeInput.max = "7"
       gradeInput.step = "0.1"
       gradeInput.value = control.grade
-      gradeInput.setAttribute("aria-label", `Nota del control ${index + 1}`)
 
       const weightInput = document.createElement("input")
       weightInput.type = "number"
@@ -150,31 +364,26 @@
       weightInput.max = "100"
       weightInput.step = "0.1"
       weightInput.value = control.weight
-      weightInput.setAttribute("aria-label", `Porcentaje del control ${index + 1}`)
 
       const removeBtn = document.createElement("button")
       removeBtn.type = "button"
       removeBtn.className = "grade-control-remove"
       removeBtn.textContent = "Quitar"
-      removeBtn.setAttribute("aria-label", `Quitar control ${index + 1}`)
 
       removeBtn.addEventListener("click", () => {
-        if (controls.length <= 1) return
-        controls.splice(index, 1)
-        controlsCountInput.value = controls.length
-        renderControls()
-        recalculate()
-        saveConfig()
+        if (subject.controls.length <= 1) return
+        subject.controls.splice(index, 1)
+        saveAndRender()
       })
 
       gradeInput.addEventListener("input", () => {
-        controls[index].grade = gradeInput.value
-        recalculate()
+        control.grade = gradeInput.value
+        saveAndRender(false)
       })
 
       weightInput.addEventListener("input", () => {
-        controls[index].weight = weightInput.value
-        recalculate()
+        control.weight = weightInput.value
+        saveAndRender(false)
       })
 
       row.appendChild(title)
@@ -185,19 +394,11 @@
     })
   }
 
-  function recalculate() {
-    const config = readConfig()
-    const validationErrors = validateControls(config)
+  function evaluateSubject(subject) {
+    const config = subject.config
+    const validationErrors = validateControls(subject.controls, config)
+    const summary = calculateWeightedAverage(subject.controls)
 
-    if (validationErrors.length) {
-      validationBox.innerHTML = validationErrors.map(error => `<div>• ${error}</div>`).join("")
-      panel.classList.add("has-errors")
-    } else {
-      validationBox.textContent = ""
-      panel.classList.remove("has-errors")
-    }
-
-    const summary = calculateWeightedAverage(controls)
     const currentAverage = summary.completedWeight > 0
       ? (summary.completedContribution * 100) / summary.completedWeight
       : null
@@ -225,10 +426,6 @@
       finalControlsAverage !== null &&
       finalControlsAverage >= config.exemptionThreshold
 
-    statusText.textContent = resolveAcademicStatus({ isExempt, requiresExam, isDirectFail, summary })
-    currentAverageText.textContent = currentAverage === null ? "—" : formatGrade(currentAverage)
-    needExamText.textContent = requiresExam ? "Sí" : (isExempt || isDirectFail ? "No" : "Aún no definido")
-
     const neededForExemption = calculateMinimumRequiredGrade({
       currentContribution: summary.completedContribution,
       remainingWeight: Math.max(0, 100 - summary.completedWeight),
@@ -241,33 +438,92 @@
       targetGrade: config.directPassGrade
     })
 
-    remainingWithoutExamText.textContent = formatRequirement(neededForExemption)
-    remainingToFourText.textContent = formatRequirement(neededForFour)
+    const neededExam = requiresExam
+      ? calculateMinimumExamGrade({
+          controlsAverage: finalControlsAverage,
+          targetFinalGrade: config.directPassGrade,
+          controlsWeight: config.controlsWeightForExam,
+          examWeight: config.examWeight
+        })
+      : null
 
-    if (requiresExam) {
-      const neededExam = calculateMinimumExamGrade({
-        controlsAverage: finalControlsAverage,
-        targetFinalGrade: config.directPassGrade,
-        controlsWeight: config.controlsWeightForExam,
-        examWeight: config.examWeight
-      })
-      neededExamText.textContent = formatRequirement(neededExam)
-    } else {
-      neededExamText.textContent = "No aplica"
-    }
-  }
+    const status = resolveAcademicStatus({ isExempt, requiresExam, isDirectFail, summary })
 
-  function readConfig() {
     return {
-      directPassGrade: Number(directPassInput.value) || defaults.directPassGrade,
-      examThreshold: Number(examThresholdInput.value) || defaults.examThreshold,
-      exemptionThreshold: Number(exemptionThresholdInput.value) || defaults.exemptionThreshold,
-      examWeight: Number(examWeightInput.value) || defaults.examWeight,
-      controlsWeightForExam: Number(controlsWeightForExamInput.value) || defaults.controlsWeightForExam
+      status,
+      currentAverage,
+      displayAverage: currentAverage === null ? "Promedio: —" : `Promedio: ${formatGrade(currentAverage)}`,
+      needExamText: requiresExam ? "Sí" : (isExempt || isDirectFail ? "No" : "Aún no definido"),
+      displayNeededForExemption: formatRequirement(neededForExemption),
+      displayNeededForFour: formatRequirement(neededForFour),
+      displayNeededExam: requiresExam ? formatRequirement(neededExam) : "No aplica",
+      validationErrors
     }
   }
 
-  function validateControls(config) {
+  function getSortedSubjects() {
+    const list = [...state.subjects]
+    const mode = state.sortMode
+
+    if (mode === "manual") {
+      return list.sort((a, b) => a.order - b.order)
+    }
+
+    if (mode === "name") {
+      return list.sort((a, b) => (a.name || "").localeCompare(b.name || "", "es", { sensitivity: "base" }))
+    }
+
+    if (mode === "average") {
+      return list.sort((a, b) => {
+        const avgA = evaluateSubject(a).currentAverage ?? -1
+        const avgB = evaluateSubject(b).currentAverage ?? -1
+        return avgB - avgA
+      })
+    }
+
+    if (mode === "status") {
+      return list.sort((a, b) => {
+        const statusA = evaluateSubject(a).status
+        const statusB = evaluateSubject(b).status
+        return (statusPriority[statusA] || 99) - (statusPriority[statusB] || 99)
+      })
+    }
+
+    return list
+  }
+
+  function reorderSubjects(dragId, targetId) {
+    const manual = [...state.subjects].sort((a, b) => a.order - b.order)
+    const fromIndex = manual.findIndex(subject => subject.id === dragId)
+    const targetIndex = manual.findIndex(subject => subject.id === targetId)
+    if (fromIndex < 0 || targetIndex < 0) return
+
+    const [moved] = manual.splice(fromIndex, 1)
+    manual.splice(targetIndex, 0, moved)
+
+    state.subjects = manual
+    reindexManualOrder()
+  }
+
+  function reindexManualOrder() {
+    const manual = [...state.subjects].sort((a, b) => a.order - b.order)
+    manual.forEach((subject, index) => {
+      subject.order = index
+    })
+    state.subjects = manual
+  }
+
+  function saveAndRender(save = true) {
+    if (save) saveState()
+    else saveState()
+    renderAll()
+  }
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+  }
+
+  function validateControls(controls, config) {
     const errors = []
 
     const totalWeight = controls.reduce((sum, item) => sum + (Number(item.weight) || 0), 0)
@@ -369,5 +625,14 @@
 
     if (!Number.isFinite(needed)) return null
     return Math.max(1, needed)
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#039;")
   }
 })()

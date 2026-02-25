@@ -252,72 +252,103 @@
   </div>
 
   <div class="grade-layout">
-    <section class="grade-panel" id="gradeCalculatorPanel" aria-label="Calculadora de notas académicas">
+    <section class="grade-panel" id="gradeCalculatorPanel" aria-label="Calculadora de notas por ramo">
       <div class="grade-head">
         <div class="grade-title">
-          <h3>Calculadora de notas académicas</h3>
-          <span>Configura tus reglas y proyecta si apruebas directo, con examen o si repruebas.</span>
+          <h3>Calculadora de notas por ramo</h3>
+          <span>Crea ramos y calcula su estado académico de forma independiente.</span>
         </div>
       </div>
 
-      <div class="grade-config-grid">
-        <label class="grade-field">
-          <span>Número de controles</span>
-          <input type="number" id="gradeControlsCount" min="1" max="30" step="1" value="4">
-        </label>
-        <label class="grade-field">
-          <span>Nota aprobación directa</span>
-          <input type="number" id="directPassGrade" min="1" max="7" step="0.1" value="4.0">
-        </label>
-        <label class="grade-field">
-          <span>Nota mínima para examen</span>
-          <input type="number" id="examThresholdGrade" min="1" max="7" step="0.1" value="3.5">
-        </label>
-        <label class="grade-field">
-          <span>Nota mínima para eximirse</span>
-          <input type="number" id="exemptionThresholdGrade" min="1" max="7" step="0.1" value="5.5">
-        </label>
-        <label class="grade-field">
-          <span>Porcentaje examen (%)</span>
-          <input type="number" id="examWeight" min="0" max="100" step="0.1" value="30">
-        </label>
-        <label class="grade-field">
-          <span>Ponderación controles (con examen) %</span>
-          <input type="number" id="controlsWeightForExam" min="0" max="100" step="0.1" value="70">
-        </label>
-      </div>
+      <div class="grade-subjects-layout">
+        <aside class="grade-subjects-panel" aria-label="Gestión de ramos">
+          <div class="grade-subjects-create">
+            <input type="text" id="gradeSubjectNameInput" class="grade-subject-name-input" placeholder="Nombre del ramo">
+            <button class="grade-btn" id="gradeAddSubjectBtn" type="button">Crear ramo</button>
+          </div>
 
-      <div class="grade-controls-head">
-        <h4>Controles</h4>
-        <button class="grade-btn" id="addGradeControlBtn" type="button">Agregar control</button>
-      </div>
-      <div class="grade-controls" id="gradeControlsContainer"></div>
-      <div class="grade-validation" id="gradeValidation" role="alert" aria-live="polite"></div>
+          <div class="grade-subjects-toolbar">
+            <label class="grade-sort-field" for="gradeSortMode">
+              <span>Ordenar por</span>
+              <select id="gradeSortMode">
+                <option value="manual">Manual</option>
+                <option value="name">Nombre (A-Z)</option>
+                <option value="average">Promedio actual</option>
+                <option value="status">Estado académico</option>
+              </select>
+            </label>
+          </div>
 
-      <div class="grade-results">
-        <div class="grade-result-card">
-          <span>Estado académico</span>
-          <strong id="gradeStatus">Estado académico: En progreso</strong>
-        </div>
-        <div class="grade-result-card">
-          <span>Nota actual (controles ingresados)</span>
-          <strong id="gradeCurrentAverage">—</strong>
-        </div>
-        <div class="grade-result-card">
-          <span>¿Necesita examen?</span>
-          <strong id="gradeNeedExam">Aún no definido</strong>
-        </div>
-        <div class="grade-result-card">
-          <span>Nota mínima en controles restantes para eximirse</span>
-          <strong id="gradeNeedForExemption">—</strong>
-        </div>
-        <div class="grade-result-card">
-          <span>Nota mínima en controles restantes para asegurar 4.0</span>
-          <strong id="gradeNeedForFour">—</strong>
-        </div>
-        <div class="grade-result-card">
-          <span>Nota mínima de examen para aprobar</span>
-          <strong id="gradeNeedExamMin">No aplica</strong>
+          <div class="grade-subjects-hint" id="gradeSubjectsHint">Arrastra para reordenar en modo Manual.</div>
+          <div class="grade-subjects-list" id="gradeSubjectsList"></div>
+        </aside>
+
+        <div class="grade-editor-panel" id="gradeEditorPanel">
+          <div class="grade-editor-head">
+            <input type="text" id="gradeSelectedSubjectName" class="grade-selected-name" placeholder="Nombre del ramo seleccionado">
+            <button class="grade-danger-btn" id="gradeDeleteSubjectBtn" type="button">Eliminar ramo</button>
+          </div>
+
+          <div class="grade-config-grid">
+            <label class="grade-field">
+              <span>Número de controles</span>
+              <input type="number" id="gradeControlsCount" min="1" max="30" step="1" value="4">
+            </label>
+            <label class="grade-field">
+              <span>Nota aprobación directa</span>
+              <input type="number" id="directPassGrade" min="1" max="7" step="0.1" value="4.0">
+            </label>
+            <label class="grade-field">
+              <span>Nota mínima para examen</span>
+              <input type="number" id="examThresholdGrade" min="1" max="7" step="0.1" value="3.5">
+            </label>
+            <label class="grade-field">
+              <span>Nota mínima para eximirse</span>
+              <input type="number" id="exemptionThresholdGrade" min="1" max="7" step="0.1" value="5.5">
+            </label>
+            <label class="grade-field">
+              <span>Porcentaje examen (%)</span>
+              <input type="number" id="examWeight" min="0" max="100" step="0.1" value="30">
+            </label>
+            <label class="grade-field">
+              <span>Ponderación controles (con examen) %</span>
+              <input type="number" id="controlsWeightForExam" min="0" max="100" step="0.1" value="70">
+            </label>
+          </div>
+
+          <div class="grade-controls-head">
+            <h4>Controles del ramo</h4>
+            <button class="grade-btn" id="addGradeControlBtn" type="button">Agregar control</button>
+          </div>
+          <div class="grade-controls" id="gradeControlsContainer"></div>
+          <div class="grade-validation" id="gradeValidation" role="alert" aria-live="polite"></div>
+
+          <div class="grade-results">
+            <div class="grade-result-card">
+              <span>Estado académico</span>
+              <strong id="gradeStatus">Estado académico: En progreso</strong>
+            </div>
+            <div class="grade-result-card">
+              <span>Nota actual (controles ingresados)</span>
+              <strong id="gradeCurrentAverage">—</strong>
+            </div>
+            <div class="grade-result-card">
+              <span>¿Necesita examen?</span>
+              <strong id="gradeNeedExam">Aún no definido</strong>
+            </div>
+            <div class="grade-result-card">
+              <span>Nota mínima en controles restantes para eximirse</span>
+              <strong id="gradeNeedForExemption">—</strong>
+            </div>
+            <div class="grade-result-card">
+              <span>Nota mínima en controles restantes para asegurar 4.0</span>
+              <strong id="gradeNeedForFour">—</strong>
+            </div>
+            <div class="grade-result-card">
+              <span>Nota mínima de examen para aprobar</span>
+              <strong id="gradeNeedExamMin">No aplica</strong>
+            </div>
+          </div>
         </div>
       </div>
     </section>
