@@ -1,0 +1,211 @@
+(function () {
+  const STORAGE_KEY = "calendarEvents"
+  const DAYS_ES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+
+  const panel = document.getElementById("calendarPanel")
+  const monthLabel = document.getElementById("calendarMonthLabel")
+  const weekdaysContainer = document.getElementById("calendarWeekdays")
+  const grid = document.getElementById("calendarGrid")
+  const prevBtn = document.getElementById("calendarPrevBtn")
+  const nextBtn = document.getElementById("calendarNextBtn")
+
+  if (!panel || !monthLabel || !weekdaysContainer || !grid || !prevBtn || !nextBtn) return
+
+  let eventsByDate = loadEvents()
+  let currentDate = new Date()
+  currentDate.setDate(1)
+
+  renderWeekdays()
+  renderCalendar()
+
+  prevBtn.addEventListener("click", () => {
+    currentDate.setMonth(currentDate.getMonth() - 1)
+    renderCalendar()
+  })
+
+  nextBtn.addEventListener("click", () => {
+    currentDate.setMonth(currentDate.getMonth() + 1)
+    renderCalendar()
+  })
+
+  function loadEvents() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")
+      return parsed && typeof parsed === "object" ? parsed : {}
+    } catch (_error) {
+      return {}
+    }
+  }
+
+  function saveEvents() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(eventsByDate))
+  }
+
+  function renderWeekdays() {
+    weekdaysContainer.innerHTML = ""
+    DAYS_ES.forEach(day => {
+      const el = document.createElement("div")
+      el.className = "calendar-weekday"
+      el.textContent = day
+      weekdaysContainer.appendChild(el)
+    })
+  }
+
+  function formatDateKey(date) {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, "0")
+    const day = String(date.getDate()).padStart(2, "0")
+    return `${year}-${month}-${day}`
+  }
+
+  function renderCalendar() {
+    const monthFormatter = new Intl.DateTimeFormat("es-ES", {
+      month: "long",
+      year: "numeric"
+    })
+
+    monthLabel.textContent = monthFormatter.format(currentDate)
+    grid.innerHTML = ""
+
+    const year = currentDate.getFullYear()
+    const month = currentDate.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+    const startOffset = (firstDay.getDay() + 6) % 7
+
+    for (let i = 0; i < startOffset; i += 1) {
+      const outsideDate = new Date(year, month, -startOffset + i + 1)
+      grid.appendChild(createDayCell(outsideDate, true))
+    }
+
+    for (let day = 1; day <= daysInMonth; day += 1) {
+      const date = new Date(year, month, day)
+      grid.appendChild(createDayCell(date, false))
+    }
+
+    const totalCells = grid.childElementCount
+    const remain = (7 - (totalCells % 7)) % 7
+
+    for (let i = 1; i <= remain; i += 1) {
+      const outsideDate = new Date(year, month + 1, i)
+      grid.appendChild(createDayCell(outsideDate, true))
+    }
+  }
+
+  function createDayCell(date, outsideMonth) {
+    const cell = document.createElement("button")
+    cell.type = "button"
+    cell.className = "calendar-day"
+    if (outsideMonth) cell.classList.add("calendar-day--outside")
+
+    const today = new Date()
+    if (
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
+    ) {
+      cell.classList.add("calendar-day--today")
+    }
+
+    const number = document.createElement("div")
+    number.className = "calendar-day-number"
+    number.textContent = String(date.getDate())
+    cell.appendChild(number)
+
+    const eventsWrap = document.createElement("div")
+    eventsWrap.className = "calendar-events"
+    cell.appendChild(eventsWrap)
+
+    const dateKey = formatDateKey(date)
+    const events = Array.isArray(eventsByDate[dateKey]) ? eventsByDate[dateKey] : []
+
+    events.forEach((event, index) => {
+      eventsWrap.appendChild(createEventElement(dateKey, event, index))
+    })
+
+    if (!outsideMonth) {
+      cell.addEventListener("click", () => {
+        const text = window.prompt("Nuevo evento:")
+        if (!text) return
+        const cleanText = text.trim()
+        if (!cleanText) return
+
+        const nextEvents = Array.isArray(eventsByDate[dateKey]) ? [...eventsByDate[dateKey]] : []
+        nextEvents.push({ text: cleanText, completed: false })
+        eventsByDate[dateKey] = nextEvents
+        saveEvents()
+        renderCalendar()
+      })
+    } else {
+      cell.disabled = true
+    }
+
+    return cell
+  }
+
+  function createEventElement(dateKey, event, index) {
+    const row = document.createElement("div")
+    row.className = "calendar-event"
+    if (event.completed) row.classList.add("completed")
+
+    row.addEventListener("click", e => e.stopPropagation())
+
+    const checkbox = document.createElement("input")
+    checkbox.type = "checkbox"
+    checkbox.className = "calendar-event-checkbox"
+    checkbox.checked = Boolean(event.completed)
+    checkbox.addEventListener("change", () => {
+      const list = Array.isArray(eventsByDate[dateKey]) ? [...eventsByDate[dateKey]] : []
+      if (!list[index]) return
+      list[index] = { ...list[index], completed: checkbox.checked }
+      eventsByDate[dateKey] = list
+      saveEvents()
+      renderCalendar()
+    })
+
+    const input = document.createElement("input")
+    input.type = "text"
+    input.className = "calendar-event-text"
+    input.value = event.text || ""
+    input.setAttribute("aria-label", "Editar evento")
+
+    input.addEventListener("click", e => e.stopPropagation())
+    input.addEventListener("change", () => {
+      const list = Array.isArray(eventsByDate[dateKey]) ? [...eventsByDate[dateKey]] : []
+      if (!list[index]) return
+      const newText = input.value.trim()
+      if (!newText) {
+        input.value = list[index].text || ""
+        return
+      }
+      list[index] = { ...list[index], text: newText }
+      eventsByDate[dateKey] = list
+      saveEvents()
+      renderCalendar()
+    })
+
+    const del = document.createElement("button")
+    del.type = "button"
+    del.className = "calendar-event-delete"
+    del.textContent = "✕"
+    del.setAttribute("aria-label", "Eliminar evento")
+    del.addEventListener("click", () => {
+      const list = Array.isArray(eventsByDate[dateKey]) ? [...eventsByDate[dateKey]] : []
+      if (!list[index]) return
+      list.splice(index, 1)
+      if (list.length) {
+        eventsByDate[dateKey] = list
+      } else {
+        delete eventsByDate[dateKey]
+      }
+      saveEvents()
+      renderCalendar()
+    })
+
+    row.appendChild(checkbox)
+    row.appendChild(input)
+    row.appendChild(del)
+    return row
+  }
+})()
