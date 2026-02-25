@@ -871,15 +871,18 @@ function prepararListaMaterias(lista) {
 function prepararZonaDocumentosCarpeta(zona, carpetaId) {
   if (!zona) return
 
+  const obtenerDocumentoArrastrado = e =>
+    documentoArrastradoId || e?.dataTransfer?.getData("text/plain") || null
+
   zona.addEventListener("dragover", e => {
-    if (!documentoArrastradoId) return
+    if (!obtenerDocumentoArrastrado(e)) return
     e.preventDefault()
     zona.classList.add("drop-activa")
     if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
   })
 
-  zona.addEventListener("dragenter", () => {
-    if (!documentoArrastradoId) return
+  zona.addEventListener("dragenter", e => {
+    if (!obtenerDocumentoArrastrado(e)) return
     zona.classList.add("drop-activa")
   })
 
@@ -888,10 +891,11 @@ function prepararZonaDocumentosCarpeta(zona, carpetaId) {
   })
 
   zona.addEventListener("drop", e => {
-    if (!documentoArrastradoId) return
+    const documentoId = obtenerDocumentoArrastrado(e)
+    if (!documentoId) return
     e.preventDefault()
     zona.classList.remove("drop-activa")
-    moverDocumentoACarpeta(documentoArrastradoId, carpetaId)
+    moverDocumentoACarpeta(documentoId, carpetaId)
     documentoArrastradoId = null
   })
 }
@@ -899,15 +903,18 @@ function prepararZonaDocumentosCarpeta(zona, carpetaId) {
 function prepararListaDocumentosSidebar(lista) {
   if (!lista) return
 
+  const obtenerDocumentoArrastrado = e =>
+    documentoArrastradoId || e?.dataTransfer?.getData("text/plain") || null
+
   lista.addEventListener("dragover", e => {
-    if (!documentoArrastradoId) return
+    if (!obtenerDocumentoArrastrado(e)) return
     e.preventDefault()
     lista.classList.add("drop-activa")
     if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
   })
 
-  lista.addEventListener("dragenter", () => {
-    if (!documentoArrastradoId) return
+  lista.addEventListener("dragenter", e => {
+    if (!obtenerDocumentoArrastrado(e)) return
     lista.classList.add("drop-activa")
   })
 
@@ -916,11 +923,12 @@ function prepararListaDocumentosSidebar(lista) {
   })
 
   lista.addEventListener("drop", e => {
-    if (!documentoArrastradoId) return
+    const documentoId = obtenerDocumentoArrastrado(e)
+    if (!documentoId) return
     e.preventDefault()
     lista.classList.remove("drop-activa")
-    const cambio = removerDocumentoDeCarpetas(documentoArrastradoId)
-    documentoSeleccionadoEnCarpetaId = documentoArrastradoId
+    const cambio = removerDocumentoDeCarpetas(documentoId)
+    documentoSeleccionadoEnCarpetaId = documentoId
     documentoArrastradoId = null
     if (cambio) ordenarYMostrar()
   })
