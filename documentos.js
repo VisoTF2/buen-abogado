@@ -71,6 +71,10 @@ function restaurarDocumentoDesdeCarpeta(documentoId) {
     ...documentosCargados.filter(d => d.id !== documentoId)
   ]
 
+  if (typeof removerDocumentoDeCarpetas === "function") {
+    removerDocumentoDeCarpetas(documentoId)
+  }
+
   guardarDocumentos()
   renderDocumentos()
   mostrarDocumento(documentoId)

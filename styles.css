@@ -2342,15 +2342,31 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   cursor: grabbing;
 }
 
-.carpetaDocumentoDetalle {
-  font-size: 16px;
+.carpetaDocumentoQuitar {
+  border: 1px solid var(--danger-solid-border);
+  background: var(--danger-solid-bg);
+  color: var(--danger-solid-text);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.carpetaDocumentoQuitar:hover {
+  filter: brightness(0.95);
+}
+
+.carpetaDocumentoDetalle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
   width: 100%;
   min-width: 0;
   white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
   line-height: 1.35;
 }
 
