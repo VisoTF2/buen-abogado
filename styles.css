@@ -1286,11 +1286,17 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       opacity: 0.8;
     }
 
-    .grade-head,
+    .grade-head {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
     .grade-title {
       display: flex;
       flex-direction: column;
       gap: 6px;
+      align-items: flex-start;
     }
 
     .grade-title h3 {
@@ -1995,6 +2001,17 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   gap: var(--space-2);
 }
 
+.carpetasLista > .carpetaGrupoSemestre .carpetaBox:first-child {
+  margin-top: 34px;
+}
+
+.carpetaGrupoSemestre {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
 .sidebarGroup {
   display: flex;
   flex-direction: column;
@@ -2010,7 +2027,19 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   padding: 14px;
   background: var(--card);
   box-shadow: var(--card-shadow-elevated);
+  margin-top: var(--space-3);
+}
+
+.carpetaBox.carpeta-apilada {
   margin-top: 0;
+  border-top: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.carpetaGrupoSemestre .carpetaBox:not(:last-child) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .carpetaBox.is-dragging { opacity: 0.72; }
@@ -2020,18 +2049,21 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 }
 
 .carpetaSemestreAleta {
-  position: static;
-  min-width: 0;
-  max-width: 100%;
-  width: fit-content;
-  padding: 4px 10px;
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 120px;
+  max-width: calc(100% - 24px);
+  padding: 5px 12px;
   border: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
-  border-radius: 999px;
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
   background: color-mix(in srgb, var(--card) 96%, transparent);
   box-sizing: border-box;
   text-align: center;
   box-shadow: none;
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
 .carpetaSemestreTexto {

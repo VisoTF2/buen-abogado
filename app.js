@@ -1451,12 +1451,29 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
 
   const carpetasOrdenadas = obtenerCarpetasOrdenadas()
   const docActualEnPreview = document.getElementById("visorDocumentos")?.dataset.docActual || ""
+  const grupos = new Map()
 
   carpetasOrdenadas.forEach(carpeta => {
+    const key = claveSemestre(carpeta.semestre)
+    if (!grupos.has(key)) {
+      grupos.set(key, {
+        semestre: normalizarSemestre(carpeta.semestre),
+        items: []
+      })
+    }
+    grupos.get(key).items.push(carpeta)
+  })
+
+  Array.from(grupos.values()).forEach(grupo => {
+      const grupoEl = document.createElement("div")
+      grupoEl.className = "carpetaGrupoSemestre"
+
+    grupo.items.forEach((carpeta, index) => {
       const colorCarpeta = carpeta.color || "#1e3a8a"
 
       const card = document.createElement("div")
       card.className = "carpetaBox"
+      if (index > 0) card.classList.add("carpeta-apilada")
       card.dataset.carpetaId = carpeta.id
       if (carpeta.colapsada) card.classList.add("carpeta-colapsada")
       card.style.setProperty("--carpeta-color", colorCarpeta)
@@ -1495,15 +1512,17 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
         ordenarYMostrar()
       })
 
-      const aleta = document.createElement("div")
-      aleta.className = "carpetaSemestreAleta"
-      const semestreLabel = document.createElement("div")
-      semestreLabel.className = "carpetaSemestreTexto"
-      semestreLabel.textContent = normalizarSemestre(carpeta.semestre)
-      configurarSemestreEditableCarpeta(carpeta, semestreLabel)
+      if (index === 0) {
+        const aleta = document.createElement("div")
+        aleta.className = "carpetaSemestreAleta"
+        const semestreLabel = document.createElement("div")
+        semestreLabel.className = "carpetaSemestreTexto"
+        semestreLabel.textContent = normalizarSemestre(carpeta.semestre)
+        configurarSemestreEditableCarpeta(carpeta, semestreLabel)
 
-      aleta.appendChild(semestreLabel)
-      card.appendChild(aleta)
+        aleta.appendChild(semestreLabel)
+        card.appendChild(aleta)
+      }
 
       const header = document.createElement("div")
       header.className = "carpetaHeader"
@@ -1682,7 +1701,10 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
 
       card.appendChild(documentosTitulo)
       card.appendChild(zonaDocumentos)
-      contenedor.appendChild(card)
+      grupoEl.appendChild(card)
+    })
+
+      contenedor.appendChild(grupoEl)
   })
 }
 
