@@ -144,6 +144,41 @@ function crearCarpeta(nombre) {
   }
 }
 
+function obtenerSemestreDeNombreCarpeta(nombre = "") {
+  const match = String(nombre).match(/semestre\s*(\d+)/i) || String(nombre).match(/\b(\d{1,2})\b/)
+  return match ? Number(match[1]) : null
+}
+
+function ordenarCarpetasPorSemestre() {
+  const conIndice = carpetas.map((carpeta, index) => ({
+    carpeta,
+    index,
+    semestre: obtenerSemestreDeNombreCarpeta(carpeta.nombre)
+  }))
+
+  conIndice.sort((a, b) => {
+    const aTiene = Number.isFinite(a.semestre)
+    const bTiene = Number.isFinite(b.semestre)
+
+    if (aTiene && bTiene && a.semestre !== b.semestre) {
+      return a.semestre - b.semestre
+    }
+
+    if (aTiene !== bTiene) return aTiene ? -1 : 1
+
+    const porNombre = (a.carpeta.nombre || "").localeCompare(b.carpeta.nombre || "", "es", {
+      sensitivity: "base"
+    })
+
+    if (porNombre !== 0) return porNombre
+    return a.index - b.index
+  })
+
+  carpetas = conIndice.map(item => item.carpeta)
+  guardarCarpetas()
+  ordenarYMostrar()
+}
+
 function configurarNombreEditableCarpeta(carpeta, nombreEl) {
   if (!nombreEl) return
   nombreEl.setAttribute("contenteditable", "true")
@@ -1216,9 +1251,17 @@ function ordenarYMostrar() {
   const tituloCarpetas = document.createElement("div")
   tituloCarpetas.className = "sidebarGroupTitle"
   tituloCarpetas.textContent = "Carpetas"
+
+  const ordenarSemestresBtn = document.createElement("button")
+  ordenarSemestresBtn.type = "button"
+  ordenarSemestresBtn.className = "btn-carpeta btn-carpeta-secundario"
+  ordenarSemestresBtn.textContent = "Ordenar por semestre"
+  ordenarSemestresBtn.addEventListener("click", ordenarCarpetasPorSemestre)
+
   const listaCarpetas = document.createElement("div")
   listaCarpetas.className = "carpetasLista"
   seccionCarpetas.appendChild(tituloCarpetas)
+  seccionCarpetas.appendChild(ordenarSemestresBtn)
   seccionCarpetas.appendChild(listaCarpetas)
   sidebar.appendChild(seccionCarpetas)
   nuevaCarpetaBtn.addEventListener("click", () => insertarEditorCarpeta(listaCarpetas))

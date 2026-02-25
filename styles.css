@@ -1486,6 +1486,19 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 .btn-carpeta:hover { background: var(--accent-light); }
 .btn-carpeta:active { transform: translateY(1px); }
 
+.btn-carpeta-secundario {
+  background: var(--card);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.btn-carpeta-secundario:hover {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: var(--accent-light);
+}
+
 .carpetasSection {
   display: flex;
   flex-direction: column;
