@@ -50,7 +50,7 @@
     !deleteSubjectBtn || !sortModeSelect || !controlsContainer || !controlsCountInput || !directPassInput ||
     !examThresholdInput || !exemptionThresholdInput || !examWeightInput || !controlsWeightForExamInput ||
     !validationBox || !statusText || !currentAverageText || !needExamText || !remainingWithoutExamText ||
-    !remainingToFourText || !neededExamText || !addControlBtn
+    !remainingToFourText || !neededExamText
   ) return
 
   let state = loadState()
@@ -111,12 +111,14 @@
         renderSubjectsList(subject)
       }))
 
-    addControlBtn.addEventListener("click", () => {
-      const subject = getSelectedSubject()
-      if (!subject) return
-      setControlsCount(subject, subject.controls.length + 1)
-      saveAndRender()
-    })
+    if (addControlBtn) {
+      addControlBtn.addEventListener("click", () => {
+        const subject = getSelectedSubject()
+        if (!subject) return
+        setControlsCount(subject, subject.controls.length + 1)
+        saveAndRender()
+      })
+    }
   }
 
   function loadState() {
@@ -310,7 +312,7 @@
     exemptionThresholdInput.disabled = false
     examWeightInput.disabled = false
     controlsWeightForExamInput.disabled = false
-    addControlBtn.disabled = false
+    if (addControlBtn) addControlBtn.disabled = false
 
     selectedSubjectNameInput.value = subject.name
     controlsCountInput.value = subject.controls.length
