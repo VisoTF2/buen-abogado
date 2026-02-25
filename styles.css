@@ -2728,7 +2728,7 @@ body.oscuro .modal-close:hover {
 
 .form-articulo {
   background: transparent;
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-4);
   border-radius: 12px;
   border: none;
   box-shadow: none;
@@ -2746,10 +2746,12 @@ body.oscuro .modal-close:hover {
 }
     .contenidoArticulos {
       margin-top: 12px;
+      padding: 0 var(--space-4);
       flex: 1 0 auto;
       display: flex;
       flex-direction: column;
       gap: 10px;
+      box-sizing: border-box;
     }
 
     .estado-vacio {
