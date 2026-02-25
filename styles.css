@@ -986,20 +986,22 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .calendar-event-editor-actions {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
       width: 100%;
+      align-items: stretch;
     }
 
     .calendar-event-editor-save,
     .calendar-event-editor-cancel {
-      flex: 1 1 0;
       width: 100%;
       border: none;
       border-radius: 7px;
       padding: 7px 10px;
       font-size: 12px;
       font-weight: 700;
+      text-align: center;
       cursor: pointer;
       transition: filter 0.15s ease, transform 0.12s ease;
     }
@@ -1056,7 +1058,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
 
     .media-panel.is-empty {
@@ -1071,7 +1073,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .media-head {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
 
     .media-title h3 {
@@ -1130,6 +1132,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     body.oscuro .media-error {
       color: #f87171;
+    }
+
+    .media-panel:not(.is-empty) .media-grid {
+      margin-top: 2px;
     }
 
     .media-grid {
