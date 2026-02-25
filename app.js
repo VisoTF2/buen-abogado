@@ -38,13 +38,46 @@ let articuloArrastradoId = null
 let materiaArrastrada = null
 let materiaArrastradaNormativa = null
 let materiaArrastradaCarpetaId = null
-let carpetaArrastradaId = null
+let carpetaPointerDragId = null
+let carpetaPointerDropId = null
 let documentoSeleccionadoEnCarpetaId = null
 
 reindexarOrdenCarpetasManual()
 
 modalConfiguracion?.addEventListener("click", e => {
   if (e.target === modalConfiguracion) cerrarModalConfiguracion()
+})
+
+document.addEventListener("pointerup", e => {
+  let requiereReorden = false
+  if (carpetaPointerDragId && carpetaPointerDropId && carpetaPointerDropId !== carpetaPointerDragId) {
+      reordenarCarpetas(carpetaPointerDragId, carpetaPointerDropId)
+      requiereReorden = true
+  }
+
+  carpetaPointerDragId = null
+  carpetaPointerDropId = null
+  document.querySelectorAll(".carpetaBox").forEach(el => {
+    el.classList.remove("is-dragging")
+    el.classList.remove("is-drag-over")
+  })
+
+  if (requiereReorden) {
+    ordenarYMostrar()
+  }
+})
+
+document.addEventListener("pointermove", e => {
+  if (!carpetaPointerDragId || (e.buttons & 1) !== 1) return
+
+  carpetaPointerDropId = null
+  document.querySelectorAll(".carpetaBox").forEach(el => el.classList.remove("is-drag-over"))
+  const targetCard = document.elementFromPoint(e.clientX, e.clientY)?.closest?.(".carpetaBox")
+  if (!targetCard) return
+  const targetId = targetCard.dataset?.carpetaId
+  if (!targetId || targetId === carpetaPointerDragId) return
+  carpetaPointerDropId = targetId
+  targetCard.classList.add("is-drag-over")
 })
 
 function manejarReordenArticulos(e) {
@@ -1478,39 +1511,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
       if (carpeta.colapsada) card.classList.add("carpeta-colapsada")
       card.style.setProperty("--carpeta-color", colorCarpeta)
       card.style.borderColor = colorCarpeta
-      card.draggable = true
-
-      card.addEventListener("dragstart", e => {
-        carpetaArrastradaId = carpeta.id
-        card.classList.add("is-dragging")
-        if (e.dataTransfer) {
-          e.dataTransfer.effectAllowed = "move"
-          e.dataTransfer.setData("text/plain", carpeta.id)
-        }
-      })
-
-      card.addEventListener("dragend", () => {
-        card.classList.remove("is-dragging")
-        card.classList.remove("is-drag-over")
-        carpetaArrastradaId = null
-        document.querySelectorAll(".carpetaBox").forEach(el => el.classList.remove("is-drag-over"))
-      })
-
-      card.addEventListener("dragover", e => {
-        if (!carpetaArrastradaId) return
-        e.preventDefault()
-        card.classList.add("is-drag-over")
-      })
-
-      card.addEventListener("dragleave", () => card.classList.remove("is-drag-over"))
-
-      card.addEventListener("drop", e => {
-        e.preventDefault()
-        card.classList.remove("is-drag-over")
-        if (!carpetaArrastradaId || carpetaArrastradaId === carpeta.id) return
-        reordenarCarpetas(carpetaArrastradaId, carpeta.id)
-        ordenarYMostrar()
-      })
+      card.draggable = false
 
       if (index === 0) {
         const aleta = document.createElement("div")
@@ -1526,6 +1527,13 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
 
       const header = document.createElement("div")
       header.className = "carpetaHeader"
+      header.draggable = false
+      header.addEventListener("pointerdown", e => {
+        if (e.button !== 0) return
+        carpetaPointerDragId = carpeta.id
+        carpetaPointerDropId = null
+        card.classList.add("is-dragging")
+      })
 
       const tituloWrap = document.createElement("div")
       tituloWrap.className = "carpetaTituloWrap"

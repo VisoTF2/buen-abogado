@@ -1174,7 +1174,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-subject-item {
       border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
       border-radius: 10px;
-      background: var(--card);
+      background: var(--article-bg);
       color: var(--text);
       text-align: left;
       padding: 8px 9px;
@@ -1206,7 +1206,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-subject-item.is-active {
       border-color: var(--accent-light);
       box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.16);
-      background: color-mix(in srgb, var(--card) 95%, var(--accent) 5%);
+      background: color-mix(in srgb, var(--article-bg) 88%, var(--accent) 12%);
     }
 
     .grade-subject-item.is-dragging {
@@ -1215,7 +1215,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-subject-item.is-drag-over {
       border-color: var(--accent);
-      background: color-mix(in srgb, var(--card) 92%, var(--accent) 8%);
+      background: color-mix(in srgb, var(--article-bg) 86%, var(--accent) 14%);
     }
 
     .grade-editor-head {
@@ -2068,6 +2068,11 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   justify-content: space-between;
   gap: var(--space-3);
   margin-bottom: var(--space-2);
+  cursor: grab;
+}
+
+.carpetaHeader:active {
+  cursor: grabbing;
 }
 
 .carpetaTituloWrap {
