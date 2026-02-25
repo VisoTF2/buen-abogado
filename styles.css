@@ -808,19 +808,19 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .calendar-title {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
     }
 
     .calendar-title h3 {
       margin: 0;
-      font-size: 16px;
+      font-size: 20px;
       line-height: 1.25;
       color: var(--accent);
     }
 
     .calendar-title span {
-      font-size: 12px;
-      line-height: 1.35;
+      font-size: 14px;
+      line-height: 1.45;
       color: #4b5563;
     }
 
