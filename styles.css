@@ -964,8 +964,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       gap: 8px;
       padding: 8px;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--card);
+      border-style: dashed;
+      border-radius: 12px;
+      background: var(--article-bg);
+      box-shadow: var(--card-shadow-elevated);
     }
 
     .calendar-event-editor-input {
