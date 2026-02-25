@@ -2033,10 +2033,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   position: relative;
   border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
   border-radius: 12px;
-  padding: 14px;
+  padding: 10px 12px;
   background: var(--card);
   box-shadow: none;
-  margin-top: var(--space-3);
+  margin-top: var(--space-2);
 }
 
 .carpetaBox.carpeta-apilada {
@@ -2104,7 +2104,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  margin-bottom: var(--space-2);
+  margin-bottom: 6px;
   cursor: grab;
 }
 
@@ -2125,8 +2125,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   background: transparent;
   color: #64748b;
   border-radius: 10px;
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -2147,9 +2147,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
-  font-size: 20px;
+  width: 22px;
+  height: 22px;
+  font-size: 18px;
   line-height: 1;
   transform-origin: center;
   transition: transform 0.2s ease;
@@ -2299,13 +2299,13 @@ body.oscuro .carpetaToggle {
   font-weight: 700;
   font-size: 13px;
   color: var(--accent);
-  margin: var(--space-3) 4px 6px;
+  margin: 8px 4px 4px;
 }
 
 .carpetaDocumentos {
   border: 1px dashed transparent;
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: var(--article-bg);
   display: flex;
   flex-direction: column;
@@ -2328,7 +2328,7 @@ body.oscuro .carpetaToggle {
 .carpetaDocumentosVacio {
   font-size: 13px;
   color: var(--muted-text);
-  padding: 6px 0;
+  padding: 2px 0;
   min-height: 0;
   display: flex;
   align-items: center;
@@ -2389,12 +2389,13 @@ body.oscuro .carpetaToggle {
 .carpetaVacia {
   font-size: 13px;
   color: var(--muted-text);
-  padding: 6px 8px;
-  min-height: var(--carpeta-slot-height);
+  padding: 2px 8px;
+  min-height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
+  line-height: 1.25;
 }
 
 .sidebarItemCarpeta {
