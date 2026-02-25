@@ -1059,7 +1059,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 8px;
     }
 
     .media-panel.is-empty {
@@ -1074,7 +1074,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .media-head {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .media-title h3 {
@@ -1122,7 +1122,13 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .media-error {
       font-size: 13px;
       color: #dc2626;
-      min-height: 18px;
+      min-height: 0;
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    .media-error:empty {
+      display: none;
     }
 
     body.oscuro .media-error {
