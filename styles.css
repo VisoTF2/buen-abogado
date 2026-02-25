@@ -1062,8 +1062,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .media-panel.is-empty {
-      padding-bottom: 8px;
-      gap: 6px;
+      padding-bottom: 16px;
+      gap: 8px;
     }
 
     .media-panel.is-empty .media-grid {
