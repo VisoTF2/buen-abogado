@@ -887,6 +887,12 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
     }
 
+    .calendar-day:focus,
+    .calendar-day:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+    }
+
     .calendar-day--outside {
       opacity: 0.45;
       cursor: default;
@@ -955,11 +961,11 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .calendar-event-editor {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      padding: 6px;
-      border: 1px dashed var(--accent-light);
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid var(--border);
       border-radius: 8px;
-      background: rgba(59, 130, 246, 0.08);
+      background: var(--card);
     }
 
     .calendar-event-editor-input {
@@ -981,36 +987,42 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .calendar-event-editor-actions {
       display: flex;
-      gap: 6px;
-      justify-content: flex-end;
+      gap: 8px;
+      justify-content: stretch;
+      width: 100%;
     }
 
     .calendar-event-editor-save,
     .calendar-event-editor-cancel {
-      border: 1px solid var(--border);
+      flex: 1 1 0;
+      width: 100%;
+      border: none;
       border-radius: 7px;
-      padding: 4px 8px;
-      font-size: 11px;
+      padding: 7px 10px;
+      font-size: 12px;
       font-weight: 700;
       cursor: pointer;
-      background: var(--card);
-      color: var(--text);
+      transition: filter 0.15s ease, transform 0.12s ease;
     }
 
     .calendar-event-editor-save {
       background: var(--accent);
-      border-color: var(--accent);
       color: #fff;
     }
 
-    .calendar-event-editor-save:hover {
-      background: var(--accent-light);
-      border-color: var(--accent-light);
+    .calendar-event-editor-cancel {
+      background: var(--danger-solid-bg);
+      color: var(--danger-solid-text);
     }
 
+    .calendar-event-editor-save:hover,
     .calendar-event-editor-cancel:hover {
-      border-color: var(--accent-light);
-      background: rgba(59, 130, 246, 0.08);
+      filter: brightness(0.95);
+    }
+
+    .calendar-event-editor-save:active,
+    .calendar-event-editor-cancel:active {
+      transform: translateY(1px);
     }
 
     @media (max-width: 900px) {
