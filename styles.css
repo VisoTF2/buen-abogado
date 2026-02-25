@@ -2117,12 +2117,12 @@ body.oscuro .modal-close:hover {
   gap: 12px;
   margin-bottom: 12px;
 }
-.weekly-schedule h3 { margin: 0; color: var(--accent); font-size: 18px; }
+.weekly-schedule h3 { margin: 0; color: var(--accent); font-size: 20px; }
 .weekly-schedule-title {
   cursor: text;
   padding: 0px 0px;
   border-radius: 6px;
-  margin-left: 20px;
+  margin-left: 0;
 }
 .weekly-schedule-title:focus {
   outline: none;
