@@ -2747,6 +2747,9 @@ body.oscuro .modal-close:hover {
     .contenidoArticulos {
       margin-top: 12px;
       flex: 1 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     .estado-vacio {
@@ -2819,11 +2822,13 @@ body.oscuro .modal-close:hover {
       padding: 16px;
       border-radius: 10px;
       border-left: 6px solid var(--accent);
-      margin-top: 10px;
+      margin-top: 0;
       box-shadow: 0 3px 8px rgba(0,0,0,0.07);
       cursor: grab;
       position: relative;
       contain: paint;
+      width: 100%;
+      box-sizing: border-box;
       transform: translateY(0);
       transition: transform 0.15s ease;
     }
@@ -2886,6 +2891,8 @@ body.oscuro .modal-close:hover {
       border: 2px solid transparent;
       white-space: pre-wrap;
       line-height: 1.55;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .articulo-contenido:focus {
