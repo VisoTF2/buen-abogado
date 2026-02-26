@@ -2433,10 +2433,7 @@ body.oscuro .carpetaToggle {
   min-height: var(--carpeta-slot-height);
   display: flex;
   align-items: center;
-}
-
-body.oscuro .sidebarItemCarpeta {
-  background: #111827;
+  color: var(--text);
 }
 
 .sidebarDocumentosLista {
@@ -2505,15 +2502,16 @@ body.oscuro .sidebarItemCarpeta {
         margin-bottom: 0;
         border-radius: 10px;
         cursor: grab;
-        font-weight: 600;
-        border-left: 6px solid var(--accent);
+        font-weight: 700;
         background: var(--article-bg);
         border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+        border-left: 8px solid var(--accent);
+        color: var(--text);
         contain: paint;
         transform: translateY(0);
         transition: transform 0.15s ease;
-        font-size: 12px;
-        line-height: 1.2;
+        font-size: 13px;
+        line-height: 1.25;
   }
 
 .modal-backdrop {
