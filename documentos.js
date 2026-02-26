@@ -372,6 +372,7 @@ function renderDocumentos() {
       if (e.dataTransfer) {
         e.dataTransfer.effectAllowed = "move"
         e.dataTransfer.setData("text/plain", doc.id)
+        e.dataTransfer.setData("application/x-documento-id", doc.id)
       }
     })
     item.addEventListener("dragend", () => {

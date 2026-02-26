@@ -909,39 +909,48 @@ function prepararZonaDocumentosCarpeta(zona, carpetaId) {
   if (!zona) return
 
   const obtenerDocumentoArrastrado = e =>
-    documentoArrastradoId || e?.dataTransfer?.getData("text/plain") || null
+    documentoArrastradoId ||
+    e?.dataTransfer?.getData("application/x-documento-id") ||
+    e?.dataTransfer?.getData("text/plain") ||
+    null
 
   zona.addEventListener("dragover", e => {
     if (!obtenerDocumentoArrastrado(e)) return
     e.preventDefault()
+    e.stopPropagation()
     zona.classList.add("drop-activa")
     if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
-  })
+  }, true)
 
   zona.addEventListener("dragenter", e => {
     if (!obtenerDocumentoArrastrado(e)) return
+    e.stopPropagation()
     zona.classList.add("drop-activa")
-  })
+  }, true)
 
   zona.addEventListener("dragleave", () => {
     zona.classList.remove("drop-activa")
-  })
+  }, true)
 
   zona.addEventListener("drop", e => {
     const documentoId = obtenerDocumentoArrastrado(e)
     if (!documentoId) return
     e.preventDefault()
+    e.stopPropagation()
     zona.classList.remove("drop-activa")
     moverDocumentoACarpeta(documentoId, carpetaId)
     documentoArrastradoId = null
-  })
+  }, true)
 }
 
 function prepararListaDocumentosSidebar(lista) {
   if (!lista) return
 
   const obtenerDocumentoArrastrado = e =>
-    documentoArrastradoId || e?.dataTransfer?.getData("text/plain") || null
+    documentoArrastradoId ||
+    e?.dataTransfer?.getData("application/x-documento-id") ||
+    e?.dataTransfer?.getData("text/plain") ||
+    null
 
   lista.addEventListener("dragover", e => {
     const documentoId = obtenerDocumentoArrastrado(e)
@@ -1064,6 +1073,7 @@ function crearItemDocumentoSidebar(doc, sidebar) {
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move"
       e.dataTransfer.setData("text/plain", doc.id)
+      e.dataTransfer.setData("application/x-documento-id", doc.id)
     }
   })
 
