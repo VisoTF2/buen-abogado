@@ -14,6 +14,8 @@
   let eventsByDate = loadEvents()
   let currentDate = new Date()
   let creatingEventDateKey = null
+  let copiedEvent = null
+  let calendarMenu = null
   currentDate.setDate(1)
 
   renderWeekdays()
@@ -31,6 +33,18 @@
     renderCalendar()
   })
 
+  document.addEventListener("click", event => {
+    if (!calendarMenu || calendarMenu.menu.style.display === "none") return
+    if (!calendarMenu.menu.contains(event.target)) hideCalendarMenu()
+  })
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") hideCalendarMenu()
+  })
+
+  window.addEventListener("resize", hideCalendarMenu)
+  window.addEventListener("scroll", hideCalendarMenu, true)
+
   function loadEvents() {
     try {
       const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")
@@ -42,6 +56,83 @@
 
   function saveEvents() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(eventsByDate))
+  }
+
+  function createCalendarMenu() {
+    if (calendarMenu) return calendarMenu
+
+    const menu = document.createElement("div")
+    menu.className = "menu-contextual"
+
+    const copyBtn = document.createElement("button")
+    copyBtn.type = "button"
+    copyBtn.textContent = "Copiar evento"
+
+    const pasteBtn = document.createElement("button")
+    pasteBtn.type = "button"
+    pasteBtn.textContent = "Pegar en este día"
+
+    menu.appendChild(copyBtn)
+    menu.appendChild(pasteBtn)
+    document.body.appendChild(menu)
+
+    calendarMenu = { menu, copyBtn, pasteBtn }
+    return calendarMenu
+  }
+
+  function hideCalendarMenu() {
+    if (!calendarMenu) return
+    calendarMenu.menu.style.display = "none"
+    calendarMenu.copyBtn.onclick = null
+    calendarMenu.pasteBtn.onclick = null
+  }
+
+  function showCalendarMenu(event, handlers = {}) {
+    const { menu, copyBtn, pasteBtn } = createCalendarMenu()
+
+    copyBtn.disabled = !handlers.onCopy
+    pasteBtn.disabled = !handlers.onPaste || !copiedEvent
+
+    copyBtn.onclick = () => {
+      if (!handlers.onCopy) return
+      handlers.onCopy()
+      hideCalendarMenu()
+    }
+
+    pasteBtn.onclick = () => {
+      if (!handlers.onPaste || !copiedEvent) return
+      handlers.onPaste()
+      hideCalendarMenu()
+    }
+
+    menu.style.display = "flex"
+    const margin = 12
+    const menuWidth = menu.offsetWidth
+    const menuHeight = menu.offsetHeight
+    let x = event.clientX
+    let y = event.clientY
+
+    if (x + menuWidth + margin > window.innerWidth) x = window.innerWidth - menuWidth - margin
+    if (y + menuHeight + margin > window.innerHeight) y = window.innerHeight - menuHeight - margin
+
+    menu.style.left = `${Math.max(margin, x)}px`
+    menu.style.top = `${Math.max(margin, y)}px`
+  }
+
+  function copyEvent(eventData) {
+    copiedEvent = {
+      text: eventData.text || "",
+      completed: Boolean(eventData.completed)
+    }
+  }
+
+  function pasteEventInDate(dateKey) {
+    if (!copiedEvent) return
+    const nextEvents = Array.isArray(eventsByDate[dateKey]) ? [...eventsByDate[dateKey]] : []
+    nextEvents.push({ ...copiedEvent })
+    eventsByDate[dateKey] = nextEvents
+    saveEvents()
+    renderCalendar()
   }
 
   function renderWeekdays() {
@@ -69,6 +160,7 @@
 
     const monthText = monthFormatter.format(currentDate)
     monthLabel.textContent = monthText.charAt(0).toUpperCase() + monthText.slice(1)
+    hideCalendarMenu()
     grid.innerHTML = ""
 
     const year = currentDate.getFullYear()
@@ -158,6 +250,13 @@
           openEditor()
         }
       })
+
+      cell.addEventListener("contextmenu", e => {
+        e.preventDefault()
+        showCalendarMenu(e, {
+          onPaste: () => pasteEventInDate(dateKey)
+        })
+      })
     }
 
     return cell
@@ -236,6 +335,14 @@
     if (event.completed) row.classList.add("completed")
 
     row.addEventListener("click", e => e.stopPropagation())
+    row.addEventListener("contextmenu", e => {
+      e.preventDefault()
+      e.stopPropagation()
+      showCalendarMenu(e, {
+        onCopy: () => copyEvent(event),
+        onPaste: () => pasteEventInDate(dateKey)
+      })
+    })
 
     const checkbox = document.createElement("input")
     checkbox.type = "checkbox"
