@@ -250,14 +250,22 @@
       renderCalendar()
     })
 
-    const input = document.createElement("input")
-    input.type = "text"
+    const input = document.createElement("textarea")
     input.className = "calendar-event-text"
+    input.rows = 1
     input.value = event.text || ""
     input.setAttribute("aria-label", "Editar evento")
 
+    const autoResize = () => {
+      input.style.height = "auto"
+      input.style.height = `${input.scrollHeight}px`
+    }
+
+    autoResize()
+
     input.addEventListener("click", e => e.stopPropagation())
     input.addEventListener("keydown", e => e.stopPropagation())
+    input.addEventListener("input", autoResize)
     input.addEventListener("change", () => {
       const list = Array.isArray(eventsByDate[dateKey]) ? [...eventsByDate[dateKey]] : []
       if (!list[index]) return

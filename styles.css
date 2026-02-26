@@ -977,13 +977,17 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .calendar-event {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 6px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas:
+        "check . delete"
+        "text text text";
+      align-items: start;
+      gap: 8px;
+      padding: 8px 10px;
       border-radius: 8px;
       background: rgba(59, 130, 246, 0.12);
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text);
     }
 
@@ -993,24 +997,34 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .calendar-event-checkbox {
-      width: 15px;
-      height: 15px;
+      grid-area: check;
+      width: 17px;
+      height: 17px;
       margin: 0;
       cursor: pointer;
     }
 
     .calendar-event-text {
+      grid-area: text;
       border: none;
       background: transparent;
       color: inherit;
-      font-size: 13px;
+      font-size: 14px;
+      line-height: 1.45;
       width: 100%;
       min-width: 0;
       padding: 0;
       outline: none;
+      resize: none;
+      overflow: hidden;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: inherit;
     }
 
     .calendar-event-delete {
+      grid-area: delete;
+      justify-self: end;
       border: none;
       background: transparent;
       color: inherit;
@@ -1018,6 +1032,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       font-weight: 700;
       line-height: 1;
       padding: 0 2px;
+      font-size: 14px;
     }
 
     .calendar-event-editor {
