@@ -261,8 +261,6 @@
       input.style.height = `${input.scrollHeight}px`
     }
 
-    autoResize()
-
     input.addEventListener("click", e => e.stopPropagation())
     input.addEventListener("keydown", e => e.stopPropagation())
     input.addEventListener("input", autoResize)
@@ -272,6 +270,7 @@
       const newText = input.value.trim()
       if (!newText) {
         input.value = list[index].text || ""
+        autoResize()
         return
       }
       list[index] = { ...list[index], text: newText }
@@ -301,6 +300,8 @@
     row.appendChild(checkbox)
     row.appendChild(input)
     row.appendChild(del)
+
+    requestAnimationFrame(autoResize)
     return row
   }
 })()
