@@ -909,9 +909,9 @@ function prepararZonaDocumentosCarpeta(zona, carpetaId) {
   if (!zona) return
 
   const obtenerDocumentoArrastrado = e =>
-    documentoArrastradoId ||
     e?.dataTransfer?.getData("application/x-documento-id") ||
     e?.dataTransfer?.getData("text/plain") ||
+    documentoArrastradoId ||
     null
 
   zona.addEventListener("dragover", e => {
@@ -947,9 +947,9 @@ function prepararListaDocumentosSidebar(lista) {
   if (!lista) return
 
   const obtenerDocumentoArrastrado = e =>
-    documentoArrastradoId ||
     e?.dataTransfer?.getData("application/x-documento-id") ||
     e?.dataTransfer?.getData("text/plain") ||
+    documentoArrastradoId ||
     null
 
   lista.addEventListener("dragover", e => {

@@ -97,7 +97,10 @@ function prepararRecepcionDocumentoDesdeCarpetas() {
 
     zona.addEventListener("drop", e => {
       e.preventDefault()
-      const id = documentoArrastradoId || e.dataTransfer?.getData("text/plain")
+      const id =
+        e.dataTransfer?.getData("application/x-documento-id") ||
+        e.dataTransfer?.getData("text/plain") ||
+        documentoArrastradoId
       if (!id) return
       restaurarDocumentoDesdeCarpeta(id)
       documentoArrastradoId = null
