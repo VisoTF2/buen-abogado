@@ -73,7 +73,7 @@
 
       state.subjects = state.subjects.filter(item => item.id !== subject.id)
       if (state.selectedSubjectId === subject.id) {
-        state.selectedSubjectId = state.subjects[0]?.id || null
+        state.selectedSubjectId = getMostRecentlyCreatedSubjectId(state.subjects)
       }
       saveAndRender()
     })
@@ -172,6 +172,7 @@
     return {
       id: String(raw?.id || `subject-${Date.now()}-${Math.random().toString(16).slice(2)}`),
       name: String(raw?.name || "Ramo sin nombre"),
+      createdAt: Number(raw?.createdAt) || Date.now(),
       controls,
       config: {
         directPassGrade: Number(configRaw.directPassGrade) || defaults.directPassGrade,
@@ -196,6 +197,7 @@
     return {
       id: `subject-${Date.now()}-${Math.random().toString(16).slice(2)}`,
       name,
+      createdAt: Date.now(),
       controls: Array.from({ length: defaults.controlsCount }, () => ({ grade: "", weight: "" })),
       config: {
         directPassGrade: defaults.directPassGrade,
@@ -232,7 +234,7 @@
 
   function renderAll() {
     if (!state.subjects.some(subject => subject.id === state.selectedSubjectId)) {
-      state.selectedSubjectId = state.subjects[0]?.id || null
+      state.selectedSubjectId = getMostRecentlyCreatedSubjectId(state.subjects)
     }
 
     if (summaryDetails) {
@@ -242,6 +244,19 @@
     const selected = getSelectedSubject()
     renderSubjectsList(selected)
     renderEditor(selected)
+  }
+
+  function getMostRecentlyCreatedSubjectId(subjects) {
+    if (!Array.isArray(subjects) || !subjects.length) return null
+
+    const mostRecent = subjects.reduce((latest, current) => {
+      if (!latest) return current
+      const latestCreatedAt = Number(latest.createdAt) || 0
+      const currentCreatedAt = Number(current.createdAt) || 0
+      return currentCreatedAt >= latestCreatedAt ? current : latest
+    }, null)
+
+    return mostRecent?.id || null
   }
 
   function renderSubjectsList(selected) {
