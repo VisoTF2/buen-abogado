@@ -944,9 +944,33 @@ function prepararListaDocumentosSidebar(lista) {
     documentoArrastradoId || e?.dataTransfer?.getData("text/plain") || null
 
   lista.addEventListener("dragover", e => {
-    if (!obtenerDocumentoArrastrado(e)) return
+    const documentoId = obtenerDocumentoArrastrado(e)
+    if (!documentoId) return
     e.preventDefault()
     lista.classList.add("drop-activa")
+
+    const target = e.target instanceof Element
+      ? e.target.closest(".sidebarItemDocumento")
+      : null
+    const dragged = lista.querySelector(`.sidebarItemDocumento[data-documento-id="${documentoId}"]`)
+
+    if (!(target instanceof HTMLElement) || !(dragged instanceof HTMLElement)) {
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+      return
+    }
+    if (target === dragged) {
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+      return
+    }
+
+    const rect = target.getBoundingClientRect()
+    const before = e.clientY < rect.top + rect.height / 2
+    if (before) {
+      lista.insertBefore(dragged, target)
+    } else {
+      lista.insertBefore(dragged, target.nextSibling)
+    }
+
     if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
   })
 
@@ -964,12 +988,40 @@ function prepararListaDocumentosSidebar(lista) {
     if (!documentoId) return
     e.preventDefault()
     lista.classList.remove("drop-activa")
+
+    if (documentosSidebarIds.includes(documentoId)) {
+      aplicarOrdenDocumentosSidebarDesdeDOM(lista)
+      documentoArrastradoId = null
+      ordenarYMostrar()
+      return
+    }
+
     const cambio = removerDocumentoDeCarpetas(documentoId)
     const agregado = agregarDocumentoASidebar(documentoId)
     documentoSeleccionadoEnCarpetaId = documentoId
     documentoArrastradoId = null
     if (cambio || agregado) ordenarYMostrar()
   })
+}
+
+function aplicarOrdenDocumentosSidebarDesdeDOM(lista) {
+  if (!lista) return
+
+  const idsEnDOM = Array.from(lista.querySelectorAll(".sidebarItemDocumento"))
+    .map(item => item.dataset.documentoId)
+    .filter(Boolean)
+
+  if (!idsEnDOM.length || idsEnDOM.length !== documentosSidebarIds.length) return
+
+  const idsActuales = new Set(documentosSidebarIds)
+  const contieneLosMismos = idsEnDOM.every(id => idsActuales.has(id))
+  if (!contieneLosMismos) return
+
+  const cambio = idsEnDOM.some((id, index) => id !== documentosSidebarIds[index])
+  if (!cambio) return
+
+  documentosSidebarIds = idsEnDOM
+  guardarDocumentosSidebarIds()
 }
 
 function crearItemDocumentoSidebar(doc, sidebar) {
