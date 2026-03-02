@@ -15,6 +15,7 @@
   let currentDate = new Date()
   let creatingEventDateKey = null
   let copiedEvent = null
+  let draggedEventRef = null
   let calendarMenu = null
   currentDate.setDate(1)
 
@@ -131,6 +132,26 @@
     const nextEvents = Array.isArray(eventsByDate[dateKey]) ? [...eventsByDate[dateKey]] : []
     nextEvents.push({ ...copiedEvent })
     eventsByDate[dateKey] = nextEvents
+    saveEvents()
+    renderCalendar()
+  }
+
+  function moveEventToDate(fromDateKey, eventIndex, toDateKey) {
+    if (!fromDateKey || !toDateKey) return
+    const fromList = Array.isArray(eventsByDate[fromDateKey]) ? [...eventsByDate[fromDateKey]] : []
+    if (!fromList[eventIndex]) return
+
+    const [eventData] = fromList.splice(eventIndex, 1)
+    const toList = Array.isArray(eventsByDate[toDateKey]) ? [...eventsByDate[toDateKey]] : []
+    toList.push(eventData)
+
+    if (fromList.length) {
+      eventsByDate[fromDateKey] = fromList
+    } else {
+      delete eventsByDate[fromDateKey]
+    }
+    eventsByDate[toDateKey] = toList
+
     saveEvents()
     renderCalendar()
   }
@@ -257,6 +278,21 @@
           onPaste: () => pasteEventInDate(dateKey)
         })
       })
+
+      cell.addEventListener("dragover", e => {
+        if (!draggedEventRef) return
+        e.preventDefault()
+        if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+      })
+
+      cell.addEventListener("drop", e => {
+        if (!draggedEventRef) return
+        e.preventDefault()
+        e.stopPropagation()
+        const { fromDateKey, eventIndex } = draggedEventRef
+        draggedEventRef = null
+        moveEventToDate(fromDateKey, eventIndex, dateKey)
+      })
     }
 
     return cell
@@ -332,9 +368,20 @@
   function createEventElement(dateKey, event, index) {
     const row = document.createElement("div")
     row.className = "calendar-event"
+    row.draggable = true
     if (event.completed) row.classList.add("completed")
 
     row.addEventListener("click", e => e.stopPropagation())
+    row.addEventListener("dragstart", e => {
+      draggedEventRef = { fromDateKey: dateKey, eventIndex: index }
+      if (e.dataTransfer) {
+        e.dataTransfer.effectAllowed = "move"
+        e.dataTransfer.setData("text/plain", `${dateKey}:${index}`)
+      }
+    })
+    row.addEventListener("dragend", () => {
+      draggedEventRef = null
+    })
     row.addEventListener("contextmenu", e => {
       e.preventDefault()
       e.stopPropagation()

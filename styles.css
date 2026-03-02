@@ -989,6 +989,11 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       background: rgba(59, 130, 246, 0.12);
       font-size: 14px;
       color: var(--text);
+      cursor: grab;
+    }
+
+    .calendar-event:active {
+      cursor: grabbing;
     }
 
     .calendar-event.completed .calendar-event-text {
