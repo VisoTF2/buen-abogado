@@ -46,6 +46,7 @@
 
   let state = loadState()
   let ramoArrastradoId = null
+  let menuRamos = null
 
   bindEvents()
   renderAll()
@@ -70,13 +71,20 @@
     deleteSubjectBtn.addEventListener("click", () => {
       const subject = getSelectedSubject()
       if (!subject) return
-
-      state.subjects = state.subjects.filter(item => item.id !== subject.id)
-      if (state.selectedSubjectId === subject.id) {
-        state.selectedSubjectId = getMostRecentlyCreatedSubjectId(state.subjects)
-      }
-      saveAndRender()
+      deleteSubjectById(subject.id)
     })
+
+    document.addEventListener("click", event => {
+      if (!menuRamos || menuRamos.menu.style.display === "none") return
+      if (!menuRamos.menu.contains(event.target)) hideSubjectsMenu()
+    })
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") hideSubjectsMenu()
+    })
+
+    window.addEventListener("resize", hideSubjectsMenu)
+    window.addEventListener("scroll", hideSubjectsMenu, true)
 
     controlsCountInput.addEventListener("change", () => {
       const subject = getSelectedSubject()
@@ -246,6 +254,63 @@
     renderEditor(selected)
   }
 
+  function deleteSubjectById(subjectId) {
+    if (!subjectId) return
+    state.subjects = state.subjects.filter(item => item.id !== subjectId)
+    if (state.selectedSubjectId === subjectId) {
+      state.selectedSubjectId = getMostRecentlyCreatedSubjectId(state.subjects)
+    }
+    saveAndRender()
+  }
+
+  function ensureSubjectsMenu() {
+    if (menuRamos) return menuRamos
+
+    const menu = document.createElement("div")
+    menu.className = "menu-contextual"
+
+    const deleteBtn = document.createElement("button")
+    deleteBtn.type = "button"
+    deleteBtn.className = "menu-contextual-delete"
+    deleteBtn.textContent = "Borrar ramos"
+
+    menu.appendChild(deleteBtn)
+    document.body.appendChild(menu)
+
+    menuRamos = { menu, deleteBtn, action: null }
+
+    deleteBtn.addEventListener("click", () => {
+      if (!menuRamos?.action) return
+      menuRamos.action()
+      hideSubjectsMenu()
+    })
+
+    return menuRamos
+  }
+
+  function hideSubjectsMenu() {
+    if (!menuRamos) return
+    menuRamos.menu.style.display = "none"
+    menuRamos.action = null
+  }
+
+  function showSubjectsMenu(event, onDelete) {
+    const { menu, deleteBtn } = ensureSubjectsMenu()
+    menuRamos.action = typeof onDelete === "function" ? onDelete : null
+    deleteBtn.disabled = !menuRamos.action
+
+    menu.style.display = "flex"
+    const margin = 12
+    const width = menu.offsetWidth
+    const height = menu.offsetHeight
+    let x = event.clientX
+    let y = event.clientY
+    if (x + width + margin > window.innerWidth) x = window.innerWidth - width - margin
+    if (y + height + margin > window.innerHeight) y = window.innerHeight - height - margin
+    menu.style.left = `${Math.max(margin, x)}px`
+    menu.style.top = `${Math.max(margin, y)}px`
+  }
+
   function getMostRecentlyCreatedSubjectId(subjects) {
     if (!Array.isArray(subjects) || !subjects.length) return null
 
@@ -260,6 +325,7 @@
   }
 
   function renderSubjectsList(selected) {
+    hideSubjectsMenu()
     subjectsList.innerHTML = ""
     const sorted = state.subjects
 
@@ -281,6 +347,12 @@
       item.addEventListener("click", () => {
         state.selectedSubjectId = subject.id
         saveAndRender()
+      })
+
+      item.addEventListener("contextmenu", event => {
+        event.preventDefault()
+        event.stopPropagation()
+        showSubjectsMenu(event, () => deleteSubjectById(subject.id))
       })
 
       item.addEventListener("dragstart", event => {
