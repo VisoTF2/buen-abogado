@@ -54,21 +54,22 @@ function sincronizarSidebarDocumentos() {
 function restaurarDocumentoDesdeCarpeta(documentoId) {
   if (!documentoId) return false
 
+  const existente = documentosCargados.find(d => d.id === documentoId)
+
   const respaldo =
     typeof obtenerDocumentoRespaldoEnCarpetas === "function"
       ? obtenerDocumentoRespaldoEnCarpetas(documentoId)
       : null
 
-  if (!respaldo) return false
+  if (!respaldo && !existente) return false
 
-  const existente = documentosCargados.find(d => d.id === documentoId)
   const base = {
-    id: respaldo.id,
-    nombre: respaldo.nombre || "Documento",
-    extension: respaldo.extension || "",
-    url: respaldo.url || "",
-    texto: respaldo.texto || "",
-    mensaje: respaldo.mensaje || ""
+    id: respaldo?.id || existente?.id || documentoId,
+    nombre: respaldo?.nombre || existente?.nombre || "Documento",
+    extension: respaldo?.extension || existente?.extension || "",
+    url: respaldo?.url || existente?.url || "",
+    texto: respaldo?.texto || existente?.texto || "",
+    mensaje: respaldo?.mensaje || existente?.mensaje || ""
   }
 
   const documentoFinal = existente ? { ...existente, ...base, archived: false } : { ...base, archived: false }
@@ -88,19 +89,33 @@ function prepararRecepcionDocumentoDesdeCarpetas() {
   const zonas = [listaDocumentos, visorDocumentos].filter(Boolean)
   if (!zonas.length) return
 
+  const obtenerDocumentoArrastrado = e =>
+    e.dataTransfer?.getData("application/x-documento-id") ||
+    e.dataTransfer?.getData("text/plain") ||
+    documentoArrastradoId ||
+    null
+
   zonas.forEach(zona => {
     zona.addEventListener("dragover", e => {
-      if (!documentoArrastradoId) return
+      if (!obtenerDocumentoArrastrado(e)) return
       e.preventDefault()
       if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
     })
 
+    zona.addEventListener("dragenter", e => {
+      if (!obtenerDocumentoArrastrado(e)) return
+      e.preventDefault()
+      zona.classList.add("drop-activa")
+    })
+
+    zona.addEventListener("dragleave", () => {
+      zona.classList.remove("drop-activa")
+    })
+
     zona.addEventListener("drop", e => {
       e.preventDefault()
-      const id =
-        e.dataTransfer?.getData("application/x-documento-id") ||
-        e.dataTransfer?.getData("text/plain") ||
-        documentoArrastradoId
+      zona.classList.remove("drop-activa")
+      const id = obtenerDocumentoArrastrado(e)
       if (!id) return
       restaurarDocumentoDesdeCarpeta(id)
       documentoArrastradoId = null
