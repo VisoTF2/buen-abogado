@@ -99,7 +99,7 @@
       background: var(--bg);
       color: var(--text);
       transition: 0.25s ease;
-      overflow-x: hidden;
+      overflow: hidden;
     }
 
     body.fondo-personalizado {
@@ -111,7 +111,10 @@
 
     .app-root {
       min-height: 100vh;
-      touch-action: pan-y;
+      height: 100vh;
+      overflow: auto;
+      touch-action: pan-x pan-y;
+      -webkit-overflow-scrolling: touch;
     }
 
     .container {
