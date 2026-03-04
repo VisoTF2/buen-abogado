@@ -27,6 +27,7 @@ function escaparComoHTML(texto) {
 const ZOOM_STEP = 0.05
 const MIN_ZOOM = 1
 const MAX_ZOOM = 1.25
+const ZOOM_STORAGE_KEY = "appZoomScale"
 let zoomActual = obtenerZoomInicial()
 let pinchStartDistance = null
 let pinchStartZoom = 1
@@ -499,15 +500,16 @@ function siguienteOrdenPara(normativa, materia) {
 }
 
 function obtenerZoomInicial() {
-  const anchoViewport = window.innerWidth || document.documentElement.clientWidth || 1366
-  const escalaAdaptativa = anchoViewport / 1680
-  return Math.min(MAX_ZOOM, Math.max(1, Number(escalaAdaptativa.toFixed(2))))
+  const guardado = parseFloat(localStorage.getItem(ZOOM_STORAGE_KEY) || "")
+  if (!Number.isFinite(guardado)) return 1
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, guardado))
 }
 
 function aplicarZoom(nivel) {
   const limitado = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, nivel))
   zoomActual = limitado
   document.documentElement.style.setProperty("--zoom-scale", limitado.toFixed(3))
+  localStorage.setItem(ZOOM_STORAGE_KEY, limitado.toFixed(3))
 }
 
 function distanciaEntreToques(touches) {

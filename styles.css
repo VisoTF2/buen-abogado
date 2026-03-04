@@ -112,9 +112,8 @@
     .app-root {
       min-height: 100vh;
       height: 100vh;
-      overflow: auto;
-      touch-action: pan-x pan-y;
-      -webkit-overflow-scrolling: touch;
+      overflow: hidden;
+      touch-action: pan-y;
     }
 
     .container {
@@ -125,18 +124,11 @@
     }
 
     .zoom-canvas {
-      zoom: var(--zoom-scale);
-      transition: zoom 0.18s ease;
+      transform: scale(var(--zoom-scale));
+      transform-origin: top center;
+      transition: transform 0.18s ease;
       width: 100%;
       min-width: 100vw;
-    }
-
-    @supports not (zoom: 1) {
-      .zoom-canvas {
-        transform: scale(var(--zoom-scale));
-        transform-origin: top center;
-        transition: transform 0.18s ease;
-      }
     }
 
     header {
