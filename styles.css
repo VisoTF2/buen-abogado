@@ -584,6 +584,13 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       min-width: 0;
       max-height: 100%;
       overflow: auto;
+      transition: box-shadow 0.15s ease, background 0.15s ease;
+    }
+
+    .documentos-lista.drop-activa,
+    .documentos-preview.drop-activa {
+      box-shadow: inset 0 0 0 2px var(--accent);
+      background: rgba(59, 130, 246, 0.08);
     }
 
     .documento-item {
@@ -977,14 +984,23 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .calendar-event {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 6px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas:
+        "check . delete"
+        "text text text";
+      align-items: start;
+      gap: 8px;
+      padding: 8px 10px;
       border-radius: 8px;
       background: rgba(59, 130, 246, 0.12);
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text);
+      cursor: grab;
+    }
+
+    .calendar-event:active {
+      cursor: grabbing;
     }
 
     .calendar-event.completed .calendar-event-text {
@@ -993,24 +1009,37 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .calendar-event-checkbox {
-      width: 15px;
-      height: 15px;
+      grid-area: check;
+      width: 17px;
+      height: 17px;
       margin: 0;
       cursor: pointer;
     }
 
     .calendar-event-text {
+      grid-area: text;
       border: none;
       background: transparent;
       color: inherit;
-      font-size: 13px;
+      font-size: 14px;
+      line-height: 1.45;
       width: 100%;
       min-width: 0;
       padding: 0;
+      min-height: 1.45em;
+      display: block;
+      box-sizing: border-box;
       outline: none;
+      resize: none;
+      overflow: hidden;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: inherit;
     }
 
     .calendar-event-delete {
+      grid-area: delete;
+      justify-self: end;
       border: none;
       background: transparent;
       color: inherit;
@@ -1018,6 +1047,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       font-weight: 700;
       line-height: 1;
       padding: 0 2px;
+      font-size: 14px;
     }
 
     .calendar-event-editor {
@@ -2415,10 +2445,7 @@ body.oscuro .carpetaToggle {
   min-height: var(--carpeta-slot-height);
   display: flex;
   align-items: center;
-}
-
-body.oscuro .sidebarItemCarpeta {
-  background: #111827;
+  color: var(--text);
 }
 
 .sidebarDocumentosLista {
@@ -2447,6 +2474,16 @@ body.oscuro .sidebarItemCarpeta {
   align-items: flex-start;
   gap: 2px;
   padding-block: 9px;
+  transform: none;
+  contain: none;
+  backface-visibility: hidden;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sidebarItemDocumento:hover,
+.sidebarItemDocumento:active {
+  transform: none;
 }
 
 .sidebarItemDocumentoNombre {
@@ -2454,6 +2491,8 @@ body.oscuro .sidebarItemCarpeta {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .sidebarItemDocumentoTipo {
@@ -2487,15 +2526,16 @@ body.oscuro .sidebarItemCarpeta {
         margin-bottom: 0;
         border-radius: 10px;
         cursor: grab;
-        font-weight: 600;
-        border-left: 6px solid var(--accent);
+        font-weight: 700;
         background: var(--article-bg);
         border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+        border-left: 8px solid var(--accent);
+        color: var(--text);
         contain: paint;
         transform: translateY(0);
         transition: transform 0.15s ease;
-        font-size: 12px;
-        line-height: 1.2;
+        font-size: 13px;
+        line-height: 1.25;
   }
 
 .modal-backdrop {
@@ -2697,7 +2737,7 @@ body.oscuro .modal-close:hover {
     width: auto;
   }
 }
-    .sidebarItem:hover {
+    .sidebarItem:not(.sidebarItemDocumento):hover {
       transform: translateY(-1px);
     }
 
@@ -2710,7 +2750,7 @@ body.oscuro .modal-close:hover {
       cursor: grabbing;
     }
 
-    .sidebarItem.arrastrando {
+    .sidebarItem:not(.sidebarItemDocumento).arrastrando {
       opacity: 0.9;
       transform: translateY(-1px);
     }
@@ -2993,6 +3033,15 @@ body.oscuro .modal-close:hover {
       cursor: pointer;
       font-weight: 700;
       transition: background 0.2s ease, transform 0.12s ease;
+    }
+
+    .menu-contextual button.menu-contextual-delete {
+      background: var(--danger-solid-bg);
+      color: var(--danger-solid-text);
+    }
+
+    .menu-contextual button.menu-contextual-delete:hover:not(:disabled) {
+      background: var(--danger-solid-hover);
     }
 
     .menu-contextual button:hover:not(:disabled) { background: var(--accent-light); }

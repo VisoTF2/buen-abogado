@@ -54,24 +54,25 @@ function sincronizarSidebarDocumentos() {
 function restaurarDocumentoDesdeCarpeta(documentoId) {
   if (!documentoId) return false
 
+  const existente = documentosCargados.find(d => d.id === documentoId)
+
   const respaldo =
     typeof obtenerDocumentoRespaldoEnCarpetas === "function"
       ? obtenerDocumentoRespaldoEnCarpetas(documentoId)
       : null
 
-  if (!respaldo) return false
+  if (!respaldo && !existente) return false
 
-  const existente = documentosCargados.find(d => d.id === documentoId)
   const base = {
-    id: respaldo.id,
-    nombre: respaldo.nombre || "Documento",
-    extension: respaldo.extension || "",
-    url: respaldo.url || "",
-    texto: respaldo.texto || "",
-    mensaje: respaldo.mensaje || ""
+    id: respaldo?.id || existente?.id || documentoId,
+    nombre: respaldo?.nombre || existente?.nombre || "Documento",
+    extension: respaldo?.extension || existente?.extension || "",
+    url: respaldo?.url || existente?.url || "",
+    texto: respaldo?.texto || existente?.texto || "",
+    mensaje: respaldo?.mensaje || existente?.mensaje || ""
   }
 
-  const documentoFinal = existente ? { ...existente, ...base } : base
+  const documentoFinal = existente ? { ...existente, ...base, archived: false } : { ...base, archived: false }
   documentosCargados = [
     documentoFinal,
     ...documentosCargados.filter(d => d.id !== documentoId)
@@ -88,16 +89,33 @@ function prepararRecepcionDocumentoDesdeCarpetas() {
   const zonas = [listaDocumentos, visorDocumentos].filter(Boolean)
   if (!zonas.length) return
 
+  const obtenerDocumentoArrastrado = e =>
+    e.dataTransfer?.getData("application/x-documento-id") ||
+    e.dataTransfer?.getData("text/plain") ||
+    documentoArrastradoId ||
+    null
+
   zonas.forEach(zona => {
     zona.addEventListener("dragover", e => {
-      if (!documentoArrastradoId) return
+      if (!obtenerDocumentoArrastrado(e)) return
       e.preventDefault()
       if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
     })
 
+    zona.addEventListener("dragenter", e => {
+      if (!obtenerDocumentoArrastrado(e)) return
+      e.preventDefault()
+      zona.classList.add("drop-activa")
+    })
+
+    zona.addEventListener("dragleave", () => {
+      zona.classList.remove("drop-activa")
+    })
+
     zona.addEventListener("drop", e => {
       e.preventDefault()
-      const id = documentoArrastradoId || e.dataTransfer?.getData("text/plain")
+      zona.classList.remove("drop-activa")
+      const id = obtenerDocumentoArrastrado(e)
       if (!id) return
       restaurarDocumentoDesdeCarpeta(id)
       documentoArrastradoId = null
@@ -117,7 +135,8 @@ function cargarDocumentosGuardados() {
       extension: doc.extension || "",
       url: doc.url || doc.dataUrl || "",
       texto: doc.texto || "",
-      mensaje: doc.mensaje || ""
+      mensaje: doc.mensaje || "",
+      archived: Boolean(doc.archived)
     }))
   } catch (e) {
     console.error("No se pudieron leer los documentos guardados", e)
@@ -127,6 +146,13 @@ function cargarDocumentosGuardados() {
 
 function guardarDocumentos() {
   localStorage.setItem(DOCUMENTOS_STORAGE_KEY, JSON.stringify(documentosCargados))
+}
+
+function estaDocumentoVinculado(id) {
+  if (!id) return false
+  const enSidebar = typeof documentosSidebarIds !== "undefined" && documentosSidebarIds.includes(id)
+  const enCarpeta = typeof carpetaDeDocumento === "function" && Boolean(carpetaDeDocumento(id))
+  return enSidebar || enCarpeta
 }
 
 function guardarTextoDocumentoEditado(id, textoEditado) {
@@ -175,13 +201,17 @@ async function procesarDocumento(archivo) {
       base.texto = await extraerTextoPdf(archivo)
     } else if (extension === "docx") {
       base.texto = await extraerTextoDocx(archivo)
+    } else if (extension === "pptx") {
+      base.texto = await extraerTextoPptx(archivo)
     } else if (extension === "doc") {
-      base.mensaje = "Vista previa limitada: descárgalo para abrirlo."
+      base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
+    } else if (extension === "ppt") {
+      base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
     } else {
       base.mensaje = "Formato no soportado para vista previa."
     }
 
-    documentosCargados = [base, ...documentosCargados.filter(d => d.nombre !== base.nombre)]
+    documentosCargados = [{ ...base, archived: false }, ...documentosCargados.filter(d => d.nombre !== base.nombre)]
     guardarDocumentos()
     renderDocumentos()
     mostrarDocumento(base.id)
@@ -189,7 +219,7 @@ async function procesarDocumento(archivo) {
   } catch (err) {
     console.error("No se pudo procesar el documento", err)
     base.mensaje = "No se pudo leer el documento."
-    documentosCargados = [base, ...documentosCargados]
+    documentosCargados = [{ ...base, archived: false }, ...documentosCargados]
     guardarDocumentos()
     renderDocumentos()
     mostrarDocumento(base.id)
@@ -259,8 +289,9 @@ function renderDocumentos() {
   if (!listaDocumentos) return
 
   listaDocumentos.innerHTML = ""
+  const visibles = documentosCargados.filter(doc => !doc.archived)
 
-  if (!documentosCargados.length) {
+  if (!visibles.length) {
     const vacio = document.createElement("div")
     vacio.className = "documentos-vacio"
     vacio.textContent = "Aún no hay documentos cargados."
@@ -268,7 +299,7 @@ function renderDocumentos() {
     return
   }
 
-  documentosCargados.forEach(doc => {
+  visibles.forEach(doc => {
     const item = document.createElement("div")
     item.className = "documento-item"
     item.draggable = true
@@ -372,6 +403,7 @@ function renderDocumentos() {
       if (e.dataTransfer) {
         e.dataTransfer.effectAllowed = "move"
         e.dataTransfer.setData("text/plain", doc.id)
+        e.dataTransfer.setData("application/x-documento-id", doc.id)
       }
     })
     item.addEventListener("dragend", () => {
@@ -389,6 +421,23 @@ function renderDocumentos() {
 
 function eliminarDocumento(id) {
   const doc = documentosCargados.find(d => d.id === id)
+  if (!doc) return
+
+  if (estaDocumentoVinculado(id)) {
+    documentosCargados = documentosCargados.map(item => (
+      item.id === id ? { ...item, archived: true } : item
+    ))
+
+    guardarDocumentos()
+    renderDocumentos()
+    sincronizarSidebarDocumentos()
+
+    if (visorDocumentos?.dataset.docActual === id) {
+      cerrarVistaDocumento()
+    }
+    return
+  }
+
   documentosCargados = documentosCargados.filter(d => d.id !== id)
 
   removerDocumentoDeCarpetas(id)
@@ -425,7 +474,7 @@ function mostrarDocumento(id, terminoBusqueda = "", indiceCoincidencia = null) {
 
   visorDocumentos.appendChild(construirEncabezadoVista(doc))
 
-  if ((doc.extension === "pdf" || doc.extension === "docx") && doc.texto) {
+  if ((doc.extension === "pdf" || doc.extension === "docx" || doc.extension === "pptx") && doc.texto) {
     const texto = document.createElement("div")
     texto.className = "documento-texto"
 
@@ -447,7 +496,7 @@ function mostrarDocumento(id, terminoBusqueda = "", indiceCoincidencia = null) {
     }
 
     visorDocumentos.appendChild(texto)
-  } else if (doc.extension === "pdf" && doc.url) {
+  } else if ((doc.extension === "pdf" || doc.extension === "doc" || doc.extension === "docx" || doc.extension === "ppt" || doc.extension === "pptx") && doc.url) {
     const iframe = document.createElement("iframe")
     iframe.className = "documento-iframe"
     iframe.src = doc.url
@@ -621,4 +670,38 @@ function aplicarResaltadoEnTexto(textoFuente, contenedor, termino, indiceActivo)
   if (ultimoCorte < textoPlano.length) {
     contenedor.appendChild(document.createTextNode(textoPlano.slice(ultimoCorte)))
   }
+}
+
+async function extraerTextoPptx(archivo) {
+  if (typeof JSZip === "undefined") {
+    throw new Error("JSZip no está disponible para leer .pptx")
+  }
+
+  const buffer = await archivo.arrayBuffer()
+  const zip = await JSZip.loadAsync(buffer)
+  const slidePaths = Object.keys(zip.files)
+    .filter(path => /^ppt\/slides\/slide\d+\.xml$/i.test(path))
+    .sort((a, b) => {
+      const aNum = Number(a.match(/slide(\d+)\.xml/i)?.[1] || 0)
+      const bNum = Number(b.match(/slide(\d+)\.xml/i)?.[1] || 0)
+      return aNum - bNum
+    })
+
+  if (!slidePaths.length) {
+    throw new Error("El archivo no contiene diapositivas legibles")
+  }
+
+  const parser = new DOMParser()
+  const chunks = []
+
+  for (const path of slidePaths) {
+    const xml = await zip.file(path)?.async("text")
+    if (!xml) continue
+    const dom = parser.parseFromString(xml, "application/xml")
+    const textNodes = Array.from(dom.getElementsByTagName("a:t"))
+    const text = textNodes.map(n => (n.textContent || "").trim()).filter(Boolean).join(" ")
+    if (text) chunks.push(text)
+  }
+
+  return chunks.join("\n\n") || "No se encontró texto en la presentación"
 }
