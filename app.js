@@ -1058,9 +1058,6 @@ function crearItemDocumentoSidebar(doc, sidebar) {
 
   item.addEventListener("click", () => {
     documentoSeleccionadoEnCarpetaId = doc.id
-    if (typeof mostrarDocumento === "function") {
-      mostrarDocumento(doc.id)
-    }
     sidebar
       ?.querySelectorAll(".sidebarItemDocumento.is-selected")
       .forEach(nodo => nodo.classList.remove("is-selected"))
