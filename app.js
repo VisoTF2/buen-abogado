@@ -625,6 +625,7 @@ function crearMenuBorradoSidebar() {
 
   const borrarBtn = document.createElement("button")
   borrarBtn.type = "button"
+  borrarBtn.className = "menu-contextual-delete"
   borrarBtn.textContent = "Borrar"
 
   menu.appendChild(borrarBtn)

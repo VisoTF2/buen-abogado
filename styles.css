@@ -3023,6 +3023,15 @@ body.oscuro .modal-close:hover {
       transition: background 0.2s ease, transform 0.12s ease;
     }
 
+    .menu-contextual button.menu-contextual-delete {
+      background: var(--danger-solid-bg);
+      color: var(--danger-solid-text);
+    }
+
+    .menu-contextual button.menu-contextual-delete:hover:not(:disabled) {
+      background: var(--danger-solid-hover);
+    }
+
     .menu-contextual button:hover:not(:disabled) { background: var(--accent-light); }
 
     .menu-contextual button:active:not(:disabled) { transform: translateY(1px); }
