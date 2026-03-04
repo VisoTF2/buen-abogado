@@ -122,21 +122,11 @@
     }
 
     .zoom-canvas {
+      transform: scale(var(--zoom-scale));
+      transform-origin: top center;
+      transition: transform 0.18s ease;
       width: 100%;
       min-width: 100vw;
-      zoom: var(--zoom-scale);
-      transform: none;
-      transform-origin: top center;
-      transition: none;
-      -webkit-font-smoothing: antialiased;
-      text-rendering: geometricPrecision;
-    }
-
-    @supports not (zoom: 1) {
-      .zoom-canvas {
-        transform: scale(var(--zoom-scale));
-        transition: transform 0.18s ease;
-      }
     }
 
     header {
