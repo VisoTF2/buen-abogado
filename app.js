@@ -499,7 +499,9 @@ function siguienteOrdenPara(normativa, materia) {
 }
 
 function obtenerZoomInicial() {
-  return 1
+  const anchoViewport = window.innerWidth || document.documentElement.clientWidth || 1366
+  const escalaAdaptativa = anchoViewport / 1680
+  return Math.min(MAX_ZOOM, Math.max(1, Number(escalaAdaptativa.toFixed(2))))
 }
 
 function aplicarZoom(nivel) {
