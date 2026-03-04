@@ -531,6 +531,9 @@ let menuContextual
 let botonCopiarMenu
 let botonPegarMenu
 let objetivoContextual
+let menuBorradoSidebar
+let botonBorradoSidebar
+let accionBorradoSidebar = null
 
 function crearMenuContextual() {
   const menu = document.createElement("div")
@@ -614,6 +617,49 @@ function mostrarMenuContextual(x, y) {
 
   menuContextual.style.left = `${posX}px`
   menuContextual.style.top = `${posY}px`
+}
+
+function crearMenuBorradoSidebar() {
+  const menu = document.createElement("div")
+  menu.className = "menu-contextual"
+
+  const borrarBtn = document.createElement("button")
+  borrarBtn.type = "button"
+  borrarBtn.textContent = "Borrar"
+
+  menu.appendChild(borrarBtn)
+  return { menu, borrarBtn }
+}
+
+function ocultarMenuBorradoSidebar() {
+  if (!menuBorradoSidebar) return
+  menuBorradoSidebar.style.display = "none"
+  accionBorradoSidebar = null
+}
+
+function mostrarMenuBorradoSidebar(event, options = {}) {
+  if (!menuBorradoSidebar || !botonBorradoSidebar) return
+
+  event.preventDefault()
+  event.stopPropagation()
+
+  accionBorradoSidebar = typeof options.onDelete === "function" ? options.onDelete : null
+  botonBorradoSidebar.textContent = options.label || "Borrar"
+  botonBorradoSidebar.disabled = !accionBorradoSidebar
+
+  menuBorradoSidebar.style.display = "flex"
+  const margin = 12
+  const width = menuBorradoSidebar.offsetWidth
+  const height = menuBorradoSidebar.offsetHeight
+
+  let x = event.clientX
+  let y = event.clientY
+
+  if (x + width + margin > window.innerWidth) x = window.innerWidth - width - margin
+  if (y + height + margin > window.innerHeight) y = window.innerHeight - height - margin
+
+  menuBorradoSidebar.style.left = `${Math.max(margin, x)}px`
+  menuBorradoSidebar.style.top = `${Math.max(margin, y)}px`
 }
 
 function obtenerPosicionMenuContextual(objetivo) {
@@ -785,6 +831,31 @@ function inicializarMenuContextual() {
 
   window.addEventListener("resize", ocultarMenuContextual)
   window.addEventListener("scroll", ocultarMenuContextual, true)
+}
+
+function inicializarMenuBorradoSidebar() {
+  const { menu, borrarBtn } = crearMenuBorradoSidebar()
+  menuBorradoSidebar = menu
+  botonBorradoSidebar = borrarBtn
+  document.body.appendChild(menuBorradoSidebar)
+
+  botonBorradoSidebar.addEventListener("click", () => {
+    if (!accionBorradoSidebar) return
+    accionBorradoSidebar()
+    ocultarMenuBorradoSidebar()
+  })
+
+  document.addEventListener("click", e => {
+    if (!menuBorradoSidebar || menuBorradoSidebar.style.display === "none") return
+    if (!menuBorradoSidebar.contains(e.target)) ocultarMenuBorradoSidebar()
+  })
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") ocultarMenuBorradoSidebar()
+  })
+
+  window.addEventListener("resize", ocultarMenuBorradoSidebar)
+  window.addEventListener("scroll", ocultarMenuBorradoSidebar, true)
 }
 
 function aplicarOrdenDesdeDOM(contenedorLista, normativa, materia) {
@@ -1062,6 +1133,33 @@ function crearItemDocumentoSidebar(doc, sidebar) {
       ?.querySelectorAll(".sidebarItemDocumento.is-selected")
       .forEach(nodo => nodo.classList.remove("is-selected"))
     item.classList.add("is-selected")
+  })
+
+  item.addEventListener("contextmenu", event => {
+    const carpetaId = item.closest(".carpetaDocumentos")?.dataset.carpetaId || null
+
+    if (carpetaId) {
+      mostrarMenuBorradoSidebar(event, {
+        label: "Quitar documento",
+        onDelete: () => {
+          removerDocumentoDeCarpetas(doc.id, carpetaId)
+          if (documentoSeleccionadoEnCarpetaId === doc.id) documentoSeleccionadoEnCarpetaId = null
+          ordenarYMostrar()
+        }
+      })
+      return
+    }
+
+    if (item.closest(".sidebarDocumentosLista")) {
+      mostrarMenuBorradoSidebar(event, {
+        label: "Quitar de barra lateral",
+        onDelete: () => {
+          const cambio = quitarDocumentoDeSidebar(doc.id)
+          if (documentoSeleccionadoEnCarpetaId === doc.id) documentoSeleccionadoEnCarpetaId = null
+          if (cambio) ordenarYMostrar()
+        }
+      })
+    }
   })
 
   item.addEventListener("dragstart", e => {
@@ -1514,6 +1612,13 @@ function ordenarYMostrar() {
         mostrarArticulosDeMateria(norm, m, agrupado[norm][m])
       })
 
+      item.addEventListener("contextmenu", event => {
+        mostrarMenuBorradoSidebar(event, {
+          label: "Borrar materia",
+          onDelete: () => borrarMateria(m, norm)
+        })
+      })
+
       if (norm === normativaSeleccionada && m === materiaSeleccionada) {
         item.classList.add("activa")
         tieneSeleccionValida = true
@@ -1783,6 +1888,13 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
             sidebar.querySelectorAll(".sidebarItem").forEach(i => i.classList.remove("activa"))
             item.classList.add("activa")
             mostrarArticulosDeMateria(normativa, materia, agrupado[normativa][materia])
+          })
+
+          item.addEventListener("contextmenu", event => {
+            mostrarMenuBorradoSidebar(event, {
+              label: "Borrar materia",
+              onDelete: () => borrarMateria(materia, normativa)
+            })
           })
 
           activarArrastreMateria(item, lista, normativa)
@@ -2211,6 +2323,7 @@ async function cargarDocumentoProcedimiento(ruta = "/docs/codigo_de_procedimient
 }
 
 inicializarMenuContextual()
+inicializarMenuBorradoSidebar()
 renderDocumentos()
 ordenarYMostrar()
 
