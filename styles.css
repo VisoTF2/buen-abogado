@@ -2476,7 +2476,8 @@ body.oscuro .carpetaToggle {
   padding-block: 9px;
   transform: none;
   contain: none;
-  text-rendering: optimizeLegibility;
+  backface-visibility: hidden;
+  text-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -2490,6 +2491,8 @@ body.oscuro .carpetaToggle {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .sidebarItemDocumentoTipo {
@@ -2734,7 +2737,7 @@ body.oscuro .modal-close:hover {
     width: auto;
   }
 }
-    .sidebarItem:hover {
+    .sidebarItem:not(.sidebarItemDocumento):hover {
       transform: translateY(-1px);
     }
 
@@ -2747,7 +2750,7 @@ body.oscuro .modal-close:hover {
       cursor: grabbing;
     }
 
-    .sidebarItem.arrastrando {
+    .sidebarItem:not(.sidebarItemDocumento).arrastrando {
       opacity: 0.9;
       transform: translateY(-1px);
     }

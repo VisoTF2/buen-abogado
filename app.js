@@ -1480,8 +1480,41 @@ function agregarArticulo() {
 }
 
 // ...existing code...
+
+function obtenerOrdenDocumentosVisibles() {
+  const ids = []
+  const vistos = new Set()
+
+  const agregarId = id => {
+    if (!id || vistos.has(id)) return
+    vistos.add(id)
+    ids.push(id)
+  }
+
+  documentosSidebarIds.forEach(agregarId)
+
+  carpetas.forEach(carpeta => {
+    ;(carpeta.documentos || []).forEach(agregarId)
+  })
+
+  return ids.filter(id => documentosCargados.some(doc => doc.id === id))
+}
+
+function normalizarSeleccionDocumentoSidebar() {
+  const idsVisibles = obtenerOrdenDocumentosVisibles()
+  if (!idsVisibles.length) {
+    documentoSeleccionadoEnCarpetaId = null
+    return
+  }
+
+  if (!idsVisibles.includes(documentoSeleccionadoEnCarpetaId)) {
+    documentoSeleccionadoEnCarpetaId = idsVisibles[0]
+  }
+}
+
 function ordenarYMostrar() {
   sincronizarEdiciones()
+  normalizarSeleccionDocumentoSidebar()
 
   const sidebar = document.getElementById("sidebarMaterias")
   const contenedorArticulos = document.getElementById("contenidoArticulos")
@@ -1558,13 +1591,6 @@ function ordenarYMostrar() {
   const documentosSidebar = documentosSidebarIds
     .map(id => disponiblesPorId.get(id))
     .filter(Boolean)
-
-  if (
-    documentosSidebar.length === 1 &&
-    (!documentoSeleccionadoEnCarpetaId || !disponiblesPorId.has(documentoSeleccionadoEnCarpetaId))
-  ) {
-    documentoSeleccionadoEnCarpetaId = documentosSidebar[0].id
-  }
 
   if (!documentosSidebar.length) {
     const aviso = document.createElement("div")
