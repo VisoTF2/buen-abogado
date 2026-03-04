@@ -1559,6 +1559,13 @@ function ordenarYMostrar() {
     .map(id => disponiblesPorId.get(id))
     .filter(Boolean)
 
+  if (
+    documentosSidebar.length === 1 &&
+    (!documentoSeleccionadoEnCarpetaId || !disponiblesPorId.has(documentoSeleccionadoEnCarpetaId))
+  ) {
+    documentoSeleccionadoEnCarpetaId = documentosSidebar[0].id
+  }
+
   if (!documentosSidebar.length) {
     const aviso = document.createElement("div")
     aviso.className = "carpetaVacia"

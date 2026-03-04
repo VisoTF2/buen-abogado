@@ -272,7 +272,7 @@
     const deleteBtn = document.createElement("button")
     deleteBtn.type = "button"
     deleteBtn.className = "menu-contextual-delete"
-    deleteBtn.textContent = "Borrar ramos"
+    deleteBtn.textContent = "Borrar ramo"
 
     menu.appendChild(deleteBtn)
     document.body.appendChild(menu)

@@ -2474,6 +2474,15 @@ body.oscuro .carpetaToggle {
   align-items: flex-start;
   gap: 2px;
   padding-block: 9px;
+  transform: none;
+  contain: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.sidebarItemDocumento:hover,
+.sidebarItemDocumento:active {
+  transform: none;
 }
 
 .sidebarItemDocumentoNombre {
