@@ -1141,7 +1141,7 @@ function crearItemDocumentoSidebar(doc, sidebar) {
 
     if (carpetaId) {
       mostrarMenuBorradoSidebar(event, {
-        label: "Quitar documento",
+        label: "Borrar documento",
         onDelete: () => {
           removerDocumentoDeCarpetas(doc.id, carpetaId)
           if (documentoSeleccionadoEnCarpetaId === doc.id) documentoSeleccionadoEnCarpetaId = null
@@ -1153,7 +1153,7 @@ function crearItemDocumentoSidebar(doc, sidebar) {
 
     if (item.closest(".sidebarDocumentosLista")) {
       mostrarMenuBorradoSidebar(event, {
-        label: "Quitar de barra lateral",
+        label: "Borrar documento",
         onDelete: () => {
           const cambio = quitarDocumentoDeSidebar(doc.id)
           if (documentoSeleccionadoEnCarpetaId === doc.id) documentoSeleccionadoEnCarpetaId = null
