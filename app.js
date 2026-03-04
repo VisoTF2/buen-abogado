@@ -1708,26 +1708,6 @@ function claveSemestre(valor) {
   return normalizarSemestre(valor).toLocaleLowerCase("es")
 }
 
-function valorOrdenSemestre(semestre) {
-  const texto = normalizarSemestre(semestre)
-  const match = texto.match(/\d+/)
-  return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER
-}
-
-function ordenarCarpetasPorSemestre(items) {
-  return [...items].sort((a, b) => {
-    const ordenA = valorOrdenSemestre(a.semestre)
-    const ordenB = valorOrdenSemestre(b.semestre)
-    if (ordenA !== ordenB) return ordenA - ordenB
-    const semCmp = normalizarSemestre(a.semestre).localeCompare(normalizarSemestre(b.semestre), "es", {
-      sensitivity: "base",
-      numeric: true
-    })
-    if (semCmp !== 0) return semCmp
-    return (a.nombre || "").localeCompare(b.nombre || "", "es", { sensitivity: "base" })
-  })
-}
-
 function configurarSemestreEditableCarpeta(carpeta, semestreEl) {
   if (!semestreEl) return
   semestreEl.setAttribute("contenteditable", "true")
@@ -1778,7 +1758,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
     return
   }
 
-  const carpetasOrdenadas = ordenarCarpetasPorSemestre(carpetas)
+  const carpetasOrdenadas = [...carpetas]
   const docActualEnPreview = document.getElementById("visorDocumentos")?.dataset.docActual || ""
   const grupos = new Map()
 
