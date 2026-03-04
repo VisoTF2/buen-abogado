@@ -36,6 +36,7 @@ let materiaArrastrada = null
 let materiaArrastradaNormativa = null
 let materiaArrastradaCarpetaId = null
 let documentoSeleccionadoEnCarpetaId = null
+let suprimirClickDocumentoSidebarHasta = 0
 const DOCUMENTOS_SIDEBAR_STORAGE_KEY = "documentosSidebarIds"
 let documentosSidebarIds = cargarDocumentosSidebarIds()
 
@@ -1129,6 +1130,8 @@ function crearItemDocumentoSidebar(doc, sidebar) {
   }
 
   item.addEventListener("click", () => {
+    if (Date.now() < suprimirClickDocumentoSidebarHasta) return
+
     documentoSeleccionadoEnCarpetaId = doc.id
     sidebar
       ?.querySelectorAll(".sidebarItemDocumento.is-selected")
@@ -1165,6 +1168,7 @@ function crearItemDocumentoSidebar(doc, sidebar) {
 
   item.addEventListener("dragstart", e => {
     documentoArrastradoId = doc.id
+    suprimirClickDocumentoSidebarHasta = Date.now() + 300
     item.classList.add("documento-arrastrando")
     if (e.dataTransfer) {
       e.dataTransfer.effectAllowed = "move"
@@ -1174,6 +1178,7 @@ function crearItemDocumentoSidebar(doc, sidebar) {
   })
 
   item.addEventListener("dragend", () => {
+    suprimirClickDocumentoSidebarHasta = Date.now() + 300
     item.classList.remove("documento-arrastrando")
     documentoArrastradoId = null
     document
