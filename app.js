@@ -490,6 +490,78 @@ function aplicarOrdenMateriasDesdeDOM(lista) {
   guardarOrdenMaterias()
 }
 
+function aplicarOrdenMateriasCarpetaDesdeDOM(lista, carpetaId) {
+  if (!lista || !carpetaId) return
+
+  const materiasOrdenadas = Array.from(lista.querySelectorAll(".sidebarItem"))
+    .map(item => {
+      const normativa = item.dataset.normativa
+      const materia = item.dataset.materia
+      if (!normativa || !materia) return null
+      return { normativa, materia }
+    })
+    .filter(Boolean)
+
+  carpetas = carpetas.map(carpeta => {
+    if (carpeta.id !== carpetaId) return carpeta
+    const actuales = carpeta.materias || []
+    const clavesVistas = new Set()
+    const reordenadas = []
+
+    materiasOrdenadas.forEach(m => {
+      const key = `${m.normativa}||${m.materia}`
+      if (clavesVistas.has(key)) return
+      const existente = actuales.find(x => x.normativa === m.normativa && x.materia === m.materia)
+      if (!existente) return
+      clavesVistas.add(key)
+      reordenadas.push(existente)
+    })
+
+    actuales.forEach(m => {
+      const key = `${m.normativa}||${m.materia}`
+      if (clavesVistas.has(key)) return
+      clavesVistas.add(key)
+      reordenadas.push(m)
+    })
+
+    return { ...carpeta, materias: reordenadas }
+  })
+
+  guardarCarpetas()
+}
+
+function normalizarNombreMateria(valor) {
+  return (valor || "").replace(/\s+/g, " ").trim()
+}
+
+function resolverMateriaDestinoParaArticulo(normativa, materiaIngresada) {
+  const nombreNormalizado = normalizarNombreMateria(materiaIngresada)
+  const materiasNormativa = Array.from(
+    new Set(
+      articulos
+        .filter(a => a.normativa === normativa && normalizarNombreMateria(a.materia))
+        .map(a => normalizarNombreMateria(a.materia))
+    )
+  )
+
+  if (nombreNormalizado) {
+    const existente = materiasNormativa.find(
+      materia => materia.localeCompare(nombreNormalizado, "es", { sensitivity: "base" }) === 0
+    )
+    return existente || nombreNormalizado
+  }
+
+  if (!materiasNormativa.length) return null
+
+  const materiaSeleccionadaNorm =
+    normativaSeleccionada === normativa ? normalizarNombreMateria(materiaSeleccionada) : ""
+  if (materiaSeleccionadaNorm && materiasNormativa.includes(materiaSeleccionadaNorm)) {
+    return materiaSeleccionadaNorm
+  }
+
+  return materiasNormativa[0]
+}
+
 function siguienteOrdenPara(normativa, materia) {
   const ordenes = articulos
     .filter(a => a.normativa === normativa && a.materia === materia)
@@ -959,7 +1031,11 @@ function manejarDropListaMaterias(e) {
     return
   }
 
-  aplicarOrdenMateriasDesdeDOM(listaObjetivo)
+  if (carpetaObjetivo) {
+    aplicarOrdenMateriasCarpetaDesdeDOM(listaObjetivo, carpetaObjetivo)
+  } else {
+    aplicarOrdenMateriasDesdeDOM(listaObjetivo)
+  }
   materiaDropProcesado = true
   limpiarEstadoArrastreMateria()
 }
@@ -1434,16 +1510,17 @@ async function cargarDocumentoNormativa(normativa, opciones = {}) {
 
 function agregarArticulo() {
   const num = parseInt(document.getElementById("numeroArticulo").value)
-  const mat = document.getElementById("materiaArticulo").value.trim()
+  const matIngresada = document.getElementById("materiaArticulo").value
 
   document.getElementById("errorBox").style.display = "none"
+
+  const norm = document.getElementById("normativa").value
+  const mat = resolverMateriaDestinoParaArticulo(norm, matIngresada)
 
   if (!num || !mat) return mostrarError("Debe ingresar número y materia")
 
   const cont = codigoActual[num]
   if (!cont) return mostrarError("Ese artículo no existe en la base")
-
-  const norm = document.getElementById("normativa").value
 
   asegurarOrdenMateria(norm, mat)
 
