@@ -31,16 +31,63 @@
     renderCalendar()
   })
 
+  function generarIdEvento() {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      return crypto.randomUUID()
+    }
+    return `evt-${Date.now()}-${Math.random().toString(16).slice(2)}`
+  }
+
+  function normalizarEvento(evento) {
+    const text = typeof evento?.text === "string" ? evento.text.trim() : ""
+    return {
+      id: typeof evento?.id === "string" && evento.id.trim() ? evento.id : generarIdEvento(),
+      text,
+      completed: Boolean(evento?.completed)
+    }
+  }
+
+  function deduplicarEventos(eventos) {
+    const resultado = []
+    const ids = new Set()
+
+    for (const evento of eventos) {
+      const normalizado = normalizarEvento(evento)
+      if (!normalizado.text) continue
+      if (ids.has(normalizado.id)) continue
+      ids.add(normalizado.id)
+      resultado.push(normalizado)
+    }
+
+    return resultado
+  }
+
+  function normalizarColeccionEventos(origen) {
+    const normalizado = {}
+
+    Object.entries(origen || {}).forEach(([dateKey, eventos]) => {
+      if (!Array.isArray(eventos)) return
+      const eventosNormalizados = deduplicarEventos(eventos)
+      if (eventosNormalizados.length) {
+        normalizado[dateKey] = eventosNormalizados
+      }
+    })
+
+    return normalizado
+  }
+
   function loadEvents() {
     try {
       const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")
-      return parsed && typeof parsed === "object" ? parsed : {}
+      if (!parsed || typeof parsed !== "object") return {}
+      return normalizarColeccionEventos(parsed)
     } catch (_error) {
       return {}
     }
   }
 
   function saveEvents() {
+    eventsByDate = normalizarColeccionEventos(eventsByDate)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(eventsByDate))
   }
 
@@ -158,6 +205,15 @@
           openEditor()
         }
       })
+
+      cell.addEventListener("dragover", e => {
+        e.preventDefault()
+      })
+
+      cell.addEventListener("drop", e => {
+        e.preventDefault()
+        e.stopPropagation()
+      })
     }
 
     return cell
@@ -201,8 +257,8 @@
       }
 
       const nextEvents = Array.isArray(eventsByDate[dateKey]) ? [...eventsByDate[dateKey]] : []
-      nextEvents.push({ text: cleanText, completed: false })
-      eventsByDate[dateKey] = nextEvents
+      nextEvents.push(normalizarEvento({ text: cleanText, completed: false }))
+      eventsByDate[dateKey] = deduplicarEventos(nextEvents)
       saveEvents()
       creatingEventDateKey = null
       renderCalendar()
@@ -234,8 +290,13 @@
     const row = document.createElement("div")
     row.className = "calendar-event"
     if (event.completed) row.classList.add("completed")
+    row.draggable = false
 
     row.addEventListener("click", e => e.stopPropagation())
+    row.addEventListener("dragstart", e => {
+      e.preventDefault()
+      e.stopPropagation()
+    })
 
     const checkbox = document.createElement("input")
     checkbox.type = "checkbox"
@@ -245,7 +306,7 @@
       const list = Array.isArray(eventsByDate[dateKey]) ? [...eventsByDate[dateKey]] : []
       if (!list[index]) return
       list[index] = { ...list[index], completed: checkbox.checked }
-      eventsByDate[dateKey] = list
+      eventsByDate[dateKey] = deduplicarEventos(list)
       saveEvents()
       renderCalendar()
     })
@@ -255,9 +316,18 @@
     input.className = "calendar-event-text"
     input.value = event.text || ""
     input.setAttribute("aria-label", "Editar evento")
+    input.draggable = false
 
     input.addEventListener("click", e => e.stopPropagation())
     input.addEventListener("keydown", e => e.stopPropagation())
+    input.addEventListener("dragstart", e => {
+      e.preventDefault()
+      e.stopPropagation()
+    })
+    input.addEventListener("drop", e => {
+      e.preventDefault()
+      e.stopPropagation()
+    })
     input.addEventListener("change", () => {
       const list = Array.isArray(eventsByDate[dateKey]) ? [...eventsByDate[dateKey]] : []
       if (!list[index]) return
@@ -267,7 +337,7 @@
         return
       }
       list[index] = { ...list[index], text: newText }
-      eventsByDate[dateKey] = list
+      eventsByDate[dateKey] = deduplicarEventos(list)
       saveEvents()
       renderCalendar()
     })
@@ -282,7 +352,7 @@
       if (!list[index]) return
       list.splice(index, 1)
       if (list.length) {
-        eventsByDate[dateKey] = list
+        eventsByDate[dateKey] = deduplicarEventos(list)
       } else {
         delete eventsByDate[dateKey]
       }
