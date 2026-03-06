@@ -1221,7 +1221,7 @@ function crearItemDocumentoSidebar(doc, sidebar) {
     item.classList.add("is-selected")
 
     const docVigente = documentosCargados.find(d => d.id === doc.id)
-    if (docVigente && !docVigente.archived) {
+    if (docVigente) {
       if (typeof mostrarDocumento === "function") mostrarDocumento(doc.id)
       return
     }
