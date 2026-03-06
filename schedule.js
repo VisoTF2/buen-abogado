@@ -371,23 +371,64 @@
         e.preventDefault()
         const id = e.dataTransfer.getData('text/plain')
         if (!id) return
+
         const fromDayId = findDayIdOfId(id)
         const toDayId = ul.dataset.dayId
         if (!fromDayId || !toDayId) return
 
-        const item = (horario[fromDayId] || []).find(it=>it.id===id)
-        if (!item) return
+        const itemMovido = (horario[fromDayId] || []).find(it => it.id === id)
+        if (!itemMovido) return
 
-        horario[fromDayId] = (horario[fromDayId] || []).filter(it=>it.id!==id)
+        const idsEnOrdenDestino = Array.from(ul.querySelectorAll('.class-card'))
+          .map(node => node.dataset.id)
+          .filter(Boolean)
 
-        // determine position within target based on DOM order
-        const children = Array.from(ul.children).filter(n=>n.classList.contains('class-card'))
-        const positions = children.map(n => n.dataset.id)
-        const pos = positions.indexOf(id)
-        if (pos === -1) {
-          horario[toDayId].push(item)
+        if (fromDayId === toDayId) {
+          const porId = new Map((horario[toDayId] || []).map(it => [it.id, it]))
+          const vistos = new Set()
+          const reordenado = []
+
+          idsEnOrdenDestino.forEach(classId => {
+            if (vistos.has(classId)) return
+            const existente = porId.get(classId)
+            if (!existente) return
+            vistos.add(classId)
+            reordenado.push(existente)
+          })
+
+          ;(horario[toDayId] || []).forEach(it => {
+            if (vistos.has(it.id)) return
+            vistos.add(it.id)
+            reordenado.push(it)
+          })
+
+          horario[toDayId] = reordenado
         } else {
-          horario[toDayId].splice(pos, 0, item)
+          horario[fromDayId] = (horario[fromDayId] || []).filter(it => it.id !== id)
+
+          const porIdDestino = new Map((horario[toDayId] || []).map(it => [it.id, it]))
+          porIdDestino.set(itemMovido.id, itemMovido)
+
+          const vistos = new Set()
+          const destinoReordenado = []
+
+          idsEnOrdenDestino.forEach(classId => {
+            if (vistos.has(classId)) return
+            const existente = porIdDestino.get(classId)
+            if (!existente) return
+            vistos.add(classId)
+            destinoReordenado.push(existente)
+          })
+
+          ;(horario[toDayId] || []).forEach(it => {
+            if (vistos.has(it.id)) return
+            vistos.add(it.id)
+            destinoReordenado.push(it)
+          })
+
+          if (!vistos.has(itemMovido.id)) destinoReordenado.push(itemMovido)
+
+          horario[toDayId] = destinoReordenado
         }
 
         guardarHorario(horario)

@@ -2169,7 +2169,7 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
   const cerrarVista = document.createElement("button")
   cerrarVista.className = "btn-small btn-preview-close"
   cerrarVista.type = "button"
-  cerrarVista.textContent = "✕"
+  cerrarVista.textContent = "×"
   cerrarVista.title = "Cerrar vista previa"
   cerrarVista.setAttribute("aria-label", "Cerrar vista previa de la materia")
   cerrarVista.onclick = () => {

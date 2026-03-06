@@ -2857,24 +2857,25 @@ body.oscuro .modal-close:hover {
 
 
     .btn-preview-close {
-      min-width: 34px;
-      height: 34px;
+      min-width: 30px;
+      height: 30px;
       padding: 0;
-      border-radius: 10px;
-      font-size: 17px;
+      border-radius: 8px;
+      font-size: 28px;
+      font-weight: 500;
       line-height: 1;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background: color-mix(in srgb, var(--card) 72%, var(--accent) 28%);
-      border: 1px solid color-mix(in srgb, var(--accent) 56%, var(--border) 44%);
-      color: var(--accent);
+      background: transparent;
+      border: none;
+      color: #ef4444;
       box-shadow: none;
     }
 
     .btn-preview-close:hover {
-      background: color-mix(in srgb, var(--accent) 22%, var(--card) 78%);
-      color: var(--accent-light);
+      background: rgba(239, 68, 68, 0.08);
+      color: #dc2626;
     }
 
     .estado-vacio-cerrado {
