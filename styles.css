@@ -99,7 +99,7 @@
       background: var(--bg);
       color: var(--text);
       transition: 0.25s ease;
-      overflow-x: hidden;
+      overflow: hidden;
     }
 
     body.fondo-personalizado {
@@ -111,7 +111,11 @@
 
     .app-root {
       min-height: 100vh;
+      height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
       touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
     }
 
     .container {
@@ -613,6 +617,11 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       transform: translateY(-1px);
     }
 
+    .documento-item.is-selected {
+      border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+      background: color-mix(in srgb, var(--accent) 8%, var(--article-bg));
+    }
+
     .documento-item:active {
       cursor: grabbing;
       transform: translateY(1px);
@@ -769,25 +778,26 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .documento-preview-cerrar {
-      border: 1px solid var(--border);
-      background: white;
-      color: var(--text);
-      border-radius: 10px;
-      padding: 6px 11px;
-      cursor: pointer;
-      font-weight: 700;
+      min-width: 30px;
+      height: 30px;
+      padding: 0;
+      border-radius: 8px;
+      font-size: 28px;
+      font-weight: 500;
       line-height: 1;
-      transition: background 0.2s ease, border-color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      box-shadow: none;
     }
 
     .documento-preview-cerrar:hover {
-      background: rgba(30, 58, 138, 0.08);
-      border-color: var(--accent-light);
-    }
-
-    body.oscuro .documento-preview-cerrar {
-      background: #0f172a;
-      color: #e5e7eb;
+      background: rgba(239, 68, 68, 0.08);
+      color: #dc2626;
     }
 
     .documentos-vacio {
@@ -2849,6 +2859,35 @@ body.oscuro .modal-close:hover {
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+
+
+    .btn-preview-close {
+      min-width: 30px;
+      height: 30px;
+      padding: 0;
+      border-radius: 8px;
+      font-size: 28px;
+      font-weight: 500;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: #ef4444;
+      box-shadow: none;
+    }
+
+    .btn-preview-close:hover {
+      background: rgba(239, 68, 68, 0.08);
+      color: #dc2626;
+    }
+
+    .estado-vacio-cerrado {
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--card) 84%, transparent);
     }
 
     .materia-color-input {

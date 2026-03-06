@@ -11,6 +11,7 @@ let carpetas = JSON.parse(localStorage.getItem("carpetasMaterias") || "[]").map(
 }))
 let normativaSeleccionada = null
 let materiaSeleccionada = null
+let vistaMateriaCerrada = false
 let materiaDropProcesado = false
 const appRoot = document.getElementById("appRoot")
 const contenedorArticulosPrincipal = document.getElementById("contenidoArticulos")
@@ -490,6 +491,78 @@ function aplicarOrdenMateriasDesdeDOM(lista) {
   guardarOrdenMaterias()
 }
 
+function aplicarOrdenMateriasCarpetaDesdeDOM(lista, carpetaId) {
+  if (!lista || !carpetaId) return
+
+  const materiasOrdenadas = Array.from(lista.querySelectorAll(".sidebarItem"))
+    .map(item => {
+      const normativa = item.dataset.normativa
+      const materia = item.dataset.materia
+      if (!normativa || !materia) return null
+      return { normativa, materia }
+    })
+    .filter(Boolean)
+
+  carpetas = carpetas.map(carpeta => {
+    if (carpeta.id !== carpetaId) return carpeta
+    const actuales = carpeta.materias || []
+    const clavesVistas = new Set()
+    const reordenadas = []
+
+    materiasOrdenadas.forEach(m => {
+      const key = `${m.normativa}||${m.materia}`
+      if (clavesVistas.has(key)) return
+      const existente = actuales.find(x => x.normativa === m.normativa && x.materia === m.materia)
+      if (!existente) return
+      clavesVistas.add(key)
+      reordenadas.push(existente)
+    })
+
+    actuales.forEach(m => {
+      const key = `${m.normativa}||${m.materia}`
+      if (clavesVistas.has(key)) return
+      clavesVistas.add(key)
+      reordenadas.push(m)
+    })
+
+    return { ...carpeta, materias: reordenadas }
+  })
+
+  guardarCarpetas()
+}
+
+function normalizarNombreMateria(valor) {
+  return (valor || "").replace(/\s+/g, " ").trim()
+}
+
+function resolverMateriaDestinoParaArticulo(normativa, materiaIngresada) {
+  const nombreNormalizado = normalizarNombreMateria(materiaIngresada)
+  const materiasNormativa = Array.from(
+    new Set(
+      articulos
+        .filter(a => a.normativa === normativa && normalizarNombreMateria(a.materia))
+        .map(a => normalizarNombreMateria(a.materia))
+    )
+  )
+
+  if (nombreNormalizado) {
+    const existente = materiasNormativa.find(
+      materia => materia.localeCompare(nombreNormalizado, "es", { sensitivity: "base" }) === 0
+    )
+    return existente || nombreNormalizado
+  }
+
+  if (!materiasNormativa.length) return null
+
+  const materiaSeleccionadaNorm =
+    normativaSeleccionada === normativa ? normalizarNombreMateria(materiaSeleccionada) : ""
+  if (materiaSeleccionadaNorm && materiasNormativa.includes(materiaSeleccionadaNorm)) {
+    return materiaSeleccionadaNorm
+  }
+
+  return materiasNormativa[0]
+}
+
 function siguienteOrdenPara(normativa, materia) {
   const ordenes = articulos
     .filter(a => a.normativa === normativa && a.materia === materia)
@@ -502,7 +575,7 @@ function siguienteOrdenPara(normativa, materia) {
 function obtenerZoomInicial() {
   const guardado = parseFloat(localStorage.getItem(ZOOM_STORAGE_KEY) || "")
   if (!Number.isFinite(guardado)) return 1
-  return guardado
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, guardado))
 }
 
 function aplicarZoom(nivel) {
@@ -561,9 +634,14 @@ function ocultarMenuContextual() {
 
 function seleccionPerteneceAlObjetivo(objetivo, seleccion) {
   if (!seleccion) return false
-  if (!seleccion.anchorNode) return false
-  if (seleccion.anchorNode === objetivo) return true
-  return objetivo.contains(seleccion.anchorNode)
+  const anchorNode = seleccion.anchorNode
+  const focusNode = seleccion.focusNode
+  if (!anchorNode && !focusNode) return false
+  if (anchorNode === objetivo || focusNode === objetivo) return true
+  return Boolean(
+    (anchorNode && objetivo.contains(anchorNode)) ||
+    (focusNode && objetivo.contains(focusNode))
+  )
 }
 
 function textoSeleccionadoEnObjetivo(objetivo) {
@@ -572,16 +650,16 @@ function textoSeleccionadoEnObjetivo(objetivo) {
   if (objetivo instanceof HTMLInputElement || objetivo instanceof HTMLTextAreaElement) {
     const inicio = objetivo.selectionStart ?? 0
     const fin = objetivo.selectionEnd ?? 0
-    if (inicio !== fin) return objetivo.value.slice(inicio, fin)
-    return objetivo.value
+    if (inicio === fin) return ""
+    return objetivo.value.slice(inicio, fin)
   }
 
   const seleccion = window.getSelection()
-  if (seleccion && seleccion.toString().trim() && seleccionPerteneceAlObjetivo(objetivo, seleccion)) {
+  if (seleccion && seleccion.toString() && seleccionPerteneceAlObjetivo(objetivo, seleccion)) {
     return seleccion.toString()
   }
 
-  return objetivo.textContent || ""
+  return ""
 }
 
 function actualizarEstadoMenuContextual() {
@@ -959,7 +1037,11 @@ function manejarDropListaMaterias(e) {
     return
   }
 
-  aplicarOrdenMateriasDesdeDOM(listaObjetivo)
+  if (carpetaObjetivo) {
+    aplicarOrdenMateriasCarpetaDesdeDOM(listaObjetivo, carpetaObjetivo)
+  } else {
+    aplicarOrdenMateriasDesdeDOM(listaObjetivo)
+  }
   materiaDropProcesado = true
   limpiarEstadoArrastreMateria()
 }
@@ -1434,16 +1516,17 @@ async function cargarDocumentoNormativa(normativa, opciones = {}) {
 
 function agregarArticulo() {
   const num = parseInt(document.getElementById("numeroArticulo").value)
-  const mat = document.getElementById("materiaArticulo").value.trim()
+  const matIngresada = document.getElementById("materiaArticulo").value
 
   document.getElementById("errorBox").style.display = "none"
+
+  const norm = document.getElementById("normativa").value
+  const mat = resolverMateriaDestinoParaArticulo(norm, matIngresada)
 
   if (!num || !mat) return mostrarError("Debe ingresar número y materia")
 
   const cont = codigoActual[num]
   if (!cont) return mostrarError("Ese artículo no existe en la base")
-
-  const norm = document.getElementById("normativa").value
 
   asegurarOrdenMateria(norm, mat)
 
@@ -1461,6 +1544,7 @@ function agregarArticulo() {
     orden: siguienteOrdenPara(norm, mat)
   })
 
+  vistaMateriaCerrada = false
   normativaSeleccionada = norm
   materiaSeleccionada = mat
 
@@ -1644,6 +1728,7 @@ function ordenarYMostrar() {
       item.style.borderLeftColor = obtenerColorMateria(m)
 
       item.addEventListener("click", () => {
+        vistaMateriaCerrada = false
         normativaSeleccionada = norm
         materiaSeleccionada = m
         sidebar.querySelectorAll(".sidebarItem").forEach(i => i.classList.remove("activa"))
@@ -1685,6 +1770,14 @@ function ordenarYMostrar() {
     return
   }
 
+  if (vistaMateriaCerrada) {
+    normativaSeleccionada = null
+    materiaSeleccionada = null
+    mostrarEstadoVistaPreviaCerrada()
+    reaplicarBusqueda()
+    return
+  }
+
   if (!tieneSeleccionValida) {
     normativaSeleccionada = combos[0].normativa
     materiaSeleccionada = combos[0].materia
@@ -1704,32 +1797,23 @@ function ordenarYMostrar() {
   reaplicarBusqueda()
 }
 
+function mostrarEstadoVistaPreviaCerrada() {
+  const contenedor = document.getElementById("contenidoArticulos")
+  if (!contenedor) return
+  contenedor.innerHTML = `
+    <div class="estado-vacio estado-vacio-cerrado">
+      <h2>Vista previa cerrada</h2>
+      <p>Selecciona una materia en la barra lateral para volver a verla.</p>
+    </div>
+  `
+}
+
 function normalizarSemestre(valor) {
   return (valor || "Semestre").trim() || "Semestre"
 }
 
 function claveSemestre(valor) {
   return normalizarSemestre(valor).toLocaleLowerCase("es")
-}
-
-function valorOrdenSemestre(semestre) {
-  const texto = normalizarSemestre(semestre)
-  const match = texto.match(/\d+/)
-  return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER
-}
-
-function ordenarCarpetasPorSemestre(items) {
-  return [...items].sort((a, b) => {
-    const ordenA = valorOrdenSemestre(a.semestre)
-    const ordenB = valorOrdenSemestre(b.semestre)
-    if (ordenA !== ordenB) return ordenA - ordenB
-    const semCmp = normalizarSemestre(a.semestre).localeCompare(normalizarSemestre(b.semestre), "es", {
-      sensitivity: "base",
-      numeric: true
-    })
-    if (semCmp !== 0) return semCmp
-    return (a.nombre || "").localeCompare(b.nombre || "", "es", { sensitivity: "base" })
-  })
 }
 
 function configurarSemestreEditableCarpeta(carpeta, semestreEl) {
@@ -1782,7 +1866,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
     return
   }
 
-  const carpetasOrdenadas = ordenarCarpetasPorSemestre(carpetas)
+  const carpetasOrdenadas = [...carpetas]
   const docActualEnPreview = document.getElementById("visorDocumentos")?.dataset.docActual || ""
   const grupos = new Map()
 
@@ -1922,6 +2006,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
           }
 
           item.addEventListener("click", () => {
+            vistaMateriaCerrada = false
             normativaSeleccionada = normativa
             materiaSeleccionada = materia
             sidebar.querySelectorAll(".sidebarItem").forEach(i => i.classList.remove("activa"))
@@ -2081,12 +2166,24 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
     guardarLocal()
   })
 
+  const cerrarVista = document.createElement("button")
+  cerrarVista.className = "btn-small btn-preview-close"
+  cerrarVista.type = "button"
+  cerrarVista.textContent = "×"
+  cerrarVista.title = "Cerrar vista previa"
+  cerrarVista.setAttribute("aria-label", "Cerrar vista previa de la materia")
+  cerrarVista.onclick = () => {
+    vistaMateriaCerrada = true
+    ordenarYMostrar()
+  }
+
   const borrarMat = document.createElement("button")
   borrarMat.className = "btn-small"
   borrarMat.textContent = "Borrar materia"
   borrarMat.onclick = () => borrarMateria(nombreActual, normativa)
 
   controles.appendChild(colorInput)
+  controles.appendChild(cerrarVista)
   controles.appendChild(borrarMat)
 
   wrap.appendChild(tituloM)
