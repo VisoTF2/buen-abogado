@@ -379,56 +379,34 @@
         const itemMovido = (horario[fromDayId] || []).find(it => it.id === id)
         if (!itemMovido) return
 
-        const idsEnOrdenDestino = Array.from(ul.querySelectorAll('.class-card'))
-          .map(node => node.dataset.id)
-          .filter(Boolean)
+        const uniqueIds = ids => {
+          const vistos = new Set()
+          return ids.filter(classId => {
+            if (!classId || vistos.has(classId)) return false
+            vistos.add(classId)
+            return true
+          })
+        }
+
+        const idsDestino = uniqueIds(Array.from(ul.querySelectorAll('.class-card')).map(node => node.dataset.id))
 
         if (fromDayId === toDayId) {
           const porId = new Map((horario[toDayId] || []).map(it => [it.id, it]))
-          const vistos = new Set()
-          const reordenado = []
-
-          idsEnOrdenDestino.forEach(classId => {
-            if (vistos.has(classId)) return
-            const existente = porId.get(classId)
-            if (!existente) return
-            vistos.add(classId)
-            reordenado.push(existente)
-          })
-
-          ;(horario[toDayId] || []).forEach(it => {
-            if (vistos.has(it.id)) return
-            vistos.add(it.id)
-            reordenado.push(it)
-          })
-
-          horario[toDayId] = reordenado
+          horario[toDayId] = idsDestino.map(classId => porId.get(classId)).filter(Boolean)
         } else {
-          horario[fromDayId] = (horario[fromDayId] || []).filter(it => it.id !== id)
+          const listaOrigen = document.querySelector(`.schedule-list[data-day-id="${fromDayId}"]`)
+          const idsOrigen = uniqueIds(
+            Array.from(listaOrigen?.querySelectorAll('.class-card') || []).map(node => node.dataset.id)
+          )
 
-          const porIdDestino = new Map((horario[toDayId] || []).map(it => [it.id, it]))
-          porIdDestino.set(itemMovido.id, itemMovido)
+          const pool = new Map([
+            ...(horario[fromDayId] || []),
+            ...(horario[toDayId] || [])
+          ].map(it => [it.id, it]))
+          pool.set(itemMovido.id, itemMovido)
 
-          const vistos = new Set()
-          const destinoReordenado = []
-
-          idsEnOrdenDestino.forEach(classId => {
-            if (vistos.has(classId)) return
-            const existente = porIdDestino.get(classId)
-            if (!existente) return
-            vistos.add(classId)
-            destinoReordenado.push(existente)
-          })
-
-          ;(horario[toDayId] || []).forEach(it => {
-            if (vistos.has(it.id)) return
-            vistos.add(it.id)
-            destinoReordenado.push(it)
-          })
-
-          if (!vistos.has(itemMovido.id)) destinoReordenado.push(itemMovido)
-
-          horario[toDayId] = destinoReordenado
+          horario[fromDayId] = idsOrigen.map(classId => pool.get(classId)).filter(Boolean)
+          horario[toDayId] = idsDestino.map(classId => pool.get(classId)).filter(Boolean)
         }
 
         guardarHorario(horario)
