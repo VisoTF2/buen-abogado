@@ -409,9 +409,22 @@
           horario[toDayId] = idsDestino.map(classId => pool.get(classId)).filter(Boolean)
         }
 
+        DAY_DEFS.forEach(day => {
+          horario[day.id] = deduplicarClasesPorId(horario[day.id])
+        })
+
         guardarHorario(horario)
         render()
       }
+    })
+  }
+
+  function deduplicarClasesPorId(lista) {
+    const vistos = new Set()
+    return (lista || []).filter(item => {
+      if (!item || !item.id || vistos.has(item.id)) return false
+      vistos.add(item.id)
+      return true
     })
   }
 

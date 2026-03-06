@@ -407,13 +407,21 @@ function moverMateriaACarpeta(normativa, materia, carpetaId) {
   ordenarYMostrar()
 }
 
+const MAX_DOCUMENTO_BACKUP_URL_LENGTH = 120000
+
 function normalizarDocumentoParaCarpeta(documento) {
   if (!documento || !documento.id) return null
+
+  const urlRespaldo =
+    typeof documento.url === "string" && documento.url.length <= MAX_DOCUMENTO_BACKUP_URL_LENGTH
+      ? documento.url
+      : ""
+
   return {
     id: documento.id,
     nombre: documento.nombre || "Documento",
     extension: documento.extension || "",
-    url: documento.url || "",
+    url: urlRespaldo,
     texto: documento.texto || "",
     mensaje: documento.mensaje || ""
   }
