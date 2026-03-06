@@ -27,13 +27,13 @@
     const schedule = createEmptySchedule()
     if (Array.isArray(parsed)) {
       DEFAULT_ACTIVE_DAYS.forEach((dayId, idx) => {
-        if (Array.isArray(parsed[idx])) schedule[dayId] = parsed[idx]
+        if (Array.isArray(parsed[idx])) schedule[dayId] = deduplicarClasesPorId(parsed[idx])
       })
       return schedule
     }
     if (parsed && typeof parsed === 'object') {
       DAY_DEFS.forEach(day => {
-        if (Array.isArray(parsed[day.id])) schedule[day.id] = parsed[day.id]
+        if (Array.isArray(parsed[day.id])) schedule[day.id] = deduplicarClasesPorId(parsed[day.id])
       })
       return schedule
     }
