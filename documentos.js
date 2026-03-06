@@ -202,10 +202,12 @@ async function procesarDocumento(archivo) {
     } else if (extension === "docx") {
       base.texto = await extraerTextoDocx(archivo)
     } else if (extension === "pptx") {
-      base.texto = await extraerTextoPptx(archivo)
-    } else if (extension === "doc") {
-      base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
-    } else if (extension === "ppt") {
+      try {
+        base.texto = await extraerTextoPptx(archivo)
+      } catch (error) {
+        base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
+      }
+    } else if (extension === "doc" || extension === "ppt") {
       base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
     } else {
       base.mensaje = "Formato no soportado para vista previa."
