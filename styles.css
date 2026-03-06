@@ -2855,6 +2855,34 @@ body.oscuro .modal-close:hover {
       gap: 8px;
     }
 
+
+    .btn-preview-close {
+      min-width: 34px;
+      height: 34px;
+      padding: 0;
+      border-radius: 10px;
+      font-size: 17px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: color-mix(in srgb, var(--card) 72%, var(--accent) 28%);
+      border: 1px solid color-mix(in srgb, var(--accent) 56%, var(--border) 44%);
+      color: var(--accent);
+      box-shadow: none;
+    }
+
+    .btn-preview-close:hover {
+      background: color-mix(in srgb, var(--accent) 22%, var(--card) 78%);
+      color: var(--accent-light);
+    }
+
+    .estado-vacio-cerrado {
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--card) 84%, transparent);
+    }
+
     .materia-color-input {
       width: 30px;
       height: 30px;

@@ -131,6 +131,7 @@
     li.querySelector('.edit-btn').addEventListener('click', () => abrirEditorEditar(li, item))
 
     li.addEventListener('contextmenu', event => {
+      if (haySeleccionTextoEnElemento(li)) return
       event.preventDefault()
       const dayId = findDayIdOfId(item.id)
       if (!dayId) return
@@ -146,6 +147,16 @@
   }
 
   
+
+  function haySeleccionTextoEnElemento(elemento) {
+    const selection = window.getSelection && window.getSelection()
+    if (!selection || selection.isCollapsed || !selection.toString().trim()) return false
+    const anchorNode = selection.anchorNode
+    const focusNode = selection.focusNode
+    const contieneAnchor = anchorNode && elemento.contains(anchorNode)
+    const contieneFocus = focusNode && elemento.contains(focusNode)
+    return Boolean(contieneAnchor || contieneFocus)
+  }
 
   function crearEditorNodo(values, onSave, onCancel){
     const li = document.createElement('li')

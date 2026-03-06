@@ -11,6 +11,7 @@ let carpetas = JSON.parse(localStorage.getItem("carpetasMaterias") || "[]").map(
 }))
 let normativaSeleccionada = null
 let materiaSeleccionada = null
+let vistaMateriaCerrada = false
 let materiaDropProcesado = false
 const appRoot = document.getElementById("appRoot")
 const contenedorArticulosPrincipal = document.getElementById("contenidoArticulos")
@@ -633,9 +634,14 @@ function ocultarMenuContextual() {
 
 function seleccionPerteneceAlObjetivo(objetivo, seleccion) {
   if (!seleccion) return false
-  if (!seleccion.anchorNode) return false
-  if (seleccion.anchorNode === objetivo) return true
-  return objetivo.contains(seleccion.anchorNode)
+  const anchorNode = seleccion.anchorNode
+  const focusNode = seleccion.focusNode
+  if (!anchorNode && !focusNode) return false
+  if (anchorNode === objetivo || focusNode === objetivo) return true
+  return Boolean(
+    (anchorNode && objetivo.contains(anchorNode)) ||
+    (focusNode && objetivo.contains(focusNode))
+  )
 }
 
 function textoSeleccionadoEnObjetivo(objetivo) {
@@ -644,16 +650,16 @@ function textoSeleccionadoEnObjetivo(objetivo) {
   if (objetivo instanceof HTMLInputElement || objetivo instanceof HTMLTextAreaElement) {
     const inicio = objetivo.selectionStart ?? 0
     const fin = objetivo.selectionEnd ?? 0
-    if (inicio !== fin) return objetivo.value.slice(inicio, fin)
-    return objetivo.value
+    if (inicio === fin) return ""
+    return objetivo.value.slice(inicio, fin)
   }
 
   const seleccion = window.getSelection()
-  if (seleccion && seleccion.toString().trim() && seleccionPerteneceAlObjetivo(objetivo, seleccion)) {
+  if (seleccion && seleccion.toString() && seleccionPerteneceAlObjetivo(objetivo, seleccion)) {
     return seleccion.toString()
   }
 
-  return objetivo.textContent || ""
+  return ""
 }
 
 function actualizarEstadoMenuContextual() {
@@ -1538,6 +1544,7 @@ function agregarArticulo() {
     orden: siguienteOrdenPara(norm, mat)
   })
 
+  vistaMateriaCerrada = false
   normativaSeleccionada = norm
   materiaSeleccionada = mat
 
@@ -1721,6 +1728,7 @@ function ordenarYMostrar() {
       item.style.borderLeftColor = obtenerColorMateria(m)
 
       item.addEventListener("click", () => {
+        vistaMateriaCerrada = false
         normativaSeleccionada = norm
         materiaSeleccionada = m
         sidebar.querySelectorAll(".sidebarItem").forEach(i => i.classList.remove("activa"))
@@ -1762,6 +1770,14 @@ function ordenarYMostrar() {
     return
   }
 
+  if (vistaMateriaCerrada) {
+    normativaSeleccionada = null
+    materiaSeleccionada = null
+    mostrarEstadoVistaPreviaCerrada()
+    reaplicarBusqueda()
+    return
+  }
+
   if (!tieneSeleccionValida) {
     normativaSeleccionada = combos[0].normativa
     materiaSeleccionada = combos[0].materia
@@ -1779,6 +1795,17 @@ function ordenarYMostrar() {
 
   mostrarArticulosDeMateria(normativaSeleccionada, materiaSeleccionada, itemsSeleccionados)
   reaplicarBusqueda()
+}
+
+function mostrarEstadoVistaPreviaCerrada() {
+  const contenedor = document.getElementById("contenidoArticulos")
+  if (!contenedor) return
+  contenedor.innerHTML = `
+    <div class="estado-vacio estado-vacio-cerrado">
+      <h2>Vista previa cerrada</h2>
+      <p>Selecciona una materia en la barra lateral para volver a verla.</p>
+    </div>
+  `
 }
 
 function normalizarSemestre(valor) {
@@ -1979,6 +2006,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
           }
 
           item.addEventListener("click", () => {
+            vistaMateriaCerrada = false
             normativaSeleccionada = normativa
             materiaSeleccionada = materia
             sidebar.querySelectorAll(".sidebarItem").forEach(i => i.classList.remove("activa"))
@@ -2138,12 +2166,24 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
     guardarLocal()
   })
 
+  const cerrarVista = document.createElement("button")
+  cerrarVista.className = "btn-small btn-preview-close"
+  cerrarVista.type = "button"
+  cerrarVista.textContent = "✕"
+  cerrarVista.title = "Cerrar vista previa"
+  cerrarVista.setAttribute("aria-label", "Cerrar vista previa de la materia")
+  cerrarVista.onclick = () => {
+    vistaMateriaCerrada = true
+    ordenarYMostrar()
+  }
+
   const borrarMat = document.createElement("button")
   borrarMat.className = "btn-small"
   borrarMat.textContent = "Borrar materia"
   borrarMat.onclick = () => borrarMateria(nombreActual, normativa)
 
   controles.appendChild(colorInput)
+  controles.appendChild(cerrarVista)
   controles.appendChild(borrarMat)
 
   wrap.appendChild(tituloM)
