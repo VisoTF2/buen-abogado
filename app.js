@@ -11,7 +11,8 @@ let carpetas = JSON.parse(localStorage.getItem("carpetasMaterias") || "[]").map(
 }))
 let normativaSeleccionada = null
 let materiaSeleccionada = null
-let vistaMateriaCerrada = false
+const MATERIA_PREVIEW_CERRADA_KEY = "materiaPreviewCerrada"
+let vistaMateriaCerrada = cargarVistaMateriaCerrada()
 let materiaDropProcesado = false
 const appRoot = document.getElementById("appRoot")
 const contenedorArticulosPrincipal = document.getElementById("contenidoArticulos")
@@ -53,6 +54,15 @@ function cargarDocumentosSidebarIds() {
 
 function guardarDocumentosSidebarIds() {
   localStorage.setItem(DOCUMENTOS_SIDEBAR_STORAGE_KEY, JSON.stringify(documentosSidebarIds))
+}
+
+function cargarVistaMateriaCerrada() {
+  return localStorage.getItem(MATERIA_PREVIEW_CERRADA_KEY) === "1"
+}
+
+function setVistaMateriaCerrada(valor) {
+  vistaMateriaCerrada = Boolean(valor)
+  localStorage.setItem(MATERIA_PREVIEW_CERRADA_KEY, vistaMateriaCerrada ? "1" : "0")
 }
 
 function agregarDocumentoASidebar(documentoId) {
@@ -1552,7 +1562,7 @@ function agregarArticulo() {
     orden: siguienteOrdenPara(norm, mat)
   })
 
-  vistaMateriaCerrada = false
+  setVistaMateriaCerrada(false)
   normativaSeleccionada = norm
   materiaSeleccionada = mat
 
@@ -1736,7 +1746,7 @@ function ordenarYMostrar() {
       item.style.borderLeftColor = obtenerColorMateria(m)
 
       item.addEventListener("click", () => {
-        vistaMateriaCerrada = false
+        setVistaMateriaCerrada(false)
         normativaSeleccionada = norm
         materiaSeleccionada = m
         sidebar.querySelectorAll(".sidebarItem").forEach(i => i.classList.remove("activa"))
@@ -2014,7 +2024,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
           }
 
           item.addEventListener("click", () => {
-            vistaMateriaCerrada = false
+            setVistaMateriaCerrada(false)
             normativaSeleccionada = normativa
             materiaSeleccionada = materia
             sidebar.querySelectorAll(".sidebarItem").forEach(i => i.classList.remove("activa"))
@@ -2181,7 +2191,7 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
   cerrarVista.title = "Cerrar vista previa"
   cerrarVista.setAttribute("aria-label", "Cerrar vista previa de la materia")
   cerrarVista.onclick = () => {
-    vistaMateriaCerrada = true
+    setVistaMateriaCerrada(true)
     ordenarYMostrar()
   }
 
