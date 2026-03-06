@@ -1219,6 +1219,14 @@ function crearItemDocumentoSidebar(doc, sidebar) {
       ?.querySelectorAll(".sidebarItemDocumento.is-selected")
       .forEach(nodo => nodo.classList.remove("is-selected"))
     item.classList.add("is-selected")
+
+    const docVigente = documentosCargados.find(d => d.id === doc.id)
+    if (docVigente && !docVigente.archived) {
+      if (typeof mostrarDocumento === "function") mostrarDocumento(doc.id)
+      return
+    }
+
+    if (typeof cerrarVistaDocumento === "function") cerrarVistaDocumento()
   })
 
   item.addEventListener("contextmenu", event => {
