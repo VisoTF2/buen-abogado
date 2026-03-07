@@ -428,6 +428,42 @@ body.banner-sin-fondo header:not(.banner-con-imagen)::after {
 
     .btn-small:hover { background: var(--danger-solid-hover); }
 
+
+    .btn-preview-close {
+      min-width: 26px;
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: #dc2626;
+      font-size: 20px;
+      font-weight: 500;
+      line-height: 1;
+      flex-shrink: 0;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+
+    .btn-preview-close:hover {
+      background: rgba(220, 38, 38, 0.12);
+      color: #b91c1c;
+    }
+
+    .btn-preview-close:active {
+      transform: translateY(1px);
+    }
+
+    body.oscuro .btn-preview-close {
+      color: #f87171;
+      background: transparent;
+    }
+
+    body.oscuro .btn-preview-close:hover {
+      background: rgba(248, 113, 113, 0.16);
+      color: #fecaca;
+    }
+
     .btn-note {
       background: var(--accent);
       color: white;
@@ -774,25 +810,40 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .documento-preview-cerrar {
-      border: 1px solid var(--border);
-      background: white;
-      color: var(--text);
-      border-radius: 10px;
-      padding: 6px 11px;
+      width: 26px;
+      height: 26px;
+      border: none;
+      background: transparent;
+      color: #dc2626;
+      border-radius: 8px;
+      padding: 0;
       cursor: pointer;
-      font-weight: 700;
+      font-size: 20px;
+      font-weight: 500;
       line-height: 1;
-      transition: background 0.2s ease, border-color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.18s ease, color 0.18s ease;
     }
 
     .documento-preview-cerrar:hover {
-      background: rgba(30, 58, 138, 0.08);
-      border-color: var(--accent-light);
+      background: rgba(220, 38, 38, 0.12);
+      color: #b91c1c;
+    }
+
+    .documento-preview-cerrar:active {
+      transform: translateY(1px);
     }
 
     body.oscuro .documento-preview-cerrar {
-      background: #0f172a;
-      color: #e5e7eb;
+      color: #f87171;
+      background: transparent;
+    }
+
+    body.oscuro .documento-preview-cerrar:hover {
+      background: rgba(248, 113, 113, 0.16);
+      color: #fecaca;
     }
 
     .documentos-vacio {
