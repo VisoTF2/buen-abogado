@@ -2559,7 +2559,7 @@ body.oscuro .carpetaToggle {
         margin-bottom: 0;
         border-radius: 10px;
         cursor: grab;
-        font-weight: 700;
+        font-weight: 600;
         background: var(--article-bg);
         border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
         border-left: 8px solid var(--accent);
@@ -2844,7 +2844,7 @@ body.oscuro #modalConfiguracion .modal-close:hover {
 }
 
 .sidebarGroupList.carpetaLista {
-  padding: 4px 6px;
+  padding: var(--space-2);
   min-height: 34px;
 }
 
