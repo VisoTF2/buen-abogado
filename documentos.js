@@ -202,10 +202,12 @@ async function procesarDocumento(archivo) {
     } else if (extension === "docx") {
       base.texto = await extraerTextoDocx(archivo)
     } else if (extension === "pptx") {
-      base.texto = await extraerTextoPptx(archivo)
-    } else if (extension === "doc") {
-      base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
-    } else if (extension === "ppt") {
+      try {
+        base.texto = await extraerTextoPptx(archivo)
+      } catch (error) {
+        base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
+      }
+    } else if (extension === "doc" || extension === "ppt") {
       base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
     } else {
       base.mensaje = "Formato no soportado para vista previa."
@@ -380,23 +382,20 @@ function renderDocumentos() {
     const acciones = document.createElement("div")
     acciones.className = "documento-acciones"
 
-    const ver = document.createElement("button")
-    ver.className = "documento-ver"
-    ver.type = "button"
-    ver.textContent = "Ver"
-    ver.addEventListener("click", () => alternarDocumento(doc.id))
-
     const eliminar = document.createElement("button")
     eliminar.className = "documento-eliminar"
     eliminar.type = "button"
     eliminar.textContent = "Eliminar"
-    eliminar.addEventListener("click", () => eliminarDocumento(doc.id))
+    eliminar.addEventListener("click", e => {
+      e.stopPropagation()
+      eliminarDocumento(doc.id)
+    })
 
-    acciones.appendChild(ver)
     acciones.appendChild(eliminar)
 
     item.appendChild(info)
     item.appendChild(acciones)
+    item.addEventListener("click", () => mostrarDocumento(doc.id))
     item.addEventListener("dragstart", e => {
       documentoArrastradoId = doc.id
       item.classList.add("documento-arrastrando")
@@ -538,7 +537,7 @@ function construirEncabezadoVista(doc) {
     const cerrar = document.createElement("button")
     cerrar.type = "button"
     cerrar.className = "documento-preview-cerrar"
-    cerrar.textContent = "✕"
+    cerrar.textContent = "×"
     cerrar.setAttribute("aria-label", "Cerrar vista previa")
     cerrar.addEventListener("click", cerrarVistaDocumento)
     encabezado.appendChild(cerrar)
@@ -562,33 +561,12 @@ function cerrarVistaDocumento() {
   actualizarBotonesVer()
 }
 
-function alternarDocumento(id) {
-  if (visorDocumentos?.dataset.docActual === id) {
-    cerrarVistaDocumento()
-  } else {
-    mostrarDocumento(id)
-  }
-}
-
 function actualizarBotonesVer() {
   const actual = visorDocumentos?.dataset.docActual || ""
 
-  document.querySelectorAll(".documento-ver").forEach(btn => {
-    const item = btn.closest(".documento-item")
-    const id = item?.dataset.documentoId
-    const eliminarBtn = item?.querySelector(".documento-eliminar")
-
-    if (id && id === actual) {
-      btn.textContent = "Cerrar"
-      btn.style.display = "inline-flex"
-      btn.setAttribute("aria-pressed", "true")
-      if (eliminarBtn) eliminarBtn.style.display = "inline-flex"
-    } else {
-      btn.textContent = "Ver"
-      btn.style.display = "inline-flex"
-      btn.setAttribute("aria-pressed", "false")
-      if (eliminarBtn) eliminarBtn.style.display = "inline-flex"
-    }
+  document.querySelectorAll(".documento-item").forEach(item => {
+    const id = item.dataset.documentoId
+    item.classList.toggle("is-selected", Boolean(id && id === actual))
   })
 }
 
