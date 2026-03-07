@@ -2406,6 +2406,9 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
   cerrarVista.setAttribute("aria-label", "Cerrar vista previa de la materia")
   cerrarVista.onclick = () => {
     setVistaMateriaCerrada(true)
+    normativaSeleccionada = null
+    materiaSeleccionada = null
+    document.querySelectorAll(".sidebarItem.activa").forEach(item => item.classList.remove("activa"))
     ordenarYMostrar()
   }
 
