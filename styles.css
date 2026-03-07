@@ -122,9 +122,7 @@
     }
 
     .zoom-canvas {
-      transform: scale(var(--zoom-scale));
-      transform-origin: top center;
-      transition: transform 0.18s ease;
+      zoom: var(--zoom-scale);
       width: 100%;
       min-width: 100vw;
     }
