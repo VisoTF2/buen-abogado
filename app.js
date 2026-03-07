@@ -142,7 +142,29 @@ function manejarReordenArticulos(e) {
 
   if (!arrastrandoElem) return
 
-  const objetivoDespues = articulosEnDom.reduce(
+  const siguienteElementoCoincidente = (inicio, selector) => {
+    let actual = inicio
+    while (actual) {
+      if (actual.matches?.(selector)) return actual
+      actual = actual.nextElementSibling
+    }
+    return null
+  }
+
+  const objetivoDirecto = e.target instanceof Element
+    ? e.target.closest(".articulo")
+    : null
+
+  let objetivoDespues = null
+  if (objetivoDirecto instanceof HTMLElement && objetivoDirecto.dataset.id !== articuloArrastradoId) {
+    const rect = objetivoDirecto.getBoundingClientRect()
+    const antes = e.clientY < rect.top + rect.height / 2
+    objetivoDespues = antes
+      ? objetivoDirecto
+      : siguienteElementoCoincidente(objetivoDirecto.nextElementSibling, ".articulo")
+  }
+
+  if (!objetivoDespues) objetivoDespues = articulosEnDom.reduce(
     (cercano, el) => {
       const rect = el.getBoundingClientRect()
       const offset = e.clientY - (rect.top + rect.height / 2)
@@ -1025,7 +1047,32 @@ function aplicarOrdenDesdeDOM(contenedorLista, normativa, materia) {
   ordenarYMostrar()
 }
 
-function obtenerElementoMateriaDespues(lista, posicionY) {
+function obtenerElementoMateriaDespues(lista, posicionY, targetEvento = null) {
+  const siguienteElementoCoincidente = (inicio, selector) => {
+    let actual = inicio
+    while (actual) {
+      if (actual.matches?.(selector)) return actual
+      actual = actual.nextElementSibling
+    }
+    return null
+  }
+
+  const objetivoDirecto = targetEvento instanceof Element
+    ? targetEvento.closest(".sidebarItem")
+    : null
+
+  if (
+    objetivoDirecto instanceof HTMLElement &&
+    (objetivoDirecto.dataset.materia !== materiaArrastrada ||
+      objetivoDirecto.dataset.normativa !== materiaArrastradaNormativa)
+  ) {
+    const rect = objetivoDirecto.getBoundingClientRect()
+    const antes = posicionY < rect.top + rect.height / 2
+    return antes
+      ? objetivoDirecto
+      : siguienteElementoCoincidente(objetivoDirecto.nextElementSibling, ".sidebarItem")
+  }
+
   return Array.from(lista.querySelectorAll(".sidebarItem"))
     .filter(
       el =>
@@ -1068,7 +1115,7 @@ function manejarDragOverListaMaterias(e) {
 
   limpiarPlaceholderVacio(lista)
 
-  const despuesDe = obtenerElementoMateriaDespues(lista, e.clientY)
+  const despuesDe = obtenerElementoMateriaDespues(lista, e.clientY, e.target)
 
   if (arrastrandoElem.parentElement !== lista) {
     lista.appendChild(arrastrandoElem)
@@ -1182,8 +1229,28 @@ function prepararListaDocumentosSidebar(lista) {
     documentoArrastradoId ||
     null
 
-  const obtenerElementoDocumentoDespues = (posicionY, documentoId) =>
-    Array.from(lista.querySelectorAll(".sidebarItemDocumento"))
+  const siguienteElementoCoincidente = (inicio, selector) => {
+    let actual = inicio
+    while (actual) {
+      if (actual.matches?.(selector)) return actual
+      actual = actual.nextElementSibling
+    }
+    return null
+  }
+
+  const obtenerElementoDocumentoDespues = (posicionY, documentoId, targetEvento = null) => {
+    if (targetEvento instanceof Element) {
+      const objetivoDirecto = targetEvento.closest(".sidebarItemDocumento")
+      if (objetivoDirecto instanceof HTMLElement && objetivoDirecto.dataset.documentoId !== documentoId) {
+        const rect = objetivoDirecto.getBoundingClientRect()
+        const antes = posicionY < rect.top + rect.height / 2
+        return antes
+          ? objetivoDirecto
+          : siguienteElementoCoincidente(objetivoDirecto.nextElementSibling, ".sidebarItemDocumento")
+      }
+    }
+
+    return Array.from(lista.querySelectorAll(".sidebarItemDocumento"))
       .filter(item => item.dataset.documentoId !== documentoId)
       .reduce(
         (cercano, item) => {
@@ -1198,13 +1265,14 @@ function prepararListaDocumentosSidebar(lista) {
         },
         { offset: Number.NEGATIVE_INFINITY, elemento: null }
       ).elemento
+  }
 
   lista.addEventListener("dragover", e => {
     const documentoId = obtenerDocumentoArrastrado(e)
     if (!documentoId) return
     e.preventDefault()
     lista.classList.add("drop-activa")
-    const despuesDe = obtenerElementoDocumentoDespues(e.clientY, documentoId)
+    const despuesDe = obtenerElementoDocumentoDespues(e.clientY, documentoId, e.target)
     lista.dataset.dropBeforeDocumentoId = despuesDe?.dataset.documentoId || ""
     const dragged = lista.querySelector(`.sidebarItemDocumento[data-documento-id="${documentoId}"]`)
 
