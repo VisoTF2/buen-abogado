@@ -775,37 +775,34 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .preview-close-x {
-      border: none;
       background: transparent;
-      color: #dc2626;
+      border: none;
       cursor: pointer;
-      font-size: 20px;
-      font-weight: 400;
-      line-height: 1;
-      padding: 0;
-      width: 18px;
-      height: 18px;
+      padding: 6px;
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border-radius: 0;
-      transition: color 0.15s ease;
+      color: var(--danger-solid-bg);
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1;
     }
 
     .preview-close-x:hover {
-      color: #ef4444;
+      background: var(--danger-solid-bg);
+      color: #fff;
     }
 
     .preview-close-x:active {
       transform: translateY(1px);
     }
 
-    body.oscuro .preview-close-x {
-      color: #f87171;
-    }
-
     body.oscuro .preview-close-x:hover {
-      color: #fca5a5;
+      background: var(--danger-solid-bg);
+      color: #fff;
     }
 
     .documento-preview-cerrar {
