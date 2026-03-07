@@ -28,11 +28,12 @@ function escaparComoHTML(texto) {
 
 const ZOOM_STEP = 0.05
 const MIN_ZOOM = 1
-const MAX_ZOOM = 1.25
+const MAX_ZOOM = 1.15
 const ZOOM_STORAGE_KEY = "appZoomScale"
 let zoomActual = obtenerZoomInicial()
 let pinchStartDistance = null
 let pinchStartZoom = 1
+let zoomTransitionTimer = null
 let articuloArrastradoId = null
 let materiaArrastrada = null
 let materiaArrastradaNormativa = null
@@ -599,8 +600,17 @@ function obtenerZoomInicial() {
 function aplicarZoom(nivel) {
   const limitado = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, nivel))
   zoomActual = limitado
+
+  document.body.classList.add("zooming")
+  if (zoomTransitionTimer) clearTimeout(zoomTransitionTimer)
+
   document.documentElement.style.setProperty("--zoom-scale", limitado.toFixed(3))
   localStorage.setItem(ZOOM_STORAGE_KEY, limitado.toFixed(3))
+
+  zoomTransitionTimer = setTimeout(() => {
+    document.body.classList.remove("zooming")
+    zoomTransitionTimer = null
+  }, 120)
 }
 
 function distanciaEntreToques(touches) {

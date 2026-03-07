@@ -123,9 +123,14 @@
 
     .zoom-canvas {
       zoom: var(--zoom-scale);
-      width: calc(100% / var(--zoom-scale));
-      min-width: calc(100vw / var(--zoom-scale));
-      margin-inline: auto;
+      width: 100%;
+      min-width: 100vw;
+    }
+
+    body.zooming,
+    body.zooming * {
+      transition: none !important;
+      animation: none !important;
     }
 
     header {
