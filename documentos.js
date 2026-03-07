@@ -685,6 +685,10 @@ function cerrarVistaDocumento() {
     documentoSeleccionadoEnCarpetaId = null
   }
 
+  document
+    .querySelectorAll(".sidebarItemDocumento.is-selected, .documento-item.is-selected")
+    .forEach(item => item.classList.remove("is-selected"))
+
   const vacio = document.createElement("div")
   vacio.className = "documentos-vacio"
   vacio.textContent = "Selecciona un documento para verlo aquí mismo."
