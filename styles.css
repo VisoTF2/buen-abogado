@@ -1931,12 +1931,20 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     body.oscuro .buscador-cerrar {
-      background: rgba(248, 113, 113, 0.12);
-      border-color: rgba(248, 113, 113, 0.4);
-      color: #f87171;
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(248, 113, 113, 0.55);
+      color: #fca5a5;
     }
 
-    .buscador-cerrar:hover {
+    .buscador-cerrar:hover,
+    .buscador-cerrar:focus-visible {
+      background: var(--danger-solid-bg);
+      border-color: var(--danger-solid-bg);
+      color: #fff;
+    }
+
+    body.oscuro .buscador-cerrar:hover,
+    body.oscuro .buscador-cerrar:focus-visible {
       background: var(--danger-solid-bg);
       border-color: var(--danger-solid-bg);
       color: #fff;
@@ -3331,6 +3339,14 @@ body.oscuro .class-card.light-bg .class-actions .absences {
   justify-content: center;
   text-align: center;
   line-height: 1;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+  font-size: 20px;
+  font-weight: 700;
+  font-family: "Segoe UI Symbol", "Apple Color Emoji", "Noto Sans Symbols 2", "Poppins", sans-serif;
 }
 
 .schedule-malla {
