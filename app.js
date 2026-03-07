@@ -70,7 +70,6 @@ let articuloArrastradoId = null
 let materiaArrastrada = null
 let materiaArrastradaNormativa = null
 let materiaArrastradaCarpetaId = null
-let documentoArrastradoId = null
 let documentoSeleccionadoEnCarpetaId = null
 let suprimirClickDocumentoSidebarHasta = 0
 const DOCUMENTOS_SIDEBAR_STORAGE_KEY = "documentosSidebarIds"
