@@ -2454,8 +2454,8 @@ body.oscuro .carpetaToggle {
 .documento-arrastrando {
   opacity: 0.9;
   transform: translateY(-1px);
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  box-shadow: inset 0 0 0 2px var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--article-bg));
 }
 
 .carpetaLista-drop {
@@ -2539,9 +2539,8 @@ body.oscuro .carpetaToggle {
 }
 
 .sidebarItemDocumento.is-selected {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-  background: color-mix(in srgb, var(--accent) 12%, var(--article-bg));
+  box-shadow: inset 0 0 0 2px var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--article-bg));
   color: var(--text);
 }
 
@@ -2826,8 +2825,9 @@ body.oscuro #modalConfiguracion .modal-close:hover {
     }
 
     .sidebarItem.activa {
-      background: var(--accent);
-      color: white;
+      box-shadow: inset 0 0 0 2px var(--accent);
+      background: color-mix(in srgb, var(--accent) 10%, var(--article-bg));
+      color: var(--text);
     }
 
     .sidebarItem:active {
@@ -2837,7 +2837,24 @@ body.oscuro #modalConfiguracion .modal-close:hover {
     .sidebarItem:not(.sidebarItemDocumento).arrastrando {
       opacity: 0.9;
       transform: translateY(-1px);
+      box-shadow: inset 0 0 0 2px var(--accent);
+      background: color-mix(in srgb, var(--accent) 10%, var(--article-bg));
     }
+
+
+.carpetaLista .sidebarItem,
+.carpetaDocumentos .sidebarItemDocumento {
+  border: none;
+}
+
+.carpetaLista .sidebarItem.activa,
+.carpetaDocumentos .sidebarItemDocumento.is-selected,
+.carpetaLista .sidebarItem.arrastrando,
+.carpetaDocumentos .sidebarItemDocumento.documento-arrastrando {
+  box-shadow: inset 0 0 0 2px var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--article-bg));
+  color: var(--text);
+}
 
 .sidebarGroupList {
   display: flex;
