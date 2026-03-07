@@ -2660,7 +2660,8 @@ body.oscuro .modal-close:hover {
 }
 
 
-#modalConfiguracion .modal-close {
+#modalConfiguracion .modal-close,
+#mallaPreviewClose.modal-close {
   background: transparent;
   border: none;
   color: var(--danger-solid-bg);
@@ -2678,16 +2679,19 @@ body.oscuro .modal-close:hover {
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-#modalConfiguracion .modal-close:hover {
+#modalConfiguracion .modal-close:hover,
+#mallaPreviewClose.modal-close:hover {
   background: var(--danger-solid-bg);
   color: #fff;
 }
 
-#modalConfiguracion .modal-close:active {
+#modalConfiguracion .modal-close:active,
+#mallaPreviewClose.modal-close:active {
   transform: translateY(1px);
 }
 
-body.oscuro #modalConfiguracion .modal-close:hover {
+body.oscuro #modalConfiguracion .modal-close:hover,
+body.oscuro #mallaPreviewClose.modal-close:hover {
   background: var(--danger-solid-bg);
   color: #fff;
 }
