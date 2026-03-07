@@ -126,6 +126,9 @@
       width: calc(100% / var(--zoom-scale));
       min-width: calc(100vw / var(--zoom-scale));
       margin-inline: auto;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
     }
 
     body.zooming,
