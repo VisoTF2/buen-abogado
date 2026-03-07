@@ -1912,9 +1912,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .buscador-cerrar {
-      background: white;
-      border: 1px solid var(--border);
-      color: var(--text);
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: var(--danger-solid-bg);
       cursor: pointer;
       font-size: 16px;
       padding: 10px 12px;
@@ -1922,16 +1922,19 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.12s ease;
     }
 
     body.oscuro .buscador-cerrar {
-      background: #111827;
+      background: rgba(248, 113, 113, 0.12);
+      border-color: rgba(248, 113, 113, 0.4);
+      color: #f87171;
     }
 
     .buscador-cerrar:hover {
-      background: rgba(30, 58, 138, 0.08);
-      border-color: var(--accent-light);
+      background: var(--danger-solid-bg);
+      border-color: var(--danger-solid-bg);
+      color: #fff;
     }
 
     .buscador-cerrar:active {
@@ -2606,9 +2609,9 @@ body.oscuro .carpetaToggle {
 }
 
 .modal-close {
-  background: var(--focus-surface);
-  border: 1px solid var(--border);
-  color: var(--text);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: var(--danger-solid-bg);
   font-size: 14px;
   cursor: pointer;
   border-radius: 8px;
@@ -2616,14 +2619,26 @@ body.oscuro .carpetaToggle {
   height: 26px;
   display: grid;
   place-items: center;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.modal-close:hover { background: rgba(0, 0, 0, 0.12); }
+.modal-close:hover {
+  background: var(--danger-solid-bg);
+  border-color: var(--danger-solid-bg);
+  color: #fff;
+}
 .modal-close:active { transform: translateY(1px); }
 
+body.oscuro .modal-close {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #f87171;
+}
+
 body.oscuro .modal-close:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: var(--danger-solid-bg);
+  border-color: var(--danger-solid-bg);
+  color: #fff;
 }
 
 
