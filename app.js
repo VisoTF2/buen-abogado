@@ -1322,7 +1322,9 @@ function prepararListaDocumentosCarpeta(lista, carpetaId) {
     lista.classList.add("drop-activa")
   }, true)
 
-  lista.addEventListener("dragleave", () => {
+  lista.addEventListener("dragleave", e => {
+    const siguiente = e.relatedTarget
+    if (siguiente instanceof Node && lista.contains(siguiente)) return
     lista.classList.remove("drop-activa")
   }, true)
 
