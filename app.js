@@ -70,6 +70,7 @@ let articuloArrastradoId = null
 let materiaArrastrada = null
 let materiaArrastradaNormativa = null
 let materiaArrastradaCarpetaId = null
+let documentoArrastradoId = null
 let documentoSeleccionadoEnCarpetaId = null
 let suprimirClickDocumentoSidebarHasta = 0
 const DOCUMENTOS_SIDEBAR_STORAGE_KEY = "documentosSidebarIds"
@@ -487,8 +488,11 @@ function obtenerDocumentoRespaldoEnCarpetas(documentoId) {
   return null
 }
 
-function moverDocumentoACarpeta(documentoId, carpetaId) {
+function moverDocumentoACarpeta(documentoId, carpetaId, opciones = {}) {
   if (!carpetaId || !documentoId) return
+  const posicionSolicitada = Number.isInteger(opciones.posicion) ? opciones.posicion : null
+  const renderizar = opciones.renderizar !== false
+
   removerDocumentoDeCarpetas(documentoId)
   quitarDocumentoDeSidebar(documentoId)
   documentoSeleccionadoEnCarpetaId = documentoId
@@ -498,18 +502,54 @@ function moverDocumentoACarpeta(documentoId, carpetaId) {
 
   carpetas = carpetas.map(carpeta => {
     if (carpeta.id !== carpetaId) return carpeta
-    const documentos = new Set(carpeta.documentos || [])
-    documentos.add(documentoId)
+    const documentosBase = (carpeta.documentos || []).filter(id => id !== documentoId)
+    const posicionFinal =
+      posicionSolicitada === null
+        ? documentosBase.length
+        : Math.max(0, Math.min(posicionSolicitada, documentosBase.length))
+
+    documentosBase.splice(posicionFinal, 0, documentoId)
 
     const documentosData = { ...(carpeta.documentosData || {}) }
     if (documentoBase) documentosData[documentoId] = documentoBase
 
-    return { ...carpeta, documentos: Array.from(documentos), documentosData }
+    return { ...carpeta, documentos: documentosBase, documentosData }
   })
 
   guardarCarpetas()
-  ordenarYMostrar()
-  renderDocumentos()
+  if (renderizar) {
+    ordenarYMostrar()
+    renderDocumentos()
+  }
+}
+
+function aplicarOrdenDocumentosCarpetaDesdeDOM(lista, carpetaId) {
+  if (!lista || !carpetaId) return
+
+  const idsEnDOM = Array.from(lista.querySelectorAll(".sidebarItemDocumento"))
+    .map(item => item.dataset.documentoId)
+    .filter(Boolean)
+
+  if (!idsEnDOM.length) return
+
+  carpetas = carpetas.map(carpeta => {
+    if (carpeta.id !== carpetaId) return carpeta
+
+    const actuales = carpeta.documentos || []
+    const setActuales = new Set(actuales)
+    const vistos = new Set()
+
+    const ordenados = idsEnDOM.filter(id => {
+      if (!setActuales.has(id) || vistos.has(id)) return false
+      vistos.add(id)
+      return true
+    })
+
+    const restantes = actuales.filter(id => !vistos.has(id))
+    return { ...carpeta, documentos: [...ordenados, ...restantes] }
+  })
+
+  guardarCarpetas()
 }
 
 function moverMateriaAFueraDeCarpeta(materia, normativa) {
@@ -1226,6 +1266,91 @@ function prepararListaDocumentosSidebar(lista) {
     documentoArrastradoId = null
     if (cambio || agregado) ordenarYMostrar()
   })
+}
+
+function prepararListaDocumentosCarpeta(lista, carpetaId) {
+  if (!lista || !carpetaId) return
+
+  const obtenerDocumentoArrastrado = e =>
+    e?.dataTransfer?.getData("application/x-documento-id") ||
+    e?.dataTransfer?.getData("text/plain") ||
+    documentoArrastradoId ||
+    null
+
+  lista.addEventListener("dragover", e => {
+    const documentoId = obtenerDocumentoArrastrado(e)
+    if (!documentoId) return
+    e.preventDefault()
+    e.stopPropagation()
+
+    lista.classList.add("drop-activa")
+
+    const target = e.target instanceof Element
+      ? e.target.closest(".sidebarItemDocumento")
+      : null
+    const dragged = document.querySelector(
+      `.sidebarItemDocumento[data-documento-id="${documentoId}"]`
+    )
+
+    if (!(target instanceof HTMLElement) || !(dragged instanceof HTMLElement)) {
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+      return
+    }
+    if (target === dragged) {
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+      return
+    }
+
+    const rect = target.getBoundingClientRect()
+    const before = e.clientY < rect.top + rect.height / 2
+    if (before) {
+      lista.insertBefore(dragged, target)
+    } else {
+      lista.insertBefore(dragged, target.nextSibling)
+    }
+
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+  }, true)
+
+  lista.addEventListener("dragenter", e => {
+    if (!obtenerDocumentoArrastrado(e)) return
+    e.stopPropagation()
+    lista.classList.add("drop-activa")
+  }, true)
+
+  lista.addEventListener("dragleave", () => {
+    lista.classList.remove("drop-activa")
+  }, true)
+
+  lista.addEventListener("drop", e => {
+    const documentoId = obtenerDocumentoArrastrado(e)
+    if (!documentoId) return
+    e.preventDefault()
+    e.stopPropagation()
+    lista.classList.remove("drop-activa")
+
+    const idsEnDOM = Array.from(lista.querySelectorAll(".sidebarItemDocumento"))
+      .map(item => item.dataset.documentoId)
+      .filter(Boolean)
+    const posicion = idsEnDOM.indexOf(documentoId)
+
+    const carpetaObjetivo = carpetas.find(c => c.id === carpetaId)
+    const documentoYaEnCarpeta = Boolean(carpetaObjetivo?.documentos?.includes(documentoId))
+
+    if (!documentoYaEnCarpeta) {
+      moverDocumentoACarpeta(documentoId, carpetaId, {
+        posicion: posicion >= 0 ? posicion : null,
+        renderizar: false
+      })
+    }
+
+    aplicarOrdenDocumentosCarpetaDesdeDOM(lista, carpetaId)
+
+    documentoSeleccionadoEnCarpetaId = documentoId
+    documentoArrastradoId = null
+    ordenarYMostrar()
+    renderDocumentos()
+  }, true)
 }
 
 function aplicarOrdenDocumentosSidebarDesdeDOM(lista) {
@@ -2117,6 +2242,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
       } else {
         const listaDocs = document.createElement("div")
         listaDocs.className = "carpetaDocumentosLista"
+        prepararListaDocumentosCarpeta(listaDocs, carpeta.id)
 
         documentosEnCarpeta.forEach(doc => {
           listaDocs.appendChild(crearItemDocumentoSidebar(doc, sidebar))
