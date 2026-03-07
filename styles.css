@@ -778,10 +778,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       background: transparent;
       border: none;
       cursor: pointer;
-      padding: 6px;
+      padding: 0;
       border-radius: 8px;
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -2666,16 +2666,19 @@ body.oscuro .modal-close:hover {
   border: none;
   color: var(--danger-solid-bg);
   cursor: pointer;
-  padding: 6px;
+  padding: 0;
   border-radius: 8px;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
   font-weight: 700;
   line-height: 1;
+  font-family: "Segoe UI Symbol", "Apple Color Emoji", "Noto Sans Symbols 2", "Poppins", sans-serif;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -3342,6 +3345,7 @@ body.oscuro .class-card.light-bg .class-actions .absences {
   align-items: center;
   justify-content: center;
   text-align: center;
+  vertical-align: middle;
   line-height: 1;
   width: 34px;
   height: 34px;
