@@ -1465,7 +1465,11 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-controls {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 0;
+      border: 1px solid color-mix(in srgb, var(--border) 52%, transparent);
+      border-radius: 12px;
+      background: var(--grade-row-bg);
+      overflow: hidden;
     }
 
     .grade-control-row {
@@ -1473,10 +1477,14 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       grid-template-columns: minmax(82px, 110px) minmax(150px, 1fr) minmax(150px, 1fr) auto;
       gap: 8px;
       align-items: center;
-      border: 1px solid color-mix(in srgb, var(--border) 52%, transparent);
-      border-radius: 12px;
       padding: 8px;
-      background: var(--grade-row-bg);
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+    }
+
+    .grade-control-row + .grade-control-row {
+      border-top: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
     }
 
     .grade-control-title {
