@@ -605,8 +605,10 @@ function aplicarZoom(nivel) {
   document.documentElement.style.setProperty("--zoom-scale", escala)
 
   if (lienzoZoom) {
+    const anchoCompensado = `${(100 / limitado).toFixed(3)}%`
     lienzoZoom.style.zoom = escala
-    lienzoZoom.style.width = `${(100 / limitado).toFixed(3)}%`
+    lienzoZoom.style.width = anchoCompensado
+    lienzoZoom.style.marginInline = "auto"
   }
 
   localStorage.setItem(ZOOM_STORAGE_KEY, limitado.toFixed(3))
