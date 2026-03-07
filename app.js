@@ -142,25 +142,30 @@ function manejarReordenArticulos(e) {
 
   if (!arrastrandoElem) return
 
-  const objetivoDespues = articulosEnDom.reduce(
-    (cercano, el) => {
-      const rect = el.getBoundingClientRect()
-      const offset = e.clientY - (rect.top + rect.height / 2)
-
-      if (offset < 0 && offset > cercano.offset) {
-        return { offset, elemento: el }
-      }
-
-      return cercano
-    },
-    { offset: Number.NEGATIVE_INFINITY, elemento: null }
-  ).elemento
+  const objetivoDespues = obtenerElementoDespuesPorPosicion(contenedor, articulosEnDom, e.clientY)
 
   if (!objetivoDespues) {
     contenedor.appendChild(arrastrandoElem)
   } else {
     contenedor.insertBefore(arrastrandoElem, objetivoDespues)
   }
+}
+
+function obtenerYEnContenedorAjustadaPorZoom(contenedor, clientY) {
+  if (!(contenedor instanceof HTMLElement)) return clientY
+  const escala = Number.isFinite(zoomActual) && zoomActual > 0 ? zoomActual : 1
+  const rect = contenedor.getBoundingClientRect()
+  const yRelativa = clientY - rect.top
+  return yRelativa / escala + contenedor.scrollTop
+}
+
+function obtenerElementoDespuesPorPosicion(contenedor, elementos, clientY) {
+  if (!(contenedor instanceof HTMLElement) || !Array.isArray(elementos) || !elementos.length) {
+    return null
+  }
+
+  const punteroY = obtenerYEnContenedorAjustadaPorZoom(contenedor, clientY)
+  return elementos.find(el => punteroY < el.offsetTop + el.offsetHeight / 2) || null
 }
 
 function marcarListaComoObjetivo(lista) {
@@ -1056,25 +1061,12 @@ function aplicarOrdenDesdeDOM(contenedorLista, normativa, materia) {
 }
 
 function obtenerElementoMateriaDespues(lista, posicionY) {
-  return Array.from(lista.querySelectorAll(".sidebarItem"))
-    .filter(
-      el =>
-        el.dataset.materia !== materiaArrastrada ||
-        el.dataset.normativa !== materiaArrastradaNormativa
-    )
-    .reduce(
-      (cercano, el) => {
-        const rect = el.getBoundingClientRect()
-        const offset = posicionY - (rect.top + rect.height / 2)
-
-        if (offset < 0 && offset > cercano.offset) {
-          return { offset, elemento: el }
-        }
-
-        return cercano
-      },
-      { offset: Number.NEGATIVE_INFINITY, elemento: null }
-    ).elemento
+  const items = Array.from(lista.querySelectorAll(".sidebarItem")).filter(
+    el =>
+      el.dataset.materia !== materiaArrastrada ||
+      el.dataset.normativa !== materiaArrastradaNormativa
+  )
+  return obtenerElementoDespuesPorPosicion(lista, items, posicionY)
 }
 
 function limpiarPlaceholderVacio(lista) {
@@ -1168,7 +1160,11 @@ function prepararZonaDocumentosCarpeta(zona, carpetaId) {
     documentoArrastradoId ||
     null
 
+  const eventoDentroDeListaDocumentos = e =>
+    e?.target instanceof Element && Boolean(e.target.closest(".carpetaDocumentosLista"))
+
   zona.addEventListener("dragover", e => {
+    if (eventoDentroDeListaDocumentos(e)) return
     if (!obtenerDocumentoArrastrado(e)) return
     e.preventDefault()
     e.stopPropagation()
@@ -1177,6 +1173,7 @@ function prepararZonaDocumentosCarpeta(zona, carpetaId) {
   }, true)
 
   zona.addEventListener("dragenter", e => {
+    if (eventoDentroDeListaDocumentos(e)) return
     if (!obtenerDocumentoArrastrado(e)) return
     e.stopPropagation()
     zona.classList.add("drop-activa")
@@ -1187,6 +1184,7 @@ function prepararZonaDocumentosCarpeta(zona, carpetaId) {
   }, true)
 
   zona.addEventListener("drop", e => {
+    if (eventoDentroDeListaDocumentos(e)) return
     const documentoId = obtenerDocumentoArrastrado(e)
     if (!documentoId) return
     e.preventDefault()
@@ -1226,8 +1224,8 @@ function prepararListaDocumentosSidebar(lista) {
       return
     }
 
-    const rect = target.getBoundingClientRect()
-    const before = e.clientY < rect.top + rect.height / 2
+    const punteroY = obtenerYEnContenedorAjustadaPorZoom(lista, e.clientY)
+    const before = punteroY < target.offsetTop + target.offsetHeight / 2
     if (before) {
       lista.insertBefore(dragged, target)
     } else {
@@ -1300,8 +1298,8 @@ function prepararListaDocumentosCarpeta(lista, carpetaId) {
       return
     }
 
-    const rect = target.getBoundingClientRect()
-    const before = e.clientY < rect.top + rect.height / 2
+    const punteroY = obtenerYEnContenedorAjustadaPorZoom(lista, e.clientY)
+    const before = punteroY < target.offsetTop + target.offsetHeight / 2
     if (before) {
       lista.insertBefore(dragged, target)
     } else {
@@ -1481,7 +1479,12 @@ function activarArrastreMateria(item, lista, normativa) {
   item.addEventListener("dragend", () => {
     item.classList.remove("arrastrando")
     if (!materiaDropProcesado) {
-      aplicarOrdenMateriasDesdeDOM(item.parentElement)
+      const carpetaId = item.dataset.carpetaId || item.parentElement?.dataset?.carpetaId || null
+      if (carpetaId) {
+        aplicarOrdenMateriasCarpetaDesdeDOM(item.parentElement, carpetaId)
+      } else {
+        aplicarOrdenMateriasDesdeDOM(item.parentElement)
+      }
       limpiarEstadoArrastreMateria()
     }
   })
