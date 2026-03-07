@@ -159,23 +159,14 @@
     renderCalendar()
   }
 
-  function moveEventToDate(fromDateKey, eventIndex, toDateKey, toIndex = null) {
+  function moveEventToDate(fromDateKey, eventIndex, toDateKey) {
     if (!fromDateKey || !toDateKey) return
     const fromList = Array.isArray(eventsByDate[fromDateKey]) ? [...eventsByDate[fromDateKey]] : []
     if (!fromList[eventIndex]) return
 
     const [eventData] = fromList.splice(eventIndex, 1)
 
-    if (fromDateKey === toDateKey) {
-      const limite = fromList.length
-      let destino = Number.isInteger(toIndex) ? toIndex : limite
-      destino = Math.max(0, Math.min(destino, limite))
-      fromList.splice(destino, 0, eventData)
-      eventsByDate[fromDateKey] = fromList
-      saveEvents()
-      renderCalendar()
-      return
-    }
+    if (fromDateKey === toDateKey) return
 
     const toList = Array.isArray(eventsByDate[toDateKey]) ? [...eventsByDate[toDateKey]] : []
     toList.push(eventData)
@@ -250,32 +241,6 @@
     }
   }
 
-
-  function obtenerIndiceDropPorPuntero(eventsWrap, fromDateKey, eventIndex, clientY) {
-    if (!(eventsWrap instanceof HTMLElement)) return null
-
-    const eventos = Array.from(eventsWrap.querySelectorAll('.calendar-event'))
-    if (!eventos.length) return 0
-
-    let indice = eventos.length
-
-    for (let i = 0; i < eventos.length; i += 1) {
-      const eventoEl = eventos[i]
-      const rect = eventoEl.getBoundingClientRect()
-      const centroY = rect.top + rect.height / 2
-
-      if (clientY < centroY) {
-        indice = i
-        break
-      }
-    }
-
-    if (fromDateKey === eventsWrap.dataset.dateKey) {
-      if (indice > eventIndex) return indice - 1
-    }
-
-    return indice
-  }
 
   function createDayCell(date, outsideMonth) {
     const cell = document.createElement("div")
@@ -353,9 +318,11 @@
         e.preventDefault()
         e.stopPropagation()
         const { fromDateKey, eventIndex } = draggedEventRef
-        const toIndex = obtenerIndiceDropPorPuntero(eventsWrap, fromDateKey, eventIndex, e.clientY)
         draggedEventRef = null
-        moveEventToDate(fromDateKey, eventIndex, dateKey, toIndex)
+
+        if (fromDateKey === dateKey) return
+
+        moveEventToDate(fromDateKey, eventIndex, dateKey)
       })
     }
 
