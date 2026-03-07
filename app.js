@@ -142,10 +142,24 @@ function manejarReordenArticulos(e) {
 
   if (!arrastrandoElem) return
 
-  const objetivoDespues = articulosEnDom.reduce(
+  const objetivoDespues = obtenerElementoDespuesPorPuntero(articulosEnDom, e.clientY)
+
+  if (!objetivoDespues) {
+    contenedor.appendChild(arrastrandoElem)
+  } else {
+    contenedor.insertBefore(arrastrandoElem, objetivoDespues)
+  }
+}
+
+function obtenerElementoDespuesPorPuntero(elementos, clientY) {
+  if (!Array.isArray(elementos) || !elementos.length) return null
+
+  const clientYAjustado = ajustarClientYPorZoom(clientY)
+
+  return elementos.reduce(
     (cercano, el) => {
       const rect = el.getBoundingClientRect()
-      const offset = e.clientY - (rect.top + rect.height / 2)
+      const offset = clientYAjustado - (rect.top + rect.height / 2)
 
       if (offset < 0 && offset > cercano.offset) {
         return { offset, elemento: el }
@@ -155,12 +169,12 @@ function manejarReordenArticulos(e) {
     },
     { offset: Number.NEGATIVE_INFINITY, elemento: null }
   ).elemento
+}
 
-  if (!objetivoDespues) {
-    contenedor.appendChild(arrastrandoElem)
-  } else {
-    contenedor.insertBefore(arrastrandoElem, objetivoDespues)
-  }
+function ajustarClientYPorZoom(clientY) {
+  const escala = Number.isFinite(zoomActual) && zoomActual > 0 ? zoomActual : 1
+  if (escala === 1) return clientY
+  return clientY * escala
 }
 
 function marcarListaComoObjetivo(lista) {
@@ -487,8 +501,11 @@ function obtenerDocumentoRespaldoEnCarpetas(documentoId) {
   return null
 }
 
-function moverDocumentoACarpeta(documentoId, carpetaId) {
+function moverDocumentoACarpeta(documentoId, carpetaId, opciones = {}) {
   if (!carpetaId || !documentoId) return
+  const posicionSolicitada = Number.isInteger(opciones.posicion) ? opciones.posicion : null
+  const renderizar = opciones.renderizar !== false
+
   removerDocumentoDeCarpetas(documentoId)
   quitarDocumentoDeSidebar(documentoId)
   documentoSeleccionadoEnCarpetaId = documentoId
@@ -498,18 +515,54 @@ function moverDocumentoACarpeta(documentoId, carpetaId) {
 
   carpetas = carpetas.map(carpeta => {
     if (carpeta.id !== carpetaId) return carpeta
-    const documentos = new Set(carpeta.documentos || [])
-    documentos.add(documentoId)
+    const documentosBase = (carpeta.documentos || []).filter(id => id !== documentoId)
+    const posicionFinal =
+      posicionSolicitada === null
+        ? documentosBase.length
+        : Math.max(0, Math.min(posicionSolicitada, documentosBase.length))
+
+    documentosBase.splice(posicionFinal, 0, documentoId)
 
     const documentosData = { ...(carpeta.documentosData || {}) }
     if (documentoBase) documentosData[documentoId] = documentoBase
 
-    return { ...carpeta, documentos: Array.from(documentos), documentosData }
+    return { ...carpeta, documentos: documentosBase, documentosData }
   })
 
   guardarCarpetas()
-  ordenarYMostrar()
-  renderDocumentos()
+  if (renderizar) {
+    ordenarYMostrar()
+    renderDocumentos()
+  }
+}
+
+function aplicarOrdenDocumentosCarpetaDesdeDOM(lista, carpetaId) {
+  if (!lista || !carpetaId) return
+
+  const idsEnDOM = Array.from(lista.querySelectorAll(".sidebarItemDocumento"))
+    .map(item => item.dataset.documentoId)
+    .filter(Boolean)
+
+  if (!idsEnDOM.length) return
+
+  carpetas = carpetas.map(carpeta => {
+    if (carpeta.id !== carpetaId) return carpeta
+
+    const actuales = carpeta.documentos || []
+    const setActuales = new Set(actuales)
+    const vistos = new Set()
+
+    const ordenados = idsEnDOM.filter(id => {
+      if (!setActuales.has(id) || vistos.has(id)) return false
+      vistos.add(id)
+      return true
+    })
+
+    const restantes = actuales.filter(id => !vistos.has(id))
+    return { ...carpeta, documentos: [...ordenados, ...restantes] }
+  })
+
+  guardarCarpetas()
 }
 
 function moverMateriaAFueraDeCarpeta(materia, normativa) {
@@ -1017,25 +1070,12 @@ function aplicarOrdenDesdeDOM(contenedorLista, normativa, materia) {
 }
 
 function obtenerElementoMateriaDespues(lista, posicionY) {
-  return Array.from(lista.querySelectorAll(".sidebarItem"))
-    .filter(
-      el =>
-        el.dataset.materia !== materiaArrastrada ||
-        el.dataset.normativa !== materiaArrastradaNormativa
-    )
-    .reduce(
-      (cercano, el) => {
-        const rect = el.getBoundingClientRect()
-        const offset = posicionY - (rect.top + rect.height / 2)
-
-        if (offset < 0 && offset > cercano.offset) {
-          return { offset, elemento: el }
-        }
-
-        return cercano
-      },
-      { offset: Number.NEGATIVE_INFINITY, elemento: null }
-    ).elemento
+  const items = Array.from(lista.querySelectorAll(".sidebarItem")).filter(
+    el =>
+      el.dataset.materia !== materiaArrastrada ||
+      el.dataset.normativa !== materiaArrastradaNormativa
+  )
+  return obtenerElementoDespuesPorPuntero(items, posicionY)
 }
 
 function limpiarPlaceholderVacio(lista) {
@@ -1129,7 +1169,11 @@ function prepararZonaDocumentosCarpeta(zona, carpetaId) {
     documentoArrastradoId ||
     null
 
+  const eventoDentroDeListaDocumentos = e =>
+    e?.target instanceof Element && Boolean(e.target.closest(".carpetaDocumentosLista"))
+
   zona.addEventListener("dragover", e => {
+    if (eventoDentroDeListaDocumentos(e)) return
     if (!obtenerDocumentoArrastrado(e)) return
     e.preventDefault()
     e.stopPropagation()
@@ -1138,6 +1182,7 @@ function prepararZonaDocumentosCarpeta(zona, carpetaId) {
   }, true)
 
   zona.addEventListener("dragenter", e => {
+    if (eventoDentroDeListaDocumentos(e)) return
     if (!obtenerDocumentoArrastrado(e)) return
     e.stopPropagation()
     zona.classList.add("drop-activa")
@@ -1148,6 +1193,7 @@ function prepararZonaDocumentosCarpeta(zona, carpetaId) {
   }, true)
 
   zona.addEventListener("drop", e => {
+    if (eventoDentroDeListaDocumentos(e)) return
     const documentoId = obtenerDocumentoArrastrado(e)
     if (!documentoId) return
     e.preventDefault()
@@ -1188,7 +1234,7 @@ function prepararListaDocumentosSidebar(lista) {
     }
 
     const rect = target.getBoundingClientRect()
-    const before = e.clientY < rect.top + rect.height / 2
+    const before = ajustarClientYPorZoom(e.clientY) < rect.top + rect.height / 2
     if (before) {
       lista.insertBefore(dragged, target)
     } else {
@@ -1226,6 +1272,91 @@ function prepararListaDocumentosSidebar(lista) {
     documentoArrastradoId = null
     if (cambio || agregado) ordenarYMostrar()
   })
+}
+
+function prepararListaDocumentosCarpeta(lista, carpetaId) {
+  if (!lista || !carpetaId) return
+
+  const obtenerDocumentoArrastrado = e =>
+    e?.dataTransfer?.getData("application/x-documento-id") ||
+    e?.dataTransfer?.getData("text/plain") ||
+    documentoArrastradoId ||
+    null
+
+  lista.addEventListener("dragover", e => {
+    const documentoId = obtenerDocumentoArrastrado(e)
+    if (!documentoId) return
+    e.preventDefault()
+    e.stopPropagation()
+
+    lista.classList.add("drop-activa")
+
+    const target = e.target instanceof Element
+      ? e.target.closest(".sidebarItemDocumento")
+      : null
+    const dragged = document.querySelector(
+      `.sidebarItemDocumento[data-documento-id="${documentoId}"]`
+    )
+
+    if (!(target instanceof HTMLElement) || !(dragged instanceof HTMLElement)) {
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+      return
+    }
+    if (target === dragged) {
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+      return
+    }
+
+    const rect = target.getBoundingClientRect()
+    const before = ajustarClientYPorZoom(e.clientY) < rect.top + rect.height / 2
+    if (before) {
+      lista.insertBefore(dragged, target)
+    } else {
+      lista.insertBefore(dragged, target.nextSibling)
+    }
+
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+  }, true)
+
+  lista.addEventListener("dragenter", e => {
+    if (!obtenerDocumentoArrastrado(e)) return
+    e.stopPropagation()
+    lista.classList.add("drop-activa")
+  }, true)
+
+  lista.addEventListener("dragleave", () => {
+    lista.classList.remove("drop-activa")
+  }, true)
+
+  lista.addEventListener("drop", e => {
+    const documentoId = obtenerDocumentoArrastrado(e)
+    if (!documentoId) return
+    e.preventDefault()
+    e.stopPropagation()
+    lista.classList.remove("drop-activa")
+
+    const idsEnDOM = Array.from(lista.querySelectorAll(".sidebarItemDocumento"))
+      .map(item => item.dataset.documentoId)
+      .filter(Boolean)
+    const posicion = idsEnDOM.indexOf(documentoId)
+
+    const carpetaObjetivo = carpetas.find(c => c.id === carpetaId)
+    const documentoYaEnCarpeta = Boolean(carpetaObjetivo?.documentos?.includes(documentoId))
+
+    if (!documentoYaEnCarpeta) {
+      moverDocumentoACarpeta(documentoId, carpetaId, {
+        posicion: posicion >= 0 ? posicion : null,
+        renderizar: false
+      })
+    }
+
+    aplicarOrdenDocumentosCarpetaDesdeDOM(lista, carpetaId)
+
+    documentoSeleccionadoEnCarpetaId = documentoId
+    documentoArrastradoId = null
+    ordenarYMostrar()
+    renderDocumentos()
+  }, true)
 }
 
 function aplicarOrdenDocumentosSidebarDesdeDOM(lista) {
@@ -1357,7 +1488,12 @@ function activarArrastreMateria(item, lista, normativa) {
   item.addEventListener("dragend", () => {
     item.classList.remove("arrastrando")
     if (!materiaDropProcesado) {
-      aplicarOrdenMateriasDesdeDOM(item.parentElement)
+      const carpetaId = item.dataset.carpetaId || item.parentElement?.dataset?.carpetaId || null
+      if (carpetaId) {
+        aplicarOrdenMateriasCarpetaDesdeDOM(item.parentElement, carpetaId)
+      } else {
+        aplicarOrdenMateriasDesdeDOM(item.parentElement)
+      }
       limpiarEstadoArrastreMateria()
     }
   })
@@ -2117,6 +2253,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
       } else {
         const listaDocs = document.createElement("div")
         listaDocs.className = "carpetaDocumentosLista"
+        prepararListaDocumentosCarpeta(listaDocs, carpeta.id)
 
         documentosEnCarpeta.forEach(doc => {
           listaDocs.appendChild(crearItemDocumentoSidebar(doc, sidebar))
