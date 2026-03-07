@@ -1168,7 +1168,10 @@ function prepararZonaDocumentosCarpeta(zona, carpetaId) {
     e?.target instanceof Element && Boolean(e.target.closest(".carpetaDocumentosLista"))
 
   zona.addEventListener("dragover", e => {
-    if (eventoDentroDeListaDocumentos(e)) return
+    if (eventoDentroDeListaDocumentos(e)) {
+      zona.classList.add("drop-activa")
+      return
+    }
     if (!obtenerDocumentoArrastrado(e)) return
     e.preventDefault()
     e.stopPropagation()
@@ -1177,18 +1180,26 @@ function prepararZonaDocumentosCarpeta(zona, carpetaId) {
   }, true)
 
   zona.addEventListener("dragenter", e => {
-    if (eventoDentroDeListaDocumentos(e)) return
+    if (eventoDentroDeListaDocumentos(e)) {
+      zona.classList.add("drop-activa")
+      return
+    }
     if (!obtenerDocumentoArrastrado(e)) return
     e.stopPropagation()
     zona.classList.add("drop-activa")
   }, true)
 
-  zona.addEventListener("dragleave", () => {
+  zona.addEventListener("dragleave", e => {
+    const related = e.relatedTarget
+    if (related instanceof Node && zona.contains(related)) return
     zona.classList.remove("drop-activa")
   }, true)
 
   zona.addEventListener("drop", e => {
-    if (eventoDentroDeListaDocumentos(e)) return
+    if (eventoDentroDeListaDocumentos(e)) {
+      zona.classList.remove("drop-activa")
+      return
+    }
     const documentoId = obtenerDocumentoArrastrado(e)
     if (!documentoId) return
     e.preventDefault()
@@ -1465,7 +1476,7 @@ function crearItemDocumentoSidebar(doc, sidebar) {
     item.classList.remove("documento-arrastrando")
     documentoArrastradoId = null
     document
-      .querySelectorAll(".carpetaDocumentos, .sidebarDocumentosLista")
+      .querySelectorAll(".carpetaDocumentos, .carpetaDocumentosLista, .sidebarDocumentosLista, .documentos-lista, .documentos-preview")
       .forEach(z => z.classList.remove("drop-activa"))
   })
 

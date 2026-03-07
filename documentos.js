@@ -108,7 +108,9 @@ function prepararRecepcionDocumentoDesdeCarpetas() {
       zona.classList.add("drop-activa")
     })
 
-    zona.addEventListener("dragleave", () => {
+    zona.addEventListener("dragleave", e => {
+      const related = e.relatedTarget
+      if (related instanceof Node && zona.contains(related)) return
       zona.classList.remove("drop-activa")
     })
 
@@ -416,8 +418,9 @@ function renderDocumentos() {
       documentoArrastradoId = null
       item.classList.remove("documento-arrastrando")
       listaDocumentos?.classList.remove("drop-activa")
+      visorDocumentos?.classList.remove("drop-activa")
       document
-        .querySelectorAll(".carpetaDocumentos")
+        .querySelectorAll(".carpetaDocumentos, .carpetaDocumentosLista, .sidebarDocumentosLista")
         .forEach(z => z.classList.remove("drop-activa"))
     })
     listaDocumentos.appendChild(item)
