@@ -446,12 +446,7 @@ function obtenerDocumentoDespuesPorPuntero(lista, documentoIdArrastrado, clientY
 }
 
 function ajustarClientYDocumentosPorZoom(clientY) {
-  const escalaCss = parseFloat(
-    getComputedStyle(document.documentElement).getPropertyValue("--zoom-scale") || "1"
-  )
-  const escala = Number.isFinite(escalaCss) && escalaCss > 0 ? escalaCss : 1
-  if (escala === 1) return clientY
-  return clientY * escala
+  return clientY
 }
 
 function buscarDocumentoItemEnLista(lista, documentoId) {

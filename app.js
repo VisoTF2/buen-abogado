@@ -172,9 +172,7 @@ function obtenerElementoDespuesPorPuntero(elementos, clientY) {
 }
 
 function ajustarClientYPorZoom(clientY) {
-  const escala = Number.isFinite(zoomActual) && zoomActual > 0 ? zoomActual : 1
-  if (escala === 1) return clientY
-  return clientY * escala
+  return clientY
 }
 
 function marcarListaComoObjetivo(lista) {
