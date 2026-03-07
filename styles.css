@@ -99,7 +99,8 @@
       background: var(--bg);
       color: var(--text);
       transition: 0.25s ease;
-      overflow-x: hidden;
+      overflow-x: auto;
+      overflow-y: auto;
     }
 
     body.fondo-personalizado {
@@ -112,6 +113,9 @@
     .app-root {
       min-height: 100vh;
       touch-action: pan-y;
+      overflow-x: auto;
+      overflow-y: visible;
+      scrollbar-gutter: stable both-edges;
     }
 
     .container {
@@ -126,6 +130,8 @@
       width: calc(100% / var(--zoom-scale));
       min-width: calc(100vw / var(--zoom-scale));
       margin-inline: auto;
+      padding-inline: max(0px, env(safe-area-inset-left)) max(0px, env(safe-area-inset-right));
+      box-sizing: border-box;
     }
 
     body.zooming,
