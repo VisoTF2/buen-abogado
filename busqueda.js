@@ -150,7 +150,11 @@ function ejecutarBusqueda(termino) {
     registrarCoincidenciasNota(nota, limpio, art)
   })
 
-  documentosCargados.forEach(doc => registrarCoincidenciasDocumento(doc, limpio))
+  const documentoAbiertoId = visorDocumentos?.dataset.docActual || ""
+  if (documentoAbiertoId) {
+    const docAbierto = documentosCargados.find(doc => doc.id === documentoAbiertoId)
+    if (docAbierto) registrarCoincidenciasDocumento(docAbierto, limpio)
+  }
 
   if (!resultadosBusqueda.length) {
     info.textContent = "Sin resultados"

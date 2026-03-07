@@ -559,6 +559,7 @@ function cerrarVistaDocumento() {
   visorDocumentos.appendChild(vacio)
 
   actualizarBotonesVer()
+  if (typeof reaplicarBusqueda === "function") reaplicarBusqueda()
 }
 
 function actualizarBotonesVer() {
