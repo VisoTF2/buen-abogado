@@ -3630,7 +3630,7 @@ body.malla-activa .schedule-malla {
   min-width: 56px;
 }
 .action-buttons { display: flex; flex-direction: row; gap: 8px; align-items: center; justify-content: center; }
-.action-buttons button {
+.action-buttons button:not(.class-delete) {
   background: transparent;
   border: none;
   cursor: pointer;
@@ -3659,7 +3659,6 @@ body.oscuro .action-buttons .edit-btn:hover { background: rgba(96, 165, 250, 0.3
 .class-card:hover { transform: translateY(-2px); }
 
 .action-buttons .class-delete {
-  color: var(--danger-solid-bg);
   width: 34px;
   height: 34px;
   min-width: 34px;
@@ -3670,6 +3669,8 @@ body.oscuro .action-buttons .edit-btn:hover { background: rgba(96, 165, 250, 0.3
   justify-content: center;
   font-size: 20px;
   line-height: 1;
+  font-weight: 700;
+  border-radius: 8px;
 }
 .action-buttons .class-delete:hover { background: var(--danger-solid-bg); color: #fff; }
 body.oscuro .action-buttons .class-delete:hover { background: var(--danger-solid-bg); color: #fff; }
