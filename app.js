@@ -1,8 +1,40 @@
+function cargarJSONConRespaldo(key, fallback) {
+  const respaldoKey = `${key}__backup`
+  const intentarParse = valor => {
+    if (!valor) return null
+    try {
+      return JSON.parse(valor)
+    } catch (_error) {
+      return null
+    }
+  }
+
+  const valorPrincipal = intentarParse(localStorage.getItem(key))
+  if (valorPrincipal !== null) {
+    localStorage.setItem(respaldoKey, JSON.stringify(valorPrincipal))
+    return valorPrincipal
+  }
+
+  const valorRespaldo = intentarParse(localStorage.getItem(respaldoKey))
+  if (valorRespaldo !== null) {
+    localStorage.setItem(key, JSON.stringify(valorRespaldo))
+    return valorRespaldo
+  }
+
+  return fallback
+}
+
+function guardarJSONConRespaldo(key, valor) {
+  const serializado = JSON.stringify(valor)
+  localStorage.setItem(key, serializado)
+  localStorage.setItem(`${key}__backup`, serializado)
+}
+
 let codigoActual = {}
-let articulos = JSON.parse(localStorage.getItem("articulosGuardados") || "[]")
+let articulos = cargarJSONConRespaldo("articulosGuardados", [])
   .map(a => ({ ...a, contenidoHTML: a.contenidoHTML ?? null }))
-let materiasOrden = JSON.parse(localStorage.getItem("materiasOrden") || "{}")
-let carpetas = JSON.parse(localStorage.getItem("carpetasMaterias") || "[]").map(c => ({
+let materiasOrden = cargarJSONConRespaldo("materiasOrden", {})
+let carpetas = cargarJSONConRespaldo("carpetasMaterias", []).map(c => ({
   ...c,
   color: c.color || "#1e3a8a",
   semestre: (c.semestre || "Semestre").trim() || "Semestre",
@@ -151,7 +183,7 @@ function valorOrdenArticulo(a) {
 }
 
 function guardarOrdenMaterias() {
-  localStorage.setItem("materiasOrden", JSON.stringify(materiasOrden))
+  guardarJSONConRespaldo("materiasOrden", materiasOrden)
 }
 
 function siguienteOrdenMateria(normativa) {
@@ -179,7 +211,7 @@ function ordenarMaterias(nombres, normativa) {
 }
 
 function guardarCarpetas() {
-  localStorage.setItem("carpetasMaterias", JSON.stringify(carpetas))
+  guardarJSONConRespaldo("carpetasMaterias", carpetas)
 }
 
 function crearCarpeta(nombre) {
@@ -2412,7 +2444,7 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
 }
 
 function guardarLocal() {
-  localStorage.setItem("articulosGuardados", JSON.stringify(articulos))
+  guardarJSONConRespaldo("articulosGuardados", articulos)
 }
 
 function sincronizarEdiciones() {

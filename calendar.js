@@ -1,5 +1,6 @@
 (function () {
   const STORAGE_KEY = "calendarEvents"
+  const BACKUP_STORAGE_KEY = `${STORAGE_KEY}__backup`
   const DAYS_ES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
 
   const panel = document.getElementById("calendarPanel")
@@ -47,16 +48,38 @@
   window.addEventListener("scroll", hideCalendarMenu, true)
 
   function loadEvents() {
+    const parsear = valor => {
+      if (!valor) return null
+      try {
+        return JSON.parse(valor)
+      } catch (_error) {
+        return null
+      }
+    }
+
     try {
-      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")
-      return parsed && typeof parsed === "object" ? parsed : {}
+      const principal = parsear(localStorage.getItem(STORAGE_KEY))
+      if (principal && typeof principal === "object") {
+        localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(principal))
+        return principal
+      }
+
+      const respaldo = parsear(localStorage.getItem(BACKUP_STORAGE_KEY))
+      if (respaldo && typeof respaldo === "object") {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(respaldo))
+        return respaldo
+      }
+
+      return {}
     } catch (_error) {
       return {}
     }
   }
 
   function saveEvents() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(eventsByDate))
+    const serializado = JSON.stringify(eventsByDate)
+    localStorage.setItem(STORAGE_KEY, serializado)
+    localStorage.setItem(BACKUP_STORAGE_KEY, serializado)
   }
 
   function createCalendarMenu() {
