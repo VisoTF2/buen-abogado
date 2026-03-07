@@ -774,9 +774,50 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       width: 100%;
     }
 
+    .preview-close-x {
+      border: none;
+      background: transparent;
+      color: #dc2626;
+      cursor: pointer;
+      font-size: 30px;
+      font-weight: 400;
+      line-height: 1;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: color 0.15s ease, background 0.15s ease;
+    }
+
+    .preview-close-x:hover {
+      color: #ef4444;
+      background: rgba(220, 38, 38, 0.08);
+    }
+
+    .preview-close-x:active {
+      transform: translateY(1px);
+    }
+
+    body.oscuro .preview-close-x {
+      color: #f87171;
+    }
+
+    body.oscuro .preview-close-x:hover {
+      color: #fca5a5;
+      background: rgba(248, 113, 113, 0.12);
+    }
+
     .documento-preview-cerrar {
       min-width: 0;
       flex-shrink: 0;
+    }
+
+    .btn-preview-close,
+    .documento-preview-cerrar {
+      margin-left: auto;
     }
 
     .documentos-vacio {

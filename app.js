@@ -2235,7 +2235,7 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
   })
 
   const cerrarVista = document.createElement("button")
-  cerrarVista.className = "class-delete btn-preview-close"
+  cerrarVista.className = "preview-close-x btn-preview-close"
   cerrarVista.type = "button"
   cerrarVista.textContent = "✕"
   cerrarVista.title = "Cerrar vista previa"

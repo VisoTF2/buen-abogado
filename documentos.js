@@ -536,7 +536,7 @@ function construirEncabezadoVista(doc) {
   if (doc) {
     const cerrar = document.createElement("button")
     cerrar.type = "button"
-    cerrar.className = "class-delete documento-preview-cerrar"
+    cerrar.className = "preview-close-x documento-preview-cerrar"
     cerrar.textContent = "✕"
     cerrar.setAttribute("aria-label", "Cerrar vista previa")
     cerrar.addEventListener("click", cerrarVistaDocumento)
