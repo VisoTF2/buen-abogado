@@ -3296,6 +3296,18 @@ body.oscuro .class-card.light-bg .class-actions .absences {
   border-color: var(--danger-solid-hover);
 }
 
+
+.class-delete,
+.preview-close-x,
+.modal-close,
+.buscador-cerrar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1;
+}
+
 .schedule-malla {
   display: none;
   width: var(--malla-width, 320px);
