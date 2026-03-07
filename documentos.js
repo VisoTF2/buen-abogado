@@ -408,6 +408,7 @@ function renderDocumentos() {
     item.addEventListener("dragend", () => {
       documentoArrastradoId = null
       item.classList.remove("documento-arrastrando")
+      listaDocumentos?.classList.remove("drop-activa")
       document
         .querySelectorAll(".carpetaDocumentos")
         .forEach(z => z.classList.remove("drop-activa"))
@@ -417,6 +418,122 @@ function renderDocumentos() {
 
   actualizarBotonesVer()
 }
+
+function obtenerDocumentoDespuesPorPuntero(lista, documentoIdArrastrado, clientY) {
+  if (!(lista instanceof HTMLElement) || !documentoIdArrastrado) return null
+
+  const items = Array.from(lista.querySelectorAll(".documento-item")).filter(
+    item => item.dataset.documentoId !== documentoIdArrastrado
+  )
+
+  if (!items.length) return null
+
+  return items.reduce(
+    (cercano, el) => {
+      const rect = el.getBoundingClientRect()
+      const offset = clientY - (rect.top + rect.height / 2)
+
+      if (offset < 0 && offset > cercano.offset) {
+        return { offset, elemento: el }
+      }
+
+      return cercano
+    },
+    { offset: Number.NEGATIVE_INFINITY, elemento: null }
+  ).elemento
+}
+
+function buscarDocumentoItemEnLista(lista, documentoId) {
+  if (!(lista instanceof HTMLElement) || !documentoId) return null
+  return Array.from(lista.querySelectorAll(".documento-item")).find(
+    item => item.dataset.documentoId === documentoId
+  ) || null
+}
+
+function aplicarOrdenDocumentosPreviewDesdeDOM(lista) {
+  if (!(lista instanceof HTMLElement)) return
+
+  const idsVisiblesOrdenados = Array.from(lista.querySelectorAll(".documento-item"))
+    .map(item => item.dataset.documentoId)
+    .filter(Boolean)
+
+  if (!idsVisiblesOrdenados.length) return
+
+  const docsPorId = new Map(documentosCargados.map(doc => [doc.id, doc]))
+  const idsVisiblesSet = new Set(
+    documentosCargados.filter(doc => !doc.archived).map(doc => doc.id)
+  )
+
+  const ordenVisibleFinal = idsVisiblesOrdenados.filter(id => idsVisiblesSet.has(id))
+  if (!ordenVisibleFinal.length) return
+
+  const docsVisibles = ordenVisibleFinal
+    .map(id => docsPorId.get(id))
+    .filter(Boolean)
+  const docsArchivados = documentosCargados.filter(doc => doc.archived)
+
+  documentosCargados = [...docsVisibles, ...docsArchivados]
+  guardarDocumentos()
+}
+
+function prepararArrastreListaPreview() {
+  if (!listaDocumentos || listaDocumentos.dataset.dndPreparado === "1") return
+  listaDocumentos.dataset.dndPreparado = "1"
+
+  const obtenerDocumentoArrastrado = e =>
+    e?.dataTransfer?.getData("application/x-documento-id") ||
+    e?.dataTransfer?.getData("text/plain") ||
+    documentoArrastradoId ||
+    null
+
+  listaDocumentos.addEventListener("dragover", e => {
+    const documentoId = obtenerDocumentoArrastrado(e)
+    if (!documentoId) return
+
+    const dragged = buscarDocumentoItemEnLista(listaDocumentos, documentoId)
+    if (!(dragged instanceof HTMLElement)) return
+
+    e.preventDefault()
+    listaDocumentos.classList.add("drop-activa")
+    if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
+
+    const despuesDe = obtenerDocumentoDespuesPorPuntero(listaDocumentos, documentoId, e.clientY)
+    if (!despuesDe) {
+      listaDocumentos.appendChild(dragged)
+    } else {
+      listaDocumentos.insertBefore(dragged, despuesDe)
+    }
+  })
+
+  listaDocumentos.addEventListener("dragenter", e => {
+    if (!obtenerDocumentoArrastrado(e)) return
+    listaDocumentos.classList.add("drop-activa")
+  })
+
+  listaDocumentos.addEventListener("dragleave", e => {
+    const related = e.relatedTarget
+    if (related instanceof Node && listaDocumentos.contains(related)) return
+    listaDocumentos.classList.remove("drop-activa")
+  })
+
+  listaDocumentos.addEventListener("drop", e => {
+    const documentoId = obtenerDocumentoArrastrado(e)
+    if (!documentoId) return
+
+    const dragged = buscarDocumentoItemEnLista(listaDocumentos, documentoId)
+    if (!(dragged instanceof HTMLElement)) return
+
+    e.preventDefault()
+    listaDocumentos.classList.remove("drop-activa")
+
+    aplicarOrdenDocumentosPreviewDesdeDOM(listaDocumentos)
+    documentoArrastradoId = null
+    renderDocumentos()
+    sincronizarSidebarDocumentos()
+  })
+}
+
+prepararArrastreListaPreview()
 
 function eliminarDocumento(id) {
   const doc = documentosCargados.find(d => d.id === id)
