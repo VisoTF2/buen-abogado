@@ -1483,9 +1483,6 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       border-radius: 0;
     }
 
-    .grade-control-row + .grade-control-row {
-      border-top: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
-    }
 
     .grade-control-title {
       font-size: 13px;
