@@ -153,11 +153,14 @@ function manejarReordenArticulos(e) {
 
 function obtenerElementoDespuesPorPuntero(elementos, clientY) {
   if (!Array.isArray(elementos) || !elementos.length) return null
+  const escala = Number.isFinite(zoomActual) && zoomActual > 0 ? zoomActual : 1
+  const punteroY = clientY / escala
 
   return elementos.reduce(
     (cercano, el) => {
       const rect = el.getBoundingClientRect()
-      const offset = clientY - (rect.top + rect.height / 2)
+      const centroY = (rect.top + rect.height / 2) / escala
+      const offset = punteroY - centroY
 
       if (offset < 0 && offset > cercano.offset) {
         return { offset, elemento: el }
@@ -1390,12 +1393,19 @@ function crearItemDocumentoSidebar(doc, sidebar) {
   item.appendChild(extension)
 
   const docActualEnPreview = document.getElementById("visorDocumentos")?.dataset.docActual || ""
-  if (doc.id === documentoSeleccionadoEnCarpetaId || doc.id === docActualEnPreview) {
+  if (doc.id === docActualEnPreview) {
     item.classList.add("is-selected")
   }
 
   item.addEventListener("click", () => {
     if (Date.now() < suprimirClickDocumentoSidebarHasta) return
+
+    const docActual = document.getElementById("visorDocumentos")?.dataset.docActual || ""
+    if (docActual === doc.id) {
+      documentoSeleccionadoEnCarpetaId = null
+      if (typeof cerrarVistaDocumento === "function") cerrarVistaDocumento()
+      return
+    }
 
     documentoSeleccionadoEnCarpetaId = doc.id
     sidebar
@@ -1786,15 +1796,16 @@ function obtenerOrdenDocumentosVisibles() {
 }
 
 function normalizarSeleccionDocumentoSidebar() {
+  const docActualEnPreview = document.getElementById("visorDocumentos")?.dataset.docActual || ""
   const idsVisibles = obtenerOrdenDocumentosVisibles()
-  if (!idsVisibles.length) {
+  if (!idsVisibles.length || !docActualEnPreview) {
     documentoSeleccionadoEnCarpetaId = null
     return
   }
 
-  if (!idsVisibles.includes(documentoSeleccionadoEnCarpetaId)) {
-    documentoSeleccionadoEnCarpetaId = idsVisibles[0]
-  }
+  documentoSeleccionadoEnCarpetaId = idsVisibles.includes(docActualEnPreview)
+    ? docActualEnPreview
+    : null
 }
 
 function ordenarYMostrar() {
@@ -1924,6 +1935,18 @@ function ordenarYMostrar() {
       item.style.borderLeftColor = obtenerColorMateria(m)
 
       item.addEventListener("click", () => {
+        const yaActiva =
+          !vistaMateriaCerrada && normativaSeleccionada === norm && materiaSeleccionada === m
+
+        if (yaActiva) {
+          setVistaMateriaCerrada(true)
+          normativaSeleccionada = null
+          materiaSeleccionada = null
+          sidebar.querySelectorAll(".sidebarItem").forEach(i => i.classList.remove("activa"))
+          mostrarEstadoVistaPreviaCerrada()
+          return
+        }
+
         setVistaMateriaCerrada(false)
         normativaSeleccionada = norm
         materiaSeleccionada = m
@@ -2202,6 +2225,18 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
           }
 
           item.addEventListener("click", () => {
+            const yaActiva =
+              !vistaMateriaCerrada && normativaSeleccionada === normativa && materiaSeleccionada === materia
+
+            if (yaActiva) {
+              setVistaMateriaCerrada(true)
+              normativaSeleccionada = null
+              materiaSeleccionada = null
+              sidebar.querySelectorAll(".sidebarItem").forEach(i => i.classList.remove("activa"))
+              mostrarEstadoVistaPreviaCerrada()
+              return
+            }
+
             setVistaMateriaCerrada(false)
             normativaSeleccionada = normativa
             materiaSeleccionada = materia

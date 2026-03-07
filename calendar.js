@@ -159,7 +159,7 @@
     renderCalendar()
   }
 
-  function moveEventToDate(fromDateKey, eventIndex, toDateKey) {
+  function moveEventToDate(fromDateKey, eventIndex, toDateKey, toIndex = null) {
     if (!fromDateKey || !toDateKey) return
     const fromList = Array.isArray(eventsByDate[fromDateKey]) ? [...eventsByDate[fromDateKey]] : []
     if (!fromList[eventIndex]) return
@@ -167,7 +167,10 @@
     const [eventData] = fromList.splice(eventIndex, 1)
 
     if (fromDateKey === toDateKey) {
-      fromList.push(eventData)
+      const limite = fromList.length
+      let destino = Number.isInteger(toIndex) ? toIndex : limite
+      destino = Math.max(0, Math.min(destino, limite))
+      fromList.splice(destino, 0, eventData)
       eventsByDate[fromDateKey] = fromList
       saveEvents()
       renderCalendar()
@@ -247,6 +250,33 @@
     }
   }
 
+
+  function obtenerIndiceDropPorPuntero(eventsWrap, fromDateKey, eventIndex, clientY) {
+    if (!(eventsWrap instanceof HTMLElement)) return null
+
+    const eventos = Array.from(eventsWrap.querySelectorAll('.calendar-event'))
+    if (!eventos.length) return 0
+
+    let indice = eventos.length
+
+    for (let i = 0; i < eventos.length; i += 1) {
+      const eventoEl = eventos[i]
+      const rect = eventoEl.getBoundingClientRect()
+      const centroY = rect.top + rect.height / 2
+
+      if (clientY < centroY) {
+        indice = i
+        break
+      }
+    }
+
+    if (fromDateKey === eventsWrap.dataset.dateKey) {
+      if (indice > eventIndex) return indice - 1
+    }
+
+    return indice
+  }
+
   function createDayCell(date, outsideMonth) {
     const cell = document.createElement("div")
     cell.className = "calendar-day"
@@ -271,6 +301,7 @@
     cell.appendChild(eventsWrap)
 
     const dateKey = formatDateKey(date)
+    eventsWrap.dataset.dateKey = dateKey
     const events = Array.isArray(eventsByDate[dateKey]) ? eventsByDate[dateKey] : []
 
     events.forEach((event, index) => {
@@ -322,8 +353,9 @@
         e.preventDefault()
         e.stopPropagation()
         const { fromDateKey, eventIndex } = draggedEventRef
+        const toIndex = obtenerIndiceDropPorPuntero(eventsWrap, fromDateKey, eventIndex, e.clientY)
         draggedEventRef = null
-        moveEventToDate(fromDateKey, eventIndex, dateKey)
+        moveEventToDate(fromDateKey, eventIndex, dateKey, toIndex)
       })
     }
 

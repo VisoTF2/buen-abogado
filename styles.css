@@ -2498,10 +2498,11 @@ body.oscuro .carpetaToggle {
   cursor: pointer;
   border-left-color: #10b981;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  padding-block: 9px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: var(--carpeta-slot-height);
   transform: none;
   contain: none;
   backface-visibility: hidden;
@@ -2527,11 +2528,14 @@ body.oscuro .carpetaToggle {
   font-size: 11px;
   color: var(--muted-text);
   letter-spacing: 0.03em;
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .sidebarItemDocumento.is-selected {
   background: var(--accent);
   color: #fff;
+  box-shadow: inset 3px 0 0 color-mix(in srgb, #fff 78%, transparent);
 }
 
 .sidebarItemDocumento.is-selected .sidebarItemDocumentoTipo {
