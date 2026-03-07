@@ -599,18 +599,7 @@ function obtenerZoomInicial() {
 function aplicarZoom(nivel) {
   const limitado = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, nivel))
   zoomActual = limitado
-  const escala = limitado.toFixed(3)
-  const lienzoZoom = document.querySelector(".zoom-canvas")
-
-  document.documentElement.style.setProperty("--zoom-scale", escala)
-
-  if (lienzoZoom) {
-    const anchoCompensado = `${(100 / limitado).toFixed(3)}%`
-    lienzoZoom.style.zoom = escala
-    lienzoZoom.style.width = anchoCompensado
-    lienzoZoom.style.marginInline = "auto"
-  }
-
+  document.documentElement.style.setProperty("--zoom-scale", limitado.toFixed(3))
   localStorage.setItem(ZOOM_STORAGE_KEY, limitado.toFixed(3))
 }
 
