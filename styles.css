@@ -123,8 +123,9 @@
 
     .zoom-canvas {
       zoom: var(--zoom-scale);
-      width: 100%;
-      min-width: 100vw;
+      width: calc(100% / var(--zoom-scale));
+      min-width: calc(100vw / var(--zoom-scale));
+      margin-inline: auto;
     }
 
     body.zooming,
