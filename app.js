@@ -155,10 +155,13 @@ function manejarReordenArticulos(e) {
     ? e.target.closest(".articulo")
     : null
 
+  const escalaZoom = zoomActual || 1
+  const yNormalizada = e.clientY / escalaZoom
+
   let objetivoDespues = null
   if (objetivoDirecto instanceof HTMLElement && objetivoDirecto.dataset.id !== articuloArrastradoId) {
     const rect = objetivoDirecto.getBoundingClientRect()
-    const antes = e.clientY < rect.top + rect.height / 2
+    const antes = yNormalizada < (rect.top + rect.height / 2) / escalaZoom
     objetivoDespues = antes
       ? objetivoDirecto
       : siguienteElementoCoincidente(objetivoDirecto.nextElementSibling, ".articulo")
@@ -167,7 +170,7 @@ function manejarReordenArticulos(e) {
   if (!objetivoDespues) objetivoDespues = articulosEnDom.reduce(
     (cercano, el) => {
       const rect = el.getBoundingClientRect()
-      const offset = e.clientY - (rect.top + rect.height / 2)
+      const offset = yNormalizada - (rect.top + rect.height / 2) / escalaZoom
 
       if (offset < 0 && offset > cercano.offset) {
         return { offset, elemento: el }
@@ -1048,6 +1051,9 @@ function aplicarOrdenDesdeDOM(contenedorLista, normativa, materia) {
 }
 
 function obtenerElementoMateriaDespues(lista, posicionY, targetEvento = null) {
+  const escalaZoom = zoomActual || 1
+  const yNormalizada = posicionY / escalaZoom
+
   const siguienteElementoCoincidente = (inicio, selector) => {
     let actual = inicio
     while (actual) {
@@ -1067,7 +1073,7 @@ function obtenerElementoMateriaDespues(lista, posicionY, targetEvento = null) {
       objetivoDirecto.dataset.normativa !== materiaArrastradaNormativa)
   ) {
     const rect = objetivoDirecto.getBoundingClientRect()
-    const antes = posicionY < rect.top + rect.height / 2
+    const antes = yNormalizada < (rect.top + rect.height / 2) / escalaZoom
     return antes
       ? objetivoDirecto
       : siguienteElementoCoincidente(objetivoDirecto.nextElementSibling, ".sidebarItem")
@@ -1082,7 +1088,7 @@ function obtenerElementoMateriaDespues(lista, posicionY, targetEvento = null) {
     .reduce(
       (cercano, el) => {
         const rect = el.getBoundingClientRect()
-        const offset = posicionY - (rect.top + rect.height / 2)
+        const offset = yNormalizada - (rect.top + rect.height / 2) / escalaZoom
 
         if (offset < 0 && offset > cercano.offset) {
           return { offset, elemento: el }
@@ -1097,6 +1103,27 @@ function obtenerElementoMateriaDespues(lista, posicionY, targetEvento = null) {
 function limpiarPlaceholderVacio(lista) {
   const placeholder = lista?.querySelector(".carpetaVacia")
   if (placeholder) placeholder.remove()
+}
+
+function limpiarIndicadoresInsercion(lista = null) {
+  const alcance = lista || document
+  alcance.querySelectorAll(".drop-before").forEach(el => el.classList.remove("drop-before"))
+
+  if (lista) {
+    lista.classList.remove("drop-at-end")
+  } else {
+    document.querySelectorAll(".drop-at-end").forEach(el => el.classList.remove("drop-at-end"))
+  }
+}
+
+function marcarIndicadorInsercion(lista, elementoDespues) {
+  if (!lista) return
+  limpiarIndicadoresInsercion(lista)
+  if (elementoDespues instanceof HTMLElement) {
+    elementoDespues.classList.add("drop-before")
+  } else {
+    lista.classList.add("drop-at-end")
+  }
 }
 
 function manejarDragOverListaMaterias(e) {
@@ -1116,6 +1143,7 @@ function manejarDragOverListaMaterias(e) {
   limpiarPlaceholderVacio(lista)
 
   const despuesDe = obtenerElementoMateriaDespues(lista, e.clientY, e.target)
+  marcarIndicadorInsercion(lista, despuesDe)
 
   if (arrastrandoElem.parentElement !== lista) {
     lista.appendChild(arrastrandoElem)
@@ -1172,6 +1200,7 @@ function prepararListaMaterias(lista) {
   })
   lista.addEventListener("dragleave", () => {
     lista.classList.remove("drop-activa", "carpetaLista-drop")
+    limpiarIndicadoresInsercion(lista)
   })
   lista.addEventListener("drop", manejarDropListaMaterias)
 }
@@ -1239,11 +1268,14 @@ function prepararListaDocumentosSidebar(lista) {
   }
 
   const obtenerElementoDocumentoDespues = (posicionY, documentoId, targetEvento = null) => {
+    const escalaZoom = zoomActual || 1
+    const yNormalizada = posicionY / escalaZoom
+
     if (targetEvento instanceof Element) {
       const objetivoDirecto = targetEvento.closest(".sidebarItemDocumento")
       if (objetivoDirecto instanceof HTMLElement && objetivoDirecto.dataset.documentoId !== documentoId) {
         const rect = objetivoDirecto.getBoundingClientRect()
-        const antes = posicionY < rect.top + rect.height / 2
+        const antes = yNormalizada < (rect.top + rect.height / 2) / escalaZoom
         return antes
           ? objetivoDirecto
           : siguienteElementoCoincidente(objetivoDirecto.nextElementSibling, ".sidebarItemDocumento")
@@ -1255,7 +1287,7 @@ function prepararListaDocumentosSidebar(lista) {
       .reduce(
         (cercano, item) => {
           const rect = item.getBoundingClientRect()
-          const offset = posicionY - (rect.top + rect.height / 2)
+          const offset = yNormalizada - (rect.top + rect.height / 2) / escalaZoom
 
           if (offset < 0 && offset > cercano.offset) {
             return { offset, elemento: item }
@@ -1273,6 +1305,7 @@ function prepararListaDocumentosSidebar(lista) {
     e.preventDefault()
     lista.classList.add("drop-activa")
     const despuesDe = obtenerElementoDocumentoDespues(e.clientY, documentoId, e.target)
+    marcarIndicadorInsercion(lista, despuesDe)
     lista.dataset.dropBeforeDocumentoId = despuesDe?.dataset.documentoId || ""
     const dragged = lista.querySelector(`.sidebarItemDocumento[data-documento-id="${documentoId}"]`)
 
@@ -1294,6 +1327,7 @@ function prepararListaDocumentosSidebar(lista) {
 
   lista.addEventListener("dragleave", () => {
     lista.classList.remove("drop-activa")
+    limpiarIndicadoresInsercion(lista)
     delete lista.dataset.dropBeforeDocumentoId
   })
 
@@ -1302,6 +1336,7 @@ function prepararListaDocumentosSidebar(lista) {
     if (!documentoId) return
     e.preventDefault()
     lista.classList.remove("drop-activa")
+    limpiarIndicadoresInsercion(lista)
     const insertarAntesDeId = lista.dataset.dropBeforeDocumentoId || null
     delete lista.dataset.dropBeforeDocumentoId
 
@@ -1471,6 +1506,7 @@ function crearItemDocumentoSidebar(doc, sidebar) {
     document
       .querySelectorAll(".carpetaDocumentos, .sidebarDocumentosLista")
       .forEach(z => z.classList.remove("drop-activa"))
+    limpiarIndicadoresInsercion()
   })
 
   return item
@@ -1497,6 +1533,7 @@ function activarArrastreMateria(item, lista, normativa) {
       aplicarOrdenMateriasDesdeDOM(item.parentElement)
       limpiarEstadoArrastreMateria()
     }
+    limpiarIndicadoresInsercion()
   })
 }
 
@@ -1504,6 +1541,7 @@ function limpiarEstadoArrastreMateria() {
   document
     .querySelectorAll(".sidebarGroupList")
     .forEach(l => l.classList.remove("drop-activa", "carpetaLista-drop"))
+  limpiarIndicadoresInsercion()
   materiaArrastrada = null
   materiaArrastradaNormativa = null
   materiaArrastradaCarpetaId = null
