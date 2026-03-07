@@ -679,13 +679,30 @@ function obtenerZoomInicial() {
 
 function aplicarZoom(nivel) {
   const limitado = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, nivel))
+  const zoomPrevio = Number.isFinite(zoomActual) && zoomActual > 0 ? zoomActual : 1
   zoomActual = limitado
+
+  const centroViewportX = window.scrollX + window.innerWidth / 2
+  const centroViewportY = window.scrollY + window.innerHeight / 2
+  const ratioZoom = limitado / zoomPrevio
 
   document.body.classList.add("zooming")
   if (zoomTransitionTimer) clearTimeout(zoomTransitionTimer)
 
   document.documentElement.style.setProperty("--zoom-scale", limitado.toFixed(3))
   localStorage.setItem(ZOOM_STORAGE_KEY, limitado.toFixed(3))
+
+  if (Number.isFinite(ratioZoom) && ratioZoom > 0 && ratioZoom !== 1) {
+    requestAnimationFrame(() => {
+      const nuevoScrollX = centroViewportX * ratioZoom - window.innerWidth / 2
+      const nuevoScrollY = centroViewportY * ratioZoom - window.innerHeight / 2
+      window.scrollTo({
+        left: Math.max(0, nuevoScrollX),
+        top: Math.max(0, nuevoScrollY),
+        behavior: "auto"
+      })
+    })
+  }
 
   zoomTransitionTimer = setTimeout(() => {
     document.body.classList.remove("zooming")
