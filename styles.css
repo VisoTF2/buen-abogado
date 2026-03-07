@@ -595,8 +595,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .documentos-lista.drop-activa,
     .documentos-preview.drop-activa {
-      box-shadow: inset 0 0 0 2px var(--accent);
-      background: rgba(59, 130, 246, 0.08);
+      box-shadow: none;
+      background: color-mix(in srgb, var(--card) 94%, var(--text) 6%);
     }
 
     .documento-item {
@@ -2390,8 +2390,9 @@ body.oscuro .carpetaToggle {
 }
 
 .carpetaDocumentos.drop-activa {
-  box-shadow: inset 0 0 0 2px var(--accent);
+  box-shadow: none;
   border-radius: 10px;
+  background: color-mix(in srgb, var(--card) 95%, var(--text) 5%);
 }
 
 .carpetaDocumentosVacio {
@@ -2425,8 +2426,8 @@ body.oscuro .carpetaToggle {
 }
 
 .carpetaDocumentoChip.is-selected {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  border-color: color-mix(in srgb, var(--text) 28%, var(--border));
+  box-shadow: none;
 }
 
 .carpetaDocumentoChip:active {
@@ -2450,8 +2451,8 @@ body.oscuro .carpetaToggle {
 }
 
 .carpetaLista-drop {
-  box-shadow: inset 0 0 0 2px var(--accent);
-  background: rgba(59, 130, 246, 0.08);
+  box-shadow: none;
+  background: color-mix(in srgb, var(--card) 94%, var(--text) 6%);
 }
 
 
@@ -2844,8 +2845,8 @@ body.oscuro #modalConfiguracion .modal-close:hover {
 }
 
 .sidebarGroupList.drop-activa {
-  background: rgba(59, 130, 246, 0.06);
-  box-shadow: inset 0 0 0 2px var(--accent);
+  background: color-mix(in srgb, var(--card) 95%, var(--text) 5%);
+  box-shadow: none;
 }
 
     .mainPanel {
