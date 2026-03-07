@@ -130,7 +130,7 @@
       width: calc(100% / var(--zoom-scale));
       min-width: calc(100vw / var(--zoom-scale));
       margin-inline: auto;
-      padding-inline: max(0px, env(safe-area-inset-left)) max(0px, env(safe-area-inset-right));
+      padding-inline: max(var(--space-3), env(safe-area-inset-left)) max(var(--space-3), env(safe-area-inset-right));
       box-sizing: border-box;
     }
 
@@ -253,7 +253,7 @@ body.banner-sin-fondo header:not(.banner-con-imagen)::after {
     }
 
 .container {
-  width: min(98vw, var(--layout-max-width));
+  width: min(100%, var(--layout-max-width));
   max-width: none;
   margin: var(--section-gap) auto 24px;
   background: var(--card);
@@ -830,7 +830,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     body.oscuro .documentos-vacio { color: #d1d5db; }
 
     .calendar-layout {
-      width: min(98vw, var(--layout-max-width));
+      width: min(100%, var(--layout-max-width));
       margin: var(--section-gap) auto;
       padding: 0;
       box-sizing: border-box;
@@ -1175,7 +1175,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
 
     .grade-layout {
-      width: min(98vw, var(--layout-max-width));
+      width: min(100%, var(--layout-max-width));
       margin: var(--section-gap) auto;
       padding: 0;
       box-sizing: border-box;
@@ -1627,7 +1627,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .media-layout {
-      width: min(98vw, var(--layout-max-width));
+      width: min(100%, var(--layout-max-width));
       margin: var(--section-gap) auto;
       padding: 0;
       box-sizing: border-box;
@@ -3219,7 +3219,7 @@ body.oscuro #modalConfiguracion .modal-close:hover {
 
 /* Horario semanal */
 .weekly-schedule-layout {
-  width: min(98vw, var(--layout-max-width));
+  width: min(100%, var(--layout-max-width));
   box-sizing: border-box;
   margin: var(--section-gap) auto;
   display: flex;
