@@ -142,6 +142,15 @@
     if (!fromList[eventIndex]) return
 
     const [eventData] = fromList.splice(eventIndex, 1)
+
+    if (fromDateKey === toDateKey) {
+      fromList.push(eventData)
+      eventsByDate[fromDateKey] = fromList
+      saveEvents()
+      renderCalendar()
+      return
+    }
+
     const toList = Array.isArray(eventsByDate[toDateKey]) ? [...eventsByDate[toDateKey]] : []
     toList.push(eventData)
 
