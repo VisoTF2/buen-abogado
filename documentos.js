@@ -419,20 +419,28 @@ function renderDocumentos() {
   actualizarBotonesVer()
 }
 
-function obtenerEscalaZoomDocumentos() {
-  const escalaCss = parseFloat(
-    getComputedStyle(document.documentElement).getPropertyValue("--zoom-scale") || "1"
-  )
-  if (!Number.isFinite(escalaCss) || escalaCss <= 0) return 1
-  return escalaCss
-}
+function obtenerDocumentoDespuesPorPuntero(lista, documentoIdArrastrado, clientY) {
+  if (!(lista instanceof HTMLElement) || !documentoIdArrastrado) return null
 
-function obtenerYEnListaAjustadaPorZoom(lista, clientY) {
-  if (!(lista instanceof HTMLElement)) return clientY
-  const escala = obtenerEscalaZoomDocumentos()
-  const rect = lista.getBoundingClientRect()
-  const yRelativa = clientY - rect.top
-  return yRelativa / escala + lista.scrollTop
+  const items = Array.from(lista.querySelectorAll(".documento-item")).filter(
+    item => item.dataset.documentoId !== documentoIdArrastrado
+  )
+
+  if (!items.length) return null
+
+  return items.reduce(
+    (cercano, el) => {
+      const rect = el.getBoundingClientRect()
+      const offset = clientY - (rect.top + rect.height / 2)
+
+      if (offset < 0 && offset > cercano.offset) {
+        return { offset, elemento: el }
+      }
+
+      return cercano
+    },
+    { offset: Number.NEGATIVE_INFINITY, elemento: null }
+  ).elemento
 }
 
 function buscarDocumentoItemEnLista(lista, documentoId) {
@@ -489,15 +497,11 @@ function prepararArrastreListaPreview() {
     listaDocumentos.classList.add("drop-activa")
     if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
 
-    const target = e.target instanceof Element ? e.target.closest(".documento-item") : null
-    if (!(target instanceof HTMLElement) || target === dragged) return
-
-    const punteroY = obtenerYEnListaAjustadaPorZoom(listaDocumentos, e.clientY)
-    const before = punteroY < target.offsetTop + target.offsetHeight / 2
-    if (before) {
-      listaDocumentos.insertBefore(dragged, target)
+    const despuesDe = obtenerDocumentoDespuesPorPuntero(listaDocumentos, documentoId, e.clientY)
+    if (!despuesDe) {
+      listaDocumentos.appendChild(dragged)
     } else {
-      listaDocumentos.insertBefore(dragged, target.nextSibling)
+      listaDocumentos.insertBefore(dragged, despuesDe)
     }
   })
 

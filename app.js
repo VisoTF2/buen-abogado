@@ -142,7 +142,7 @@ function manejarReordenArticulos(e) {
 
   if (!arrastrandoElem) return
 
-  const objetivoDespues = obtenerElementoDespuesPorPosicion(contenedor, articulosEnDom, e.clientY)
+  const objetivoDespues = obtenerElementoDespuesPorPuntero(articulosEnDom, e.clientY)
 
   if (!objetivoDespues) {
     contenedor.appendChild(arrastrandoElem)
@@ -151,21 +151,22 @@ function manejarReordenArticulos(e) {
   }
 }
 
-function obtenerYEnContenedorAjustadaPorZoom(contenedor, clientY) {
-  if (!(contenedor instanceof HTMLElement)) return clientY
-  const escala = Number.isFinite(zoomActual) && zoomActual > 0 ? zoomActual : 1
-  const rect = contenedor.getBoundingClientRect()
-  const yRelativa = clientY - rect.top
-  return yRelativa / escala + contenedor.scrollTop
-}
+function obtenerElementoDespuesPorPuntero(elementos, clientY) {
+  if (!Array.isArray(elementos) || !elementos.length) return null
 
-function obtenerElementoDespuesPorPosicion(contenedor, elementos, clientY) {
-  if (!(contenedor instanceof HTMLElement) || !Array.isArray(elementos) || !elementos.length) {
-    return null
-  }
+  return elementos.reduce(
+    (cercano, el) => {
+      const rect = el.getBoundingClientRect()
+      const offset = clientY - (rect.top + rect.height / 2)
 
-  const punteroY = obtenerYEnContenedorAjustadaPorZoom(contenedor, clientY)
-  return elementos.find(el => punteroY < el.offsetTop + el.offsetHeight / 2) || null
+      if (offset < 0 && offset > cercano.offset) {
+        return { offset, elemento: el }
+      }
+
+      return cercano
+    },
+    { offset: Number.NEGATIVE_INFINITY, elemento: null }
+  ).elemento
 }
 
 function marcarListaComoObjetivo(lista) {
@@ -1066,7 +1067,7 @@ function obtenerElementoMateriaDespues(lista, posicionY) {
       el.dataset.materia !== materiaArrastrada ||
       el.dataset.normativa !== materiaArrastradaNormativa
   )
-  return obtenerElementoDespuesPorPosicion(lista, items, posicionY)
+  return obtenerElementoDespuesPorPuntero(items, posicionY)
 }
 
 function limpiarPlaceholderVacio(lista) {
@@ -1224,8 +1225,8 @@ function prepararListaDocumentosSidebar(lista) {
       return
     }
 
-    const punteroY = obtenerYEnContenedorAjustadaPorZoom(lista, e.clientY)
-    const before = punteroY < target.offsetTop + target.offsetHeight / 2
+    const rect = target.getBoundingClientRect()
+    const before = e.clientY < rect.top + rect.height / 2
     if (before) {
       lista.insertBefore(dragged, target)
     } else {
@@ -1298,8 +1299,8 @@ function prepararListaDocumentosCarpeta(lista, carpetaId) {
       return
     }
 
-    const punteroY = obtenerYEnContenedorAjustadaPorZoom(lista, e.clientY)
-    const before = punteroY < target.offsetTop + target.offsetHeight / 2
+    const rect = target.getBoundingClientRect()
+    const before = e.clientY < rect.top + rect.height / 2
     if (before) {
       lista.insertBefore(dragged, target)
     } else {
