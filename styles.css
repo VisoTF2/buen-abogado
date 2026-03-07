@@ -595,6 +595,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .documentos-lista.drop-activa,
     .documentos-preview.drop-activa {
+      border-color: var(--accent);
       box-shadow: inset 0 0 0 2px var(--accent);
       background: rgba(59, 130, 246, 0.08);
     }
@@ -622,6 +623,12 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .documento-item:active {
       cursor: grabbing;
       transform: translateY(1px);
+    }
+
+    .documento-item.is-selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+      background: color-mix(in srgb, var(--accent) 10%, var(--article-bg));
     }
 
     .documento-info {
@@ -2447,6 +2454,8 @@ body.oscuro .carpetaToggle {
 .documento-arrastrando {
   opacity: 0.9;
   transform: translateY(-1px);
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .carpetaLista-drop {
@@ -2530,12 +2539,14 @@ body.oscuro .carpetaToggle {
 }
 
 .sidebarItemDocumento.is-selected {
-  background: var(--accent);
-  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  background: color-mix(in srgb, var(--accent) 12%, var(--article-bg));
+  color: var(--text);
 }
 
 .sidebarItemDocumento.is-selected .sidebarItemDocumentoTipo {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text);
 }
 
 .sidebarGroupTitle {
