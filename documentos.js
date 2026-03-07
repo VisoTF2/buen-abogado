@@ -395,7 +395,14 @@ function renderDocumentos() {
 
     item.appendChild(info)
     item.appendChild(acciones)
-    item.addEventListener("click", () => mostrarDocumento(doc.id))
+    item.addEventListener("click", () => {
+      const actual = visorDocumentos?.dataset.docActual || ""
+      if (actual === doc.id) {
+        cerrarVistaDocumento()
+      } else {
+        mostrarDocumento(doc.id)
+      }
+    })
     item.addEventListener("dragstart", e => {
       documentoArrastradoId = doc.id
       item.classList.add("documento-arrastrando")
@@ -428,10 +435,14 @@ function obtenerDocumentoDespuesPorPuntero(lista, documentoIdArrastrado, clientY
 
   if (!items.length) return null
 
+  const escala = Number.isFinite(zoomActual) && zoomActual > 0 ? zoomActual : 1
+  const punteroY = clientY / escala
+
   return items.reduce(
     (cercano, el) => {
       const rect = el.getBoundingClientRect()
-      const offset = clientY - (rect.top + rect.height / 2)
+      const centroY = (rect.top + rect.height / 2) / escala
+      const offset = punteroY - centroY
 
       if (offset < 0 && offset > cercano.offset) {
         return { offset, elemento: el }
@@ -670,12 +681,17 @@ function cerrarVistaDocumento() {
   visorDocumentos.innerHTML = ""
   visorDocumentos.appendChild(construirEncabezadoVista(null))
 
+  if (typeof documentoSeleccionadoEnCarpetaId !== "undefined") {
+    documentoSeleccionadoEnCarpetaId = null
+  }
+
   const vacio = document.createElement("div")
   vacio.className = "documentos-vacio"
   vacio.textContent = "Selecciona un documento para verlo aquí mismo."
   visorDocumentos.appendChild(vacio)
 
   actualizarBotonesVer()
+  if (typeof ordenarYMostrar === "function") ordenarYMostrar()
   if (typeof reaplicarBusqueda === "function") reaplicarBusqueda()
 }
 
