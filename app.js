@@ -59,7 +59,7 @@ function escaparComoHTML(texto) {
 }
 
 const ZOOM_STEP = 0.05
-const MIN_ZOOM = 1
+const MIN_ZOOM = 0.9
 const MAX_ZOOM = 1.25
 const ZOOM_STORAGE_KEY = "appZoomScale"
 let zoomActual = obtenerZoomInicial()
