@@ -2428,6 +2428,7 @@ body.oscuro .carpetaToggle {
 .carpetaDocumentoChip.is-selected {
   border-color: color-mix(in srgb, var(--text) 28%, var(--border));
   box-shadow: none;
+  background: color-mix(in srgb, var(--card) 92%, var(--text) 8%);
 }
 
 .carpetaDocumentoChip:active {
@@ -2491,8 +2492,8 @@ body.oscuro .carpetaToggle {
 }
 
 .sidebarDocumentosLista.drop-activa {
-  box-shadow: inset 0 0 0 2px var(--accent);
-  background: rgba(59, 130, 246, 0.08);
+  box-shadow: none;
+  background: color-mix(in srgb, var(--card) 95%, var(--text) 5%);
 }
 
 .sidebarItemDocumento {
@@ -2531,12 +2532,12 @@ body.oscuro .carpetaToggle {
 }
 
 .sidebarItemDocumento.is-selected {
-  background: var(--accent);
-  color: #fff;
+  background: color-mix(in srgb, var(--card) 92%, var(--text) 8%);
+  color: var(--text);
 }
 
 .sidebarItemDocumento.is-selected .sidebarItemDocumentoTipo {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--muted-text);
 }
 
 .sidebarGroupTitle {
