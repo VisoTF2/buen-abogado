@@ -24,7 +24,6 @@
       --search-highlight-glow-active: rgba(96, 165, 250, 0.45);
       --search-highlight-mark: #dbeafe;
       --search-highlight-mark-active: #bfdbfe;
-      --zoom-scale: 1;
       --layout-max-width: 1450px;
       --layout-padding: 22px;
       --panel-min-height: clamp(440px, 68vh, 680px);
@@ -99,8 +98,7 @@
       background: var(--bg);
       color: var(--text);
       transition: 0.25s ease;
-      overflow-x: auto;
-      overflow-y: auto;
+      overflow-x: hidden;
     }
 
     body.fondo-personalizado {
@@ -113,9 +111,6 @@
     .app-root {
       min-height: 100vh;
       touch-action: pan-y;
-      overflow-x: auto;
-      overflow-y: visible;
-      scrollbar-gutter: stable both-edges;
     }
 
     .container {
@@ -123,21 +118,6 @@
       flex-direction: column;
       height: 100%;
       min-height: calc(100vh - 80px);
-    }
-
-    .zoom-canvas {
-      zoom: var(--zoom-scale);
-      width: calc(100% / var(--zoom-scale));
-      min-width: calc(100vw / var(--zoom-scale));
-      margin-inline: auto;
-      padding-inline: max(var(--space-3), env(safe-area-inset-left)) max(var(--space-3), env(safe-area-inset-right));
-      box-sizing: border-box;
-    }
-
-    body.zooming,
-    body.zooming * {
-      transition: none !important;
-      animation: none !important;
     }
 
     header {
@@ -381,34 +361,6 @@ body.banner-sin-fondo header:not(.banner-con-imagen)::after {
 
     .buscador-btn:active { transform: translateY(1px); }
 
-    .zoom-btn {
-      background: var(--card);
-      border: 2px solid var(--border);
-      color: var(--text);
-      border-radius: 10px;
-      width: 42px;
-      height: 38px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.1s ease, border-color 0.2s ease, background 0.2s ease;
-    }
-
-    .zoom-btn + .zoom-btn {
-      margin-left: 6px;
-    }
-
-    .zoom-btn:hover {
-      background: var(--accent-light);
-      color: #fff;
-      border-color: var(--accent-light);
-    }
-
-    .zoom-btn:active { transform: translateY(1px); }
-
     .btn-primary:hover { background: var(--accent-light); }
 
     .btn-small,
@@ -650,7 +602,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       font-size: 14px;
       color: var(--text);
       font-weight: 700;
-      white-space: nowrap;
+      white-space: normal;
       padding: 0 4px;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -766,7 +718,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .documento-preview-titulo {
       flex: 1 1 auto;
       min-width: 0;
-      white-space: nowrap;
+      white-space: normal;
       padding: 0 4px;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -924,7 +876,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       font-weight: 700;
       letter-spacing: 0;
       color: var(--text);
-      white-space: nowrap;
+      white-space: normal;
       padding: 0 4px;
     }
 
@@ -1398,7 +1350,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
 
     .grade-config-grid {
       display: grid;
-      grid-template-columns: repeat(6, minmax(135px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
       gap: 8px;
       align-items: end;
     }
@@ -1417,7 +1369,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       line-height: 1.2;
       display: flex;
       align-items: flex-end;
-      white-space: nowrap;
+      white-space: normal;
     }
 
     .grade-field input,
@@ -1899,7 +1851,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .buscador-info {
       font-size: 13px;
       color: #4b5563;
-      white-space: nowrap;
+      white-space: normal;
       padding: 0 4px;
       display: inline-flex;
       align-items: center;
@@ -3181,6 +3133,33 @@ body.oscuro #modalConfiguracion .modal-close:hover {
   min-width: 0;
 }
 
+
+@media (max-width: 1200px) {
+  .layout {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .sidebarMaterias,
+  .mainPanel {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .weekly-schedule-layout {
+    flex-direction: column;
+  }
+
+  body.malla-activa .schedule-malla {
+    width: 100%;
+  }
+
+  .form-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* Celular muy pequeño */
 @media (max-width: 600px) {
   .carpetaSemestreAleta {
@@ -3500,21 +3479,6 @@ body.malla-activa .schedule-malla {
   align-items: center;
 }
 
-.malla-zoom-controls {
-  display: flex;
-  gap: 6px;
-  margin-right: 6px;
-  align-items: center;
-}
-
-.malla-zoom-controls .zoom-btn {
-  height: 28px;
-  width: 28px;
-  border-radius: 8px;
-  font-size: 14px;
-  line-height: 1;
-  padding: 0;
-}
 
 .malla-tool {
   border: 1px solid var(--border);

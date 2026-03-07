@@ -10,7 +10,6 @@
 
 <body>
   <div class="app-root" id="appRoot">
-  <div class="zoom-canvas">
   <header id="appBanner">
     <div class="banner-top">
       <h1 class="app-title">Buen abogado</h1>
@@ -70,26 +69,6 @@
       <div class="modal-head">
         <h3>Malla de la carrera</h3>
         <div class="malla-preview-toolbar" id="mallaPreviewToolbar">
-          <div class="malla-zoom-controls" aria-label="Controles de zoom de la malla">
-            <button
-              class="zoom-btn"
-              type="button"
-              id="mallaZoomIn"
-              aria-label="Aumentar zoom de la malla"
-              title="Aumentar zoom (Ctrl +)"
-            >
-              +
-            </button>
-            <button
-              class="zoom-btn"
-              type="button"
-              id="mallaZoomOut"
-              aria-label="Disminuir zoom de la malla"
-              title="Disminuir zoom (Ctrl -)"
-            >
-              −
-            </button>
-          </div>
           <button class="malla-tool" type="button" id="mallaDrawToggle" aria-pressed="false">Trazar líneas</button>
           <button class="malla-tool" type="button" id="mallaEraseToggle" aria-pressed="false">Borrador</button>
           <button class="malla-tool" type="button" id="mallaClearLines">Limpiar</button>
@@ -118,27 +97,6 @@
           <h2>Agregar Artículo</h2>
 
           <div class="barra-superior" aria-label="Acciones rápidas">
-            <div aria-label="Controles de zoom">
-              <button
-                class="zoom-btn"
-                type="button"
-                onclick="aplicarZoom(zoomActual + ZOOM_STEP)"
-                aria-label="Aumentar zoom"
-                title="Aumentar zoom"
-              >
-                +
-              </button>
-              <button
-                class="zoom-btn"
-                type="button"
-                onclick="aplicarZoom(zoomActual - ZOOM_STEP)"
-                aria-label="Disminuir zoom"
-                title="Disminuir zoom"
-              >
-                −
-              </button>
-            </div>
-
             <button
               class="buscador-btn"
               onclick="abrirBuscador()"
@@ -368,7 +326,6 @@
 
   </div>
 
-  </div>
 
   <div class="modal-backdrop" id="modalConfiguracion" role="dialog" aria-modal="true">
     <div class="modal-card config-card">

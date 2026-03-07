@@ -58,14 +58,6 @@ function escaparComoHTML(texto) {
     .replace(/>/g, "&gt;")
 }
 
-const ZOOM_STEP = 0.05
-const MIN_ZOOM = 1
-const MAX_ZOOM = 1.25
-const ZOOM_STORAGE_KEY = "appZoomScale"
-let zoomActual = obtenerZoomInicial()
-let pinchStartDistance = null
-let pinchStartZoom = 1
-let zoomTransitionTimer = null
 let articuloArrastradoId = null
 let materiaArrastrada = null
 let materiaArrastradaNormativa = null
@@ -672,36 +664,6 @@ function siguienteOrdenPara(normativa, materia) {
 
   if (!ordenes.length) return 1
   return Math.max(...ordenes) + 1
-}
-
-function obtenerZoomInicial() {
-  const guardado = parseFloat(localStorage.getItem(ZOOM_STORAGE_KEY) || "")
-  if (!Number.isFinite(guardado)) return 1
-  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, guardado))
-}
-
-function aplicarZoom(nivel) {
-  const limitado = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, nivel))
-  zoomActual = limitado
-
-  document.body.classList.add("zooming")
-  if (zoomTransitionTimer) clearTimeout(zoomTransitionTimer)
-
-  document.documentElement.style.setProperty("--zoom-scale", limitado.toFixed(3))
-  localStorage.setItem(ZOOM_STORAGE_KEY, limitado.toFixed(3))
-
-  zoomTransitionTimer = setTimeout(() => {
-    document.body.classList.remove("zooming")
-    zoomTransitionTimer = null
-  }, 120)
-}
-
-function distanciaEntreToques(touches) {
-  if (touches.length < 2) return 0
-  const [a, b] = touches
-  const dx = a.clientX - b.clientX
-  const dy = a.clientY - b.clientY
-  return Math.hypot(dx, dy)
 }
 
 function esCampoEditable(elem) {
@@ -1584,68 +1546,6 @@ function activarArrastreArticulo(box, normativa, materia) {
     if (!materiaDropProcesado) limpiarEstadoArrastreMateria()
   })
 }
-
-document.addEventListener(
-  "wheel",
-  e => {
-    if (!e.ctrlKey) return
-    if (window.mallaZoomApi?.handleWheel?.(e)) return
-    e.preventDefault()
-    const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP
-    aplicarZoom(zoomActual + delta)
-  },
-  { passive: false }
-)
-
-document.addEventListener("keydown", e => {
-  if (window.mallaZoomApi?.handleKeydown?.(e)) return
-  const ctrl = e.ctrlKey || e.metaKey
-  if (!ctrl) return
-
-  if (e.key === "+" || e.key === "=") {
-    e.preventDefault()
-    aplicarZoom(zoomActual + ZOOM_STEP)
-  } else if (e.key === "-" || e.key === "_") {
-    e.preventDefault()
-    aplicarZoom(zoomActual - ZOOM_STEP)
-  } else if (e.key === "0") {
-    e.preventDefault()
-    aplicarZoom(1)
-  }
-})
-
-if (appRoot) {
-  appRoot.addEventListener("touchstart", e => {
-    if (e.touches.length === 2) {
-      pinchStartDistance = distanciaEntreToques(e.touches)
-      pinchStartZoom = zoomActual
-    }
-  })
-
-  appRoot.addEventListener(
-    "touchmove",
-    e => {
-      if (e.touches.length === 2 && pinchStartDistance) {
-        e.preventDefault()
-        const nuevaDistancia = distanciaEntreToques(e.touches)
-        const factor = pinchStartDistance ? nuevaDistancia / pinchStartDistance : 1
-        aplicarZoom(pinchStartZoom * factor)
-      }
-    },
-    { passive: false }
-  )
-
-  const limpiarPinch = e => {
-    if (e.touches && e.touches.length >= 2) return
-    pinchStartDistance = null
-    pinchStartZoom = zoomActual
-  }
-
-  appRoot.addEventListener("touchend", limpiarPinch)
-  appRoot.addEventListener("touchcancel", limpiarPinch)
-}
-
-aplicarZoom(zoomActual)
 
 function abrirModalConfiguracion() {
   if (!modalConfiguracion) return
