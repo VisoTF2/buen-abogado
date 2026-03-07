@@ -1167,32 +1167,37 @@ function prepararListaDocumentosSidebar(lista) {
     documentoArrastradoId ||
     null
 
+  const obtenerElementoDocumentoDespues = (posicionY, documentoId) =>
+    Array.from(lista.querySelectorAll(".sidebarItemDocumento"))
+      .filter(item => item.dataset.documentoId !== documentoId)
+      .reduce(
+        (cercano, item) => {
+          const rect = item.getBoundingClientRect()
+          const offset = posicionY - (rect.top + rect.height / 2)
+
+          if (offset < 0 && offset > cercano.offset) {
+            return { offset, elemento: item }
+          }
+
+          return cercano
+        },
+        { offset: Number.NEGATIVE_INFINITY, elemento: null }
+      ).elemento
+
   lista.addEventListener("dragover", e => {
     const documentoId = obtenerDocumentoArrastrado(e)
     if (!documentoId) return
     e.preventDefault()
     lista.classList.add("drop-activa")
-
-    const target = e.target instanceof Element
-      ? e.target.closest(".sidebarItemDocumento")
-      : null
     const dragged = lista.querySelector(`.sidebarItemDocumento[data-documento-id="${documentoId}"]`)
 
-    if (!(target instanceof HTMLElement) || !(dragged instanceof HTMLElement)) {
-      if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
-      return
-    }
-    if (target === dragged) {
-      if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
-      return
-    }
-
-    const rect = target.getBoundingClientRect()
-    const before = e.clientY < rect.top + rect.height / 2
-    if (before) {
-      lista.insertBefore(dragged, target)
-    } else {
-      lista.insertBefore(dragged, target.nextSibling)
+    if (dragged instanceof HTMLElement) {
+      const despuesDe = obtenerElementoDocumentoDespues(e.clientY, documentoId)
+      if (!despuesDe) {
+        lista.appendChild(dragged)
+      } else {
+        lista.insertBefore(dragged, despuesDe)
+      }
     }
 
     if (e.dataTransfer) e.dataTransfer.dropEffect = "move"
@@ -1213,6 +1218,21 @@ function prepararListaDocumentosSidebar(lista) {
     e.preventDefault()
     lista.classList.remove("drop-activa")
 
+    const carpetaObjetivoId = lista.closest(".carpetaDocumentos")?.dataset.carpetaId || null
+
+    if (carpetaObjetivoId) {
+      const carpetaOrigenId = carpetaDeDocumento(documentoId)?.id || null
+      if (carpetaOrigenId === carpetaObjetivoId) {
+        aplicarOrdenDocumentosCarpetaDesdeDOM(lista, carpetaObjetivoId)
+      } else {
+        moverDocumentoACarpeta(documentoId, carpetaObjetivoId)
+      }
+      documentoSeleccionadoEnCarpetaId = documentoId
+      documentoArrastradoId = null
+      if (typeof renderDocumentos === "function") renderDocumentos()
+      return
+    }
+
     if (documentosSidebarIds.includes(documentoId)) {
       aplicarOrdenDocumentosSidebarDesdeDOM(lista)
       documentoArrastradoId = null
@@ -1226,6 +1246,36 @@ function prepararListaDocumentosSidebar(lista) {
     documentoArrastradoId = null
     if (cambio || agregado) ordenarYMostrar()
   })
+}
+
+function aplicarOrdenDocumentosCarpetaDesdeDOM(lista, carpetaId) {
+  if (!lista || !carpetaId) return
+
+  const idsEnDOM = Array.from(lista.querySelectorAll(".sidebarItemDocumento"))
+    .map(item => item.dataset.documentoId)
+    .filter(Boolean)
+
+  if (!idsEnDOM.length) return
+
+  let cambio = false
+  carpetas = carpetas.map(carpeta => {
+    if (carpeta.id !== carpetaId) return carpeta
+
+    const actuales = carpeta.documentos || []
+    if (!actuales.length || actuales.length !== idsEnDOM.length) return carpeta
+
+    const idsActuales = new Set(actuales)
+    const contieneLosMismos = idsEnDOM.every(id => idsActuales.has(id))
+    if (!contieneLosMismos) return carpeta
+
+    const seMovio = idsEnDOM.some((id, index) => id !== actuales[index])
+    if (!seMovio) return carpeta
+
+    cambio = true
+    return { ...carpeta, documentos: idsEnDOM }
+  })
+
+  if (cambio) guardarCarpetas()
 }
 
 function aplicarOrdenDocumentosSidebarDesdeDOM(lista) {
@@ -2117,6 +2167,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
       } else {
         const listaDocs = document.createElement("div")
         listaDocs.className = "carpetaDocumentosLista"
+        prepararListaDocumentosSidebar(listaDocs)
 
         documentosEnCarpeta.forEach(doc => {
           listaDocs.appendChild(crearItemDocumentoSidebar(doc, sidebar))
