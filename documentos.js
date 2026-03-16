@@ -193,6 +193,16 @@ function obtenerExtension(nombre = "") {
   return partes.length > 1 ? partes.pop().toLowerCase() : ""
 }
 
+function obtenerNombreDocumento(nombre = "") {
+  const limpio = (nombre || "").trim()
+  if (!limpio) return "Documento"
+
+  const ultimoPunto = limpio.lastIndexOf(".")
+  if (ultimoPunto <= 0) return limpio
+
+  return limpio.slice(0, ultimoPunto).trim() || "Documento"
+}
+
 function leerArchivoComoDataUrl(archivo) {
   return new Promise((resolve, reject) => {
     const lector = new FileReader()
@@ -216,7 +226,7 @@ async function procesarDocumento(archivo) {
     console.error("No se pudo procesar el documento", err)
     const baseError = {
       id,
-      nombre: archivo.name || "Documento",
+      nombre: obtenerNombreDocumento(archivo.name),
       extension: obtenerExtension(archivo.name),
       url: "",
       texto: "",
@@ -234,7 +244,7 @@ async function construirDocumentoDesdeArchivo(archivo, id, nombreBase = null) {
   const extension = obtenerExtension(archivo.name)
   const base = {
     id,
-    nombre: (nombreBase || archivo.name || "Documento").trim() || "Documento",
+    nombre: obtenerNombreDocumento(nombreBase || archivo.name),
     extension,
     url: "",
     texto: "",
@@ -278,7 +288,7 @@ async function reemplazarDocumento(id, archivo) {
   const indice = documentosCargados.findIndex(d => d.id === id)
   if (indice < 0) return false
 
-  const nombreSiguiente = (archivo?.name || "").trim() || "Documento"
+  const nombreSiguiente = obtenerNombreDocumento(archivo?.name || "")
 
   try {
     const reemplazo = await construirDocumentoDesdeArchivo(archivo, id, nombreSiguiente)
