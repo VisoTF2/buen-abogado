@@ -813,7 +813,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       flex-shrink: 0;
     }
 
-    .documento-preview-renombrar {
+    .documento-preview-ver-original {
       padding: 8px 10px;
       font-size: 12px;
       margin-left: auto;

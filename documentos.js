@@ -194,6 +194,11 @@ function construirNombreConExtension(nombre = "", extension = "") {
   return base.toLowerCase().endsWith(sufijo) ? base : `${base}${sufijo}`
 }
 
+function abrirDocumentoOriginal(doc) {
+  if (!doc?.url) return
+  window.open(doc.url, "_blank", "noopener,noreferrer")
+}
+
 const DOCUMENTO_ACCEPT =
   ".pdf,.doc,.docx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
 
@@ -411,10 +416,10 @@ function renderDocumentos() {
     const ver = document.createElement("button")
     ver.className = "documento-ver"
     ver.type = "button"
-    ver.textContent = "Ver"
+    ver.textContent = "Ver archivo original"
     ver.addEventListener("click", e => {
       e.stopPropagation()
-      mostrarDocumento(doc.id)
+      abrirDocumentoOriginal(doc)
     })
 
     const eliminar = document.createElement("button")
@@ -697,29 +702,76 @@ function construirEncabezadoVista(doc) {
   const encabezado = document.createElement("div")
   encabezado.className = "documento-preview-head"
 
+  const tituloWrap = document.createElement("div")
+  tituloWrap.className = "documento-nombre-wrap"
+
   const titulo = document.createElement("h4")
   titulo.className = "documento-preview-titulo"
   titulo.textContent = doc ? doc.nombre : "Vista previa"
-  encabezado.appendChild(titulo)
 
   if (doc) {
-    const renombrar = document.createElement("button")
-    renombrar.type = "button"
-    renombrar.className = "documento-ver documento-preview-renombrar"
-    renombrar.textContent = "Renombrar"
-    renombrar.setAttribute("aria-label", "Renombrar archivo")
-    renombrar.addEventListener("click", () => {
-      const actual = documentosCargados.find(d => d.id === doc.id)
-      if (!actual) return
-      const nuevoNombre = prompt("Nuevo nombre del documento", actual.nombre || "")
-      if (nuevoNombre === null) return
-      actualizarNombreDocumento(doc.id, nuevoNombre)
-      renderDocumentos()
-      sincronizarSidebarDocumentos()
-      if (visorDocumentos?.dataset.docActual === doc.id) {
-        mostrarDocumento(doc.id)
+    titulo.tabIndex = 0
+    titulo.setAttribute("role", "button")
+    titulo.setAttribute("aria-label", "Editar nombre del documento")
+
+    const activarEdicionTitulo = () => {
+      if (tituloWrap.querySelector(".documento-nombre-input")) return
+      const nombreOriginal = doc.nombre || ""
+
+      const input = document.createElement("input")
+      input.type = "text"
+      input.className = "documento-nombre-input"
+      input.value = doc.nombre || ""
+      input.placeholder = "Nombre del documento"
+
+      const restaurarTitulo = () => {
+        const vigente = documentosCargados.find(d => d.id === doc.id)
+        titulo.textContent = vigente?.nombre || "Documento"
+        tituloWrap.replaceChildren(titulo)
+      }
+
+      input.addEventListener("input", () => previsualizarNombreDocumentoEnVista(doc.id, input.value))
+      input.addEventListener("blur", () => {
+        normalizarNombreDocumento(doc.id, input)
+        restaurarTitulo()
+      })
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault()
+          input.blur()
+        }
+        if (e.key === "Escape") {
+          input.value = nombreOriginal
+          input.blur()
+        }
+      })
+
+      tituloWrap.replaceChildren(input)
+      requestAnimationFrame(() => {
+        input.focus()
+        input.select()
+      })
+    }
+
+    titulo.addEventListener("click", activarEdicionTitulo)
+    titulo.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault()
+        activarEdicionTitulo()
       }
     })
+  }
+
+  tituloWrap.appendChild(titulo)
+  encabezado.appendChild(tituloWrap)
+
+  if (doc) {
+    const verOriginal = document.createElement("button")
+    verOriginal.type = "button"
+    verOriginal.className = "documento-ver documento-preview-ver-original"
+    verOriginal.textContent = "Ver archivo original"
+    verOriginal.setAttribute("aria-label", "Abrir archivo original")
+    verOriginal.addEventListener("click", () => abrirDocumentoOriginal(doc))
 
     const cerrar = document.createElement("button")
     cerrar.type = "button"
@@ -728,7 +780,7 @@ function construirEncabezadoVista(doc) {
     cerrar.setAttribute("aria-label", "Cerrar vista previa")
     cerrar.addEventListener("click", cerrarVistaDocumento)
 
-    encabezado.appendChild(renombrar)
+    encabezado.appendChild(verOriginal)
     encabezado.appendChild(cerrar)
   }
 
