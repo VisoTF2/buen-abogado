@@ -3,9 +3,9 @@
 
   const defaults = {
     controlsCount: 1,
-    directPassGrade: 4.0,
-    examThreshold: 3.5,
-    exemptionThreshold: 5.5,
+    directPassGrade: 3.95,
+    examThreshold: 3.45,
+    exemptionThreshold: 5.95,
     examWeight: 30,
     controlsWeightForExam: 70
   }

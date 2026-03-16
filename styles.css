@@ -126,6 +126,9 @@
       width: calc(100% / var(--zoom-scale));
       min-width: calc(100vw / var(--zoom-scale));
       margin-inline: auto;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
     }
 
     body.zooming,
@@ -778,10 +781,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       background: transparent;
       border: none;
       cursor: pointer;
-      padding: 6px;
+      padding: 0;
       border-radius: 8px;
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -1465,7 +1468,11 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .grade-controls {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 0;
+      border: 1px solid color-mix(in srgb, var(--border) 52%, transparent);
+      border-radius: 12px;
+      background: var(--grade-row-bg);
+      overflow: hidden;
     }
 
     .grade-control-row {
@@ -1473,11 +1480,12 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       grid-template-columns: minmax(82px, 110px) minmax(150px, 1fr) minmax(150px, 1fr) auto;
       gap: 8px;
       align-items: center;
-      border: 1px solid color-mix(in srgb, var(--border) 52%, transparent);
-      border-radius: 12px;
       padding: 8px;
-      background: var(--grade-row-bg);
+      background: transparent;
+      border: 0;
+      border-radius: 0;
     }
+
 
     .grade-control-title {
       font-size: 13px;
@@ -1926,12 +1934,20 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     body.oscuro .buscador-cerrar {
-      background: rgba(248, 113, 113, 0.12);
-      border-color: rgba(248, 113, 113, 0.4);
-      color: #f87171;
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(248, 113, 113, 0.55);
+      color: #fca5a5;
     }
 
-    .buscador-cerrar:hover {
+    .buscador-cerrar:hover,
+    .buscador-cerrar:focus-visible {
+      background: var(--danger-solid-bg);
+      border-color: var(--danger-solid-bg);
+      color: #fff;
+    }
+
+    body.oscuro .buscador-cerrar:hover,
+    body.oscuro .buscador-cerrar:focus-visible {
       background: var(--danger-solid-bg);
       border-color: var(--danger-solid-bg);
       color: #fff;
@@ -2374,7 +2390,7 @@ body.oscuro .carpetaToggle {
 .carpetaDocumentos {
   border: 1px dashed transparent;
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: var(--space-2);
   background: var(--article-bg);
   display: flex;
   flex-direction: column;
@@ -2410,10 +2426,15 @@ body.oscuro .carpetaToggle {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  width: 100%;
+  align-items: stretch;
 }
+
 
 .carpetaDocumentoChip {
   display: flex;
+  width: 100%;
+  box-sizing: border-box;
   justify-content: space-between;
   align-items: center;
   gap: 8px;
@@ -2554,7 +2575,7 @@ body.oscuro .carpetaToggle {
         margin-bottom: 0;
         border-radius: 10px;
         cursor: grab;
-        font-weight: 700;
+        font-weight: 600;
         background: var(--article-bg);
         border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
         border-left: 8px solid var(--accent);
@@ -2642,34 +2663,41 @@ body.oscuro .modal-close:hover {
 }
 
 
-#modalConfiguracion .modal-close {
+#modalConfiguracion .modal-close,
+#mallaPreviewClose.modal-close {
   background: transparent;
   border: none;
   color: var(--danger-solid-bg);
   cursor: pointer;
-  padding: 6px;
+  padding: 0;
   border-radius: 8px;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
   font-weight: 700;
   line-height: 1;
+  font-family: "Segoe UI Symbol", "Apple Color Emoji", "Noto Sans Symbols 2", "Poppins", sans-serif;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-#modalConfiguracion .modal-close:hover {
+#modalConfiguracion .modal-close:hover,
+#mallaPreviewClose.modal-close:hover {
   background: var(--danger-solid-bg);
   color: #fff;
 }
 
-#modalConfiguracion .modal-close:active {
+#modalConfiguracion .modal-close:active,
+#mallaPreviewClose.modal-close:active {
   transform: translateY(1px);
 }
 
-body.oscuro #modalConfiguracion .modal-close:hover {
+body.oscuro #modalConfiguracion .modal-close:hover,
+body.oscuro #mallaPreviewClose.modal-close:hover {
   background: var(--danger-solid-bg);
   color: #fff;
 }
@@ -2839,7 +2867,7 @@ body.oscuro #modalConfiguracion .modal-close:hover {
 }
 
 .sidebarGroupList.carpetaLista {
-  padding: 4px 6px;
+  padding: var(--space-2);
   min-height: 34px;
 }
 
@@ -3320,7 +3348,17 @@ body.oscuro .class-card.light-bg .class-actions .absences {
   align-items: center;
   justify-content: center;
   text-align: center;
+  vertical-align: middle;
   line-height: 1;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+  font-size: 20px;
+  font-weight: 700;
+  font-family: "Segoe UI Symbol", "Apple Color Emoji", "Noto Sans Symbols 2", "Poppins", sans-serif;
+  letter-spacing: 0;
 }
 
 .schedule-malla {
@@ -3595,7 +3633,7 @@ body.malla-activa .schedule-malla {
   min-width: 56px;
 }
 .action-buttons { display: flex; flex-direction: row; gap: 8px; align-items: center; justify-content: center; }
-.action-buttons button {
+.action-buttons button:not(.class-delete) {
   background: transparent;
   border: none;
   cursor: pointer;
@@ -3623,7 +3661,23 @@ body.oscuro .action-buttons .edit-btn:hover { background: rgba(96, 165, 250, 0.3
 
 .class-card:hover { transform: translateY(-2px); }
 
-.action-buttons .class-delete { color: var(--danger-solid-bg); }
+.action-buttons .class-delete {
+  background: transparent;
+  border: none;
+  color: var(--danger-solid-bg);
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  line-height: 1;
+  font-weight: 700;
+  border-radius: 8px;
+}
 .action-buttons .class-delete:hover { background: var(--danger-solid-bg); color: #fff; }
 body.oscuro .action-buttons .class-delete:hover { background: var(--danger-solid-bg); color: #fff; }
 
@@ -3647,4 +3701,20 @@ body.oscuro .action-buttons .class-delete:hover { background: var(--danger-solid
 
 @media (max-width: 800px) {
   .schedule-grid { flex-direction: column; }
+}
+
+
+/* Ajuste óptico: algunas X se ven bajas en ciertos botones (configuración/buscador/preview).
+   Se recentran visualmente sin cambiar el diseño base. */
+.preview-close-x,
+.modal-close,
+.buscador-cerrar {
+  line-height: 0.86;
+  padding-bottom: 2px;
+}
+
+#modalConfiguracion .modal-close,
+#mallaPreviewClose.modal-close,
+.buscador-cerrar {
+  padding-bottom: 2px;
 }

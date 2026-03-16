@@ -115,7 +115,7 @@
         <div class="absences">Faltas: <strong>${Number(item.absences || 0)}</strong></div>
         <div class="action-buttons">
           <button class="edit-btn" aria-label="Editar">✎</button>
-          <button class="class-delete" aria-label="Eliminar clase">✕</button>
+          <button class="class-delete" aria-label="Eliminar clase">×</button>
         </div>
       </div>
     `

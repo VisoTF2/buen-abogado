@@ -54,7 +54,7 @@
         <h4 class="schedule-malla-title">Malla de la carrera</h4>
         <div class="action-buttons malla-card-actions">
           <button class="edit-btn" type="button" id="mallaPreviewEdit" aria-label="Editar malla">✎</button>
-          <button class="class-delete" type="button" id="mallaPreviewRemove" aria-label="Quitar malla">✕</button>
+          <button class="class-delete" type="button" id="mallaPreviewRemove" aria-label="Quitar malla">×</button>
         </div>
         <button class="malla-resize-handle" id="mallaResizeHandle" type="button" aria-label="Cambiar tamaño de la malla" hidden></button>
         <div class="schedule-malla-image-wrap">
@@ -95,7 +95,7 @@
           <button class="malla-tool" type="button" id="mallaClearLines">Limpiar</button>
           <button class="malla-tool malla-tool-primary" type="button" id="mallaSaveLines">Guardar</button>
         </div>
-        <button class="modal-close" type="button" aria-label="Cerrar" id="mallaPreviewClose">✕</button>
+        <button class="modal-close" type="button" aria-label="Cerrar" id="mallaPreviewClose">×</button>
       </div>
       <div class="modal-body malla-preview-body" id="mallaPreviewBody">
         <div class="malla-preview-zoom-area" id="mallaPreviewZoomArea">
@@ -167,7 +167,7 @@
               >
             </div>
             <div class="buscador-info" id="buscadorInfo">Usa Enter para saltar al siguiente</div>
-            <button class="buscador-cerrar" onclick="cerrarBuscador()" aria-label="Cerrar buscador">✕</button>
+            <button class="buscador-cerrar" onclick="cerrarBuscador()" aria-label="Cerrar buscador">×</button>
           </div>
 
           <div class="form-row">
@@ -284,15 +284,15 @@
             </label>
             <label class="grade-field">
               <span>Aprob. directa</span>
-              <input type="number" id="directPassGrade" min="1" max="7" step="0.1" value="4.0">
+              <input type="number" id="directPassGrade" min="1" max="7" step="0.1" value="3.95">
             </label>
             <label class="grade-field">
               <span>Mín. examen</span>
-              <input type="number" id="examThresholdGrade" min="1" max="7" step="0.1" value="3.5">
+              <input type="number" id="examThresholdGrade" min="1" max="7" step="0.1" value="3.45">
             </label>
             <label class="grade-field">
               <span>Mín. eximirse</span>
-              <input type="number" id="exemptionThresholdGrade" min="1" max="7" step="0.1" value="5.5">
+              <input type="number" id="exemptionThresholdGrade" min="1" max="7" step="0.1" value="5.95">
             </label>
             <label class="grade-field">
               <span>Examen (%)</span>
@@ -374,7 +374,7 @@
     <div class="modal-card config-card">
       <div class="modal-head">
         <h3>Configuración</h3>
-        <button class="modal-close" type="button" aria-label="Cerrar" onclick="cerrarModalConfiguracion()">✕</button>
+        <button class="modal-close" type="button" aria-label="Cerrar" onclick="cerrarModalConfiguracion()">×</button>
       </div>
 
       <div class="modal-body configuracion-body">
