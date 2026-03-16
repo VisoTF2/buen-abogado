@@ -402,59 +402,6 @@ function renderDocumentos() {
     nombreTexto.className = "documento-nombre-text"
     nombreTexto.textContent = doc.nombre || "Documento"
     nombreTexto.title = doc.nombre || "Documento"
-    nombreTexto.tabIndex = 0
-    nombreTexto.setAttribute("role", "button")
-    nombreTexto.setAttribute("aria-label", "Editar nombre del documento")
-    nombreTexto.addEventListener("mousedown", e => e.stopPropagation())
-
-    const activarEdicion = () => {
-      if (nombreWrap.querySelector(".documento-nombre-input")) return
-      const nombreOriginal = doc.nombre
-
-      const input = document.createElement("input")
-      input.type = "text"
-      input.className = "documento-nombre-input"
-      input.value = doc.nombre
-      input.placeholder = "Nombre del documento"
-
-      const restaurarTexto = () => {
-        const docActual = documentosCargados.find(d => d.id === doc.id)
-        nombreTexto.textContent = docActual?.nombre || "Documento"
-        nombreTexto.title = docActual?.nombre || "Documento"
-        nombreWrap.replaceChildren(nombreTexto)
-      }
-
-      input.addEventListener("input", () => previsualizarNombreDocumentoEnVista(doc.id, input.value))
-      input.addEventListener("blur", () => {
-        normalizarNombreDocumento(doc.id, input)
-        restaurarTexto()
-      })
-      input.addEventListener("mousedown", e => e.stopPropagation())
-      input.addEventListener("keydown", e => {
-        if (e.key === "Enter") {
-          e.preventDefault()
-          input.blur()
-        }
-        if (e.key === "Escape") {
-          input.value = nombreOriginal
-          input.blur()
-        }
-      })
-
-      nombreWrap.replaceChildren(input)
-      requestAnimationFrame(() => {
-        input.focus()
-        input.select()
-      })
-    }
-
-    nombreTexto.addEventListener("click", activarEdicion)
-    nombreTexto.addEventListener("keydown", e => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault()
-        activarEdicion()
-      }
-    })
 
     nombreWrap.appendChild(nombreTexto)
 
@@ -766,7 +713,7 @@ function construirEncabezadoVista(doc) {
 
       const input = document.createElement("input")
       input.type = "text"
-      input.className = "documento-nombre-input"
+      input.className = "documento-nombre-input documento-preview-nombre-input"
       input.value = doc.nombre || ""
       input.placeholder = "Nombre del documento"
 
@@ -868,6 +815,7 @@ function actualizarNombreDocumento(id, nuevoNombre) {
 
   doc.nombre = nombreFinal
   guardarDocumentos()
+  renderDocumentos()
   actualizarNombreDocumentoEnCarpetas(id, nombreFinal)
   sincronizarSidebarDocumentos()
 
