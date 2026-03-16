@@ -203,37 +203,10 @@ function leerArchivoComoDataUrl(archivo) {
 }
 
 async function procesarDocumento(archivo) {
-  const extension = obtenerExtension(archivo.name)
   const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`
-  const base = {
-    id,
-    nombre: archivo.name,
-    extension,
-    url: "",
-    texto: "",
-    mensaje: ""
-  }
 
   try {
-    const dataUrl = await leerArchivoComoDataUrl(archivo)
-    base.url = dataUrl
-
-    if (extension === "pdf") {
-      base.texto = await extraerTextoPdf(archivo)
-    } else if (extension === "docx") {
-      base.texto = await extraerTextoDocx(archivo)
-    } else if (extension === "pptx") {
-      try {
-        base.texto = await extraerTextoPptx(archivo)
-      } catch (error) {
-        base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
-      }
-    } else if (extension === "doc" || extension === "ppt") {
-      base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
-    } else {
-      base.mensaje = "Formato no soportado para vista previa."
-    }
-
+    const base = await construirDocumentoDesdeArchivo(archivo, id)
     documentosCargados = [{ ...base, archived: false }, ...documentosCargados.filter(d => d.nombre !== base.nombre)]
     guardarDocumentos()
     renderDocumentos()
@@ -241,11 +214,18 @@ async function procesarDocumento(archivo) {
     sincronizarSidebarDocumentos()
   } catch (err) {
     console.error("No se pudo procesar el documento", err)
-    base.mensaje = "No se pudo leer el documento."
-    documentosCargados = [{ ...base, archived: false }, ...documentosCargados]
+    const baseError = {
+      id,
+      nombre: archivo.name || "Documento",
+      extension: obtenerExtension(archivo.name),
+      url: "",
+      texto: "",
+      mensaje: "No se pudo leer el documento."
+    }
+    documentosCargados = [{ ...baseError, archived: false }, ...documentosCargados]
     guardarDocumentos()
     renderDocumentos()
-    mostrarDocumento(base.id)
+    mostrarDocumento(baseError.id)
     sincronizarSidebarDocumentos()
   }
 }
@@ -254,7 +234,7 @@ async function construirDocumentoDesdeArchivo(archivo, id, nombreBase = null) {
   const extension = obtenerExtension(archivo.name)
   const base = {
     id,
-    nombre: nombreBase || archivo.name,
+    nombre: (nombreBase || archivo.name || "Documento").trim() || "Documento",
     extension,
     url: "",
     texto: "",
@@ -265,13 +245,24 @@ async function construirDocumentoDesdeArchivo(archivo, id, nombreBase = null) {
   base.url = dataUrl
 
   if (extension === "pdf") {
-    base.texto = await extraerTextoPdf(archivo)
+    try {
+      base.texto = await extraerTextoPdf(archivo)
+    } catch (error) {
+      console.error("No se pudo extraer texto del PDF", error)
+      base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
+    }
   } else if (extension === "docx") {
-    base.texto = await extraerTextoDocx(archivo)
+    try {
+      base.texto = await extraerTextoDocx(archivo)
+    } catch (error) {
+      console.error("No se pudo extraer texto del DOCX", error)
+      base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
+    }
   } else if (extension === "pptx") {
     try {
       base.texto = await extraerTextoPptx(archivo)
     } catch (error) {
+      console.error("No se pudo extraer texto del PPTX", error)
       base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
     }
   } else if (extension === "doc" || extension === "ppt") {
@@ -287,8 +278,7 @@ async function reemplazarDocumento(id, archivo) {
   const indice = documentosCargados.findIndex(d => d.id === id)
   if (indice < 0) return false
 
-  const original = documentosCargados[indice]
-  const nombreSiguiente = original?.nombre || archivo.name
+  const nombreSiguiente = (archivo?.name || "").trim() || "Documento"
 
   try {
     const reemplazo = await construirDocumentoDesdeArchivo(archivo, id, nombreSiguiente)
@@ -764,6 +754,60 @@ function construirEncabezadoVista(doc) {
     cerrar.textContent = "×"
     cerrar.setAttribute("aria-label", "Cerrar vista previa")
     cerrar.addEventListener("click", cerrarVistaDocumento)
+
+    titulo.tabIndex = 0
+    titulo.setAttribute("role", "button")
+    titulo.setAttribute("aria-label", "Editar nombre del documento")
+    titulo.title = doc.nombre || "Documento"
+
+    const activarEdicion = () => {
+      if (encabezado.querySelector(".documento-nombre-input")) return
+      const nombreOriginal = doc.nombre || ""
+
+      const input = document.createElement("input")
+      input.type = "text"
+      input.className = "documento-nombre-input"
+      input.value = doc.nombre || ""
+      input.placeholder = "Nombre del documento"
+
+      const restaurarTitulo = () => {
+        const docActual = documentosCargados.find(d => d.id === doc.id)
+        titulo.textContent = docActual?.nombre || "Documento"
+        titulo.title = docActual?.nombre || "Documento"
+        encabezado.insertBefore(titulo, cerrar)
+        input.remove()
+      }
+
+      input.addEventListener("input", () => previsualizarNombreDocumentoEnVista(doc.id, input.value))
+      input.addEventListener("blur", () => {
+        normalizarNombreDocumento(doc.id, input)
+        restaurarTitulo()
+      })
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault()
+          input.blur()
+        }
+        if (e.key === "Escape") {
+          input.value = nombreOriginal
+          input.blur()
+        }
+      })
+
+      titulo.replaceWith(input)
+      requestAnimationFrame(() => {
+        input.focus()
+        input.select()
+      })
+    }
+
+    titulo.addEventListener("click", activarEdicion)
+    titulo.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault()
+        activarEdicion()
+      }
+    })
     encabezado.appendChild(cerrar)
   }
 
