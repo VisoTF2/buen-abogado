@@ -108,7 +108,9 @@ function prepararRecepcionDocumentoDesdeCarpetas() {
       zona.classList.add("drop-activa")
     })
 
-    zona.addEventListener("dragleave", () => {
+    zona.addEventListener("dragleave", e => {
+      const related = e.relatedTarget
+      if (related instanceof Node && zona.contains(related)) return
       zona.classList.remove("drop-activa")
     })
 
@@ -339,7 +341,7 @@ function renderDocumentos() {
         nombreWrap.replaceChildren(nombreTexto)
       }
 
-      input.addEventListener("input", () => actualizarNombreDocumento(doc.id, input.value))
+      input.addEventListener("input", () => previsualizarNombreDocumentoEnVista(doc.id, input.value))
       input.addEventListener("blur", () => {
         normalizarNombreDocumento(doc.id, input)
         restaurarTexto()
@@ -416,8 +418,9 @@ function renderDocumentos() {
       documentoArrastradoId = null
       item.classList.remove("documento-arrastrando")
       listaDocumentos?.classList.remove("drop-activa")
+      visorDocumentos?.classList.remove("drop-activa")
       document
-        .querySelectorAll(".carpetaDocumentos")
+        .querySelectorAll(".carpetaDocumentos, .carpetaDocumentosLista, .sidebarDocumentosLista")
         .forEach(z => z.classList.remove("drop-activa"))
     })
     listaDocumentos.appendChild(item)
@@ -665,7 +668,7 @@ function construirEncabezadoVista(doc) {
     const cerrar = document.createElement("button")
     cerrar.type = "button"
     cerrar.className = "preview-close-x documento-preview-cerrar"
-    cerrar.textContent = "✕"
+    cerrar.textContent = "×"
     cerrar.setAttribute("aria-label", "Cerrar vista previa")
     cerrar.addEventListener("click", cerrarVistaDocumento)
     encabezado.appendChild(cerrar)
@@ -708,20 +711,34 @@ function actualizarBotonesVer() {
   })
 }
 
+function previsualizarNombreDocumentoEnVista(id, nombreTemporal) {
+  if (visorDocumentos?.dataset.docActual !== id) return
+  const titulo = visorDocumentos.querySelector(".documento-preview-titulo")
+  if (titulo) titulo.textContent = (nombreTemporal || "").trim() || "Vista previa"
+}
+
 function actualizarNombreDocumento(id, nuevoNombre) {
   const doc = documentosCargados.find(d => d.id === id)
   if (!doc) return
 
-  doc.nombre = nuevoNombre
+  const nombreFinal = (nuevoNombre || "").trim() || "Documento"
+  const sinCambios = doc.nombre === nombreFinal
+
+  if (sinCambios) {
+    previsualizarNombreDocumentoEnVista(id, nombreFinal)
+    return
+  }
+
+  doc.nombre = nombreFinal
   guardarDocumentos()
-  actualizarNombreDocumentoEnCarpetas(id, nuevoNombre)
+  actualizarNombreDocumentoEnCarpetas(id, nombreFinal)
   sincronizarSidebarDocumentos()
 
   if (visorDocumentos?.dataset.docActual === id) {
     const titulo = visorDocumentos.querySelector(".documento-preview-titulo")
-    if (titulo) titulo.textContent = nuevoNombre || "Vista previa"
+    if (titulo) titulo.textContent = nombreFinal || "Vista previa"
     const descarga = visorDocumentos.querySelector(".documento-descarga")
-    if (descarga) descarga.download = nuevoNombre
+    if (descarga) descarga.download = nombreFinal
   }
 }
 
