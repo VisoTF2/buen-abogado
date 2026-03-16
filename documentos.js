@@ -1,8 +1,16 @@
 const DOCUMENTOS_STORAGE_KEY = "documentosSubidos"
 const documentoInput = document.getElementById("documentoInput")
+const documentoReemplazoInput = document.createElement("input")
+documentoReemplazoInput.type = "file"
+documentoReemplazoInput.hidden = true
+documentoReemplazoInput.tabIndex = -1
 const listaDocumentos = document.getElementById("listaDocumentos")
 const visorDocumentos = document.getElementById("visorDocumentos")
 const botonDocumentos = document.querySelector(".documentos-btn")
+
+let documentoPendienteReemplazoId = null
+
+document.body.appendChild(documentoReemplazoInput)
 
 let documentosCargados = cargarDocumentosGuardados()
 let documentoArrastradoId = null
@@ -18,6 +26,17 @@ documentoInput?.addEventListener("change", e => {
     procesarDocumento(archivo)
   }
   e.target.value = ""
+})
+
+documentoReemplazoInput.addEventListener("change", async e => {
+  const archivo = e.target.files?.[0]
+  const documentoId = documentoPendienteReemplazoId
+  documentoPendienteReemplazoId = null
+  e.target.value = ""
+
+  if (!archivo || !documentoId) return
+
+  await reemplazarDocumento(documentoId, archivo)
 })
 
 if (botonDocumentos) {
@@ -229,6 +248,80 @@ async function procesarDocumento(archivo) {
     mostrarDocumento(base.id)
     sincronizarSidebarDocumentos()
   }
+}
+
+async function construirDocumentoDesdeArchivo(archivo, id, nombreBase = null) {
+  const extension = obtenerExtension(archivo.name)
+  const base = {
+    id,
+    nombre: nombreBase || archivo.name,
+    extension,
+    url: "",
+    texto: "",
+    mensaje: ""
+  }
+
+  const dataUrl = await leerArchivoComoDataUrl(archivo)
+  base.url = dataUrl
+
+  if (extension === "pdf") {
+    base.texto = await extraerTextoPdf(archivo)
+  } else if (extension === "docx") {
+    base.texto = await extraerTextoDocx(archivo)
+  } else if (extension === "pptx") {
+    try {
+      base.texto = await extraerTextoPptx(archivo)
+    } catch (error) {
+      base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
+    }
+  } else if (extension === "doc" || extension === "ppt") {
+    base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
+  } else {
+    base.mensaje = "Formato no soportado para vista previa."
+  }
+
+  return base
+}
+
+async function reemplazarDocumento(id, archivo) {
+  const indice = documentosCargados.findIndex(d => d.id === id)
+  if (indice < 0) return false
+
+  const original = documentosCargados[indice]
+  const nombreSiguiente = original?.nombre || archivo.name
+
+  try {
+    const reemplazo = await construirDocumentoDesdeArchivo(archivo, id, nombreSiguiente)
+    documentosCargados[indice] = { ...reemplazo, archived: false }
+  } catch (err) {
+    console.error("No se pudo reemplazar el documento", err)
+    documentosCargados[indice] = {
+      id,
+      nombre: nombreSiguiente,
+      extension: obtenerExtension(archivo.name),
+      url: "",
+      texto: "",
+      mensaje: "No se pudo leer el documento.",
+      archived: false
+    }
+  }
+
+  const docActualizado = documentosCargados[indice]
+  if (docActualizado && typeof actualizarDocumentoEnCarpetas === "function") {
+    actualizarDocumentoEnCarpetas(docActualizado)
+  }
+
+  guardarDocumentos()
+  renderDocumentos()
+  mostrarDocumento(id)
+  sincronizarSidebarDocumentos()
+  return true
+}
+
+function solicitarReemplazoDocumento(id) {
+  if (!id || !documentoReemplazoInput) return
+  documentoPendienteReemplazoId = id
+  documentoReemplazoInput.click()
 }
 
 async function extraerTextoDocx(archivo) {
@@ -869,3 +962,4 @@ function eliminarDocumentoDefinitivo(id) {
 }
 
 window.eliminarDocumentoDefinitivo = eliminarDocumentoDefinitivo
+window.solicitarReemplazoDocumento = solicitarReemplazoDocumento
