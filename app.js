@@ -1440,6 +1440,11 @@ function crearItemDocumentoSidebar(doc, sidebar) {
       mostrarMenuBorradoSidebar(event, {
         label: "Borrar documento",
         onDelete: () => {
+          if (typeof eliminarDocumentoDefinitivo === "function") {
+            eliminarDocumentoDefinitivo(doc.id)
+            return
+          }
+
           removerDocumentoDeCarpetas(doc.id, carpetaId)
           if (documentoSeleccionadoEnCarpetaId === doc.id) documentoSeleccionadoEnCarpetaId = null
           ordenarYMostrar()
@@ -1452,6 +1457,11 @@ function crearItemDocumentoSidebar(doc, sidebar) {
       mostrarMenuBorradoSidebar(event, {
         label: "Borrar documento",
         onDelete: () => {
+          if (typeof eliminarDocumentoDefinitivo === "function") {
+            eliminarDocumentoDefinitivo(doc.id)
+            return
+          }
+
           const cambio = quitarDocumentoDeSidebar(doc.id)
           if (documentoSeleccionadoEnCarpetaId === doc.id) documentoSeleccionadoEnCarpetaId = null
           if (cambio) ordenarYMostrar()
