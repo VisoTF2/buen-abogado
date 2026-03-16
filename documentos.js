@@ -174,6 +174,30 @@ function obtenerExtension(nombre = "") {
   return partes.length > 1 ? partes.pop().toLowerCase() : ""
 }
 
+function obtenerNombreLimpio(nombre = "") {
+  const valor = (nombre || "").trim()
+  if (!valor) return "Documento"
+
+  const partes = valor.split(".")
+  if (partes.length <= 1) return valor
+
+  partes.pop()
+  const base = partes.join(".").trim()
+  return base || valor
+}
+
+function construirNombreConExtension(nombre = "", extension = "") {
+  const base = (nombre || "").trim() || "Documento"
+  const ext = (extension || "").trim().toLowerCase()
+  if (!ext) return base
+  const sufijo = `.${ext}`
+  return base.toLowerCase().endsWith(sufijo) ? base : `${base}${sufijo}`
+}
+
+const DOCUMENTO_ACCEPT =
+  ".pdf,.doc,.docx,.ppt,.pptx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+
+
 function leerArchivoComoDataUrl(archivo) {
   return new Promise((resolve, reject) => {
     const lector = new FileReader()
@@ -188,7 +212,7 @@ async function procesarDocumento(archivo) {
   const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`
   const base = {
     id,
-    nombre: archivo.name,
+    nombre: obtenerNombreLimpio(archivo.name),
     extension,
     url: "",
     texto: "",
@@ -384,6 +408,15 @@ function renderDocumentos() {
     const acciones = document.createElement("div")
     acciones.className = "documento-acciones"
 
+    const ver = document.createElement("button")
+    ver.className = "documento-ver"
+    ver.type = "button"
+    ver.textContent = "Ver"
+    ver.addEventListener("click", e => {
+      e.stopPropagation()
+      mostrarDocumento(doc.id)
+    })
+
     const eliminar = document.createElement("button")
     eliminar.className = "documento-eliminar"
     eliminar.type = "button"
@@ -393,6 +426,7 @@ function renderDocumentos() {
       eliminarDocumento(doc.id)
     })
 
+    acciones.appendChild(ver)
     acciones.appendChild(eliminar)
 
     item.appendChild(info)
@@ -405,6 +439,10 @@ function renderDocumentos() {
         mostrarDocumento(doc.id)
       }
     })
+    item.addEventListener("contextmenu", event => {
+      mostrarMenuDocumentoContextual(event, doc.id)
+    })
+
     item.addEventListener("dragstart", e => {
       documentoArrastradoId = doc.id
       item.classList.add("documento-arrastrando")
@@ -643,7 +681,7 @@ function mostrarDocumento(id, terminoBusqueda = "", indiceCoincidencia = null) {
     const descarga = document.createElement("a")
     descarga.href = doc.url
     descarga.className = "documento-descarga"
-    descarga.download = doc.nombre
+    descarga.download = construirNombreConExtension(doc.nombre, doc.extension)
     descarga.textContent = "Descargar original"
     descarga.style.fontWeight = "700"
     descarga.style.color = "var(--accent)"
@@ -665,12 +703,32 @@ function construirEncabezadoVista(doc) {
   encabezado.appendChild(titulo)
 
   if (doc) {
+    const renombrar = document.createElement("button")
+    renombrar.type = "button"
+    renombrar.className = "documento-ver documento-preview-renombrar"
+    renombrar.textContent = "Renombrar"
+    renombrar.setAttribute("aria-label", "Renombrar archivo")
+    renombrar.addEventListener("click", () => {
+      const actual = documentosCargados.find(d => d.id === doc.id)
+      if (!actual) return
+      const nuevoNombre = prompt("Nuevo nombre del documento", actual.nombre || "")
+      if (nuevoNombre === null) return
+      actualizarNombreDocumento(doc.id, nuevoNombre)
+      renderDocumentos()
+      sincronizarSidebarDocumentos()
+      if (visorDocumentos?.dataset.docActual === doc.id) {
+        mostrarDocumento(doc.id)
+      }
+    })
+
     const cerrar = document.createElement("button")
     cerrar.type = "button"
     cerrar.className = "preview-close-x documento-preview-cerrar"
     cerrar.textContent = "×"
     cerrar.setAttribute("aria-label", "Cerrar vista previa")
     cerrar.addEventListener("click", cerrarVistaDocumento)
+
+    encabezado.appendChild(renombrar)
     encabezado.appendChild(cerrar)
   }
 
@@ -738,7 +796,7 @@ function actualizarNombreDocumento(id, nuevoNombre) {
     const titulo = visorDocumentos.querySelector(".documento-preview-titulo")
     if (titulo) titulo.textContent = nombreFinal || "Vista previa"
     const descarga = visorDocumentos.querySelector(".documento-descarga")
-    if (descarga) descarga.download = nombreFinal
+    if (descarga) descarga.download = construirNombreConExtension(nombreFinal, doc.extension)
   }
 }
 
@@ -839,6 +897,172 @@ async function extraerTextoPptx(archivo) {
   return chunks.join("\n\n") || "No se encontró texto en la presentación"
 }
 
+async function reemplazarDocumento(id, archivo) {
+  if (!id || !archivo) return false
+
+  const index = documentosCargados.findIndex(d => d.id === id)
+  if (index < 0) return false
+
+  const actual = documentosCargados[index]
+  const extension = obtenerExtension(archivo.name)
+  const actualizado = {
+    ...actual,
+    nombre: obtenerNombreLimpio(archivo.name),
+    extension,
+    url: "",
+    texto: "",
+    mensaje: "",
+    archived: false
+  }
+
+  try {
+    const dataUrl = await leerArchivoComoDataUrl(archivo)
+    actualizado.url = dataUrl
+
+    if (extension === "pdf") {
+      actualizado.texto = await extraerTextoPdf(archivo)
+    } else if (extension === "docx") {
+      actualizado.texto = await extraerTextoDocx(archivo)
+    } else if (extension === "pptx") {
+      try {
+        actualizado.texto = await extraerTextoPptx(archivo)
+      } catch (_error) {
+        actualizado.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
+      }
+    } else if (extension === "doc" || extension === "ppt") {
+      actualizado.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
+    } else {
+      actualizado.mensaje = "Formato no soportado para vista previa."
+    }
+  } catch (error) {
+    console.error("No se pudo reemplazar el documento", error)
+    actualizado.mensaje = "No se pudo leer el documento de reemplazo."
+  }
+
+  documentosCargados[index] = actualizado
+  guardarDocumentos()
+
+  if (typeof actualizarDocumentoEnCarpetas === "function") {
+    actualizarDocumentoEnCarpetas(actualizado)
+  }
+
+  renderDocumentos()
+  sincronizarSidebarDocumentos()
+
+  if (visorDocumentos?.dataset.docActual === id) {
+    mostrarDocumento(id)
+  }
+
+  return true
+}
+
+function solicitarReemplazoDocumento(id) {
+  if (!id) return
+
+  const input = document.createElement("input")
+  input.type = "file"
+  input.accept = DOCUMENTO_ACCEPT
+  input.style.display = "none"
+
+  input.addEventListener("change", async e => {
+    const archivo = e.target.files?.[0]
+    if (archivo) {
+      await reemplazarDocumento(id, archivo)
+    }
+    input.remove()
+  })
+
+  document.body.appendChild(input)
+  input.click()
+}
+
+let menuDocumentoContextual = null
+let menuDocumentoReemplazarBtn = null
+let menuDocumentoEliminarBtn = null
+let documentoContextualId = ""
+
+function ocultarMenuDocumentoContextual() {
+  if (!menuDocumentoContextual) return
+  menuDocumentoContextual.style.display = "none"
+  documentoContextualId = ""
+}
+
+function asegurarMenuDocumentoContextual() {
+  if (menuDocumentoContextual) return
+
+  const menu = document.createElement("div")
+  menu.className = "menu-contextual"
+
+  const reemplazarBtn = document.createElement("button")
+  reemplazarBtn.type = "button"
+  reemplazarBtn.textContent = "Reemplazar documento"
+
+  const eliminarBtn = document.createElement("button")
+  eliminarBtn.type = "button"
+  eliminarBtn.className = "menu-contextual-delete"
+  eliminarBtn.textContent = "Eliminar documento"
+
+  menu.appendChild(reemplazarBtn)
+  menu.appendChild(eliminarBtn)
+  document.body.appendChild(menu)
+
+  reemplazarBtn.addEventListener("click", () => {
+    if (!documentoContextualId) return
+    solicitarReemplazoDocumento(documentoContextualId)
+    ocultarMenuDocumentoContextual()
+  })
+
+  eliminarBtn.addEventListener("click", () => {
+    if (!documentoContextualId) return
+    eliminarDocumento(documentoContextualId)
+    ocultarMenuDocumentoContextual()
+  })
+
+  document.addEventListener("click", e => {
+    if (!menuDocumentoContextual || menuDocumentoContextual.style.display === "none") return
+    if (!menuDocumentoContextual.contains(e.target)) ocultarMenuDocumentoContextual()
+  })
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") ocultarMenuDocumentoContextual()
+  })
+
+  window.addEventListener("resize", ocultarMenuDocumentoContextual)
+  window.addEventListener("scroll", ocultarMenuDocumentoContextual, true)
+
+  menuDocumentoContextual = menu
+  menuDocumentoReemplazarBtn = reemplazarBtn
+  menuDocumentoEliminarBtn = eliminarBtn
+}
+
+function mostrarMenuDocumentoContextual(event, id) {
+  if (!id) return
+  asegurarMenuDocumentoContextual()
+  if (!menuDocumentoContextual || !menuDocumentoReemplazarBtn || !menuDocumentoEliminarBtn) return
+
+  event.preventDefault()
+  event.stopPropagation()
+
+  documentoContextualId = id
+  menuDocumentoReemplazarBtn.disabled = false
+  menuDocumentoEliminarBtn.disabled = false
+
+  menuDocumentoContextual.style.display = "flex"
+
+  const margen = 12
+  const width = menuDocumentoContextual.offsetWidth
+  const height = menuDocumentoContextual.offsetHeight
+
+  let x = event.clientX
+  let y = event.clientY
+
+  if (x + width + margen > window.innerWidth) x = window.innerWidth - width - margen
+  if (y + height + margen > window.innerHeight) y = window.innerHeight - height - margen
+
+  menuDocumentoContextual.style.left = `${Math.max(margen, x)}px`
+  menuDocumentoContextual.style.top = `${Math.max(margen, y)}px`
+}
+
 function eliminarDocumentoDefinitivo(id) {
   const doc = documentosCargados.find(d => d.id === id)
   if (!doc) return false
@@ -869,3 +1093,5 @@ function eliminarDocumentoDefinitivo(id) {
 }
 
 window.eliminarDocumentoDefinitivo = eliminarDocumentoDefinitivo
+
+window.solicitarReemplazoDocumento = solicitarReemplazoDocumento

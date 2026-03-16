@@ -715,7 +715,9 @@ let botonPegarMenu
 let objetivoContextual
 let menuBorradoSidebar
 let botonBorradoSidebar
+let botonAccionSidebar
 let accionBorradoSidebar = null
+let accionSecundariaSidebar = null
 
 function crearMenuContextual() {
   const menu = document.createElement("div")
@@ -810,28 +812,40 @@ function crearMenuBorradoSidebar() {
   const menu = document.createElement("div")
   menu.className = "menu-contextual"
 
+  const accionBtn = document.createElement("button")
+  accionBtn.type = "button"
+  accionBtn.textContent = "Acción"
+
   const borrarBtn = document.createElement("button")
   borrarBtn.type = "button"
   borrarBtn.className = "menu-contextual-delete"
   borrarBtn.textContent = "Borrar"
 
+  menu.appendChild(accionBtn)
   menu.appendChild(borrarBtn)
-  return { menu, borrarBtn }
+  return { menu, borrarBtn, accionBtn }
 }
 
 function ocultarMenuBorradoSidebar() {
   if (!menuBorradoSidebar) return
   menuBorradoSidebar.style.display = "none"
   accionBorradoSidebar = null
+  accionSecundariaSidebar = null
 }
 
 function mostrarMenuBorradoSidebar(event, options = {}) {
-  if (!menuBorradoSidebar || !botonBorradoSidebar) return
+  if (!menuBorradoSidebar || !botonBorradoSidebar || !botonAccionSidebar) return
 
   event.preventDefault()
   event.stopPropagation()
 
   accionBorradoSidebar = typeof options.onDelete === "function" ? options.onDelete : null
+  accionSecundariaSidebar = typeof options.onAction === "function" ? options.onAction : null
+
+  botonAccionSidebar.textContent = options.actionLabel || "Reemplazar documento"
+  botonAccionSidebar.disabled = !accionSecundariaSidebar
+  botonAccionSidebar.style.display = accionSecundariaSidebar ? "" : "none"
+
   botonBorradoSidebar.textContent = options.label || "Borrar"
   botonBorradoSidebar.disabled = !accionBorradoSidebar
 
@@ -1022,10 +1036,17 @@ function inicializarMenuContextual() {
 }
 
 function inicializarMenuBorradoSidebar() {
-  const { menu, borrarBtn } = crearMenuBorradoSidebar()
+  const { menu, borrarBtn, accionBtn } = crearMenuBorradoSidebar()
   menuBorradoSidebar = menu
   botonBorradoSidebar = borrarBtn
+  botonAccionSidebar = accionBtn
   document.body.appendChild(menuBorradoSidebar)
+
+  botonAccionSidebar.addEventListener("click", () => {
+    if (!accionSecundariaSidebar) return
+    accionSecundariaSidebar()
+    ocultarMenuBorradoSidebar()
+  })
 
   botonBorradoSidebar.addEventListener("click", () => {
     if (!accionBorradoSidebar) return
@@ -1438,7 +1459,13 @@ function crearItemDocumentoSidebar(doc, sidebar) {
 
     if (carpetaId) {
       mostrarMenuBorradoSidebar(event, {
-        label: "Borrar documento",
+        actionLabel: "Reemplazar documento",
+        onAction: () => {
+          if (typeof solicitarReemplazoDocumento === "function") {
+            solicitarReemplazoDocumento(doc.id)
+          }
+        },
+        label: "Eliminar documento",
         onDelete: () => {
           if (typeof eliminarDocumentoDefinitivo === "function") {
             eliminarDocumentoDefinitivo(doc.id)
@@ -1455,7 +1482,13 @@ function crearItemDocumentoSidebar(doc, sidebar) {
 
     if (item.closest(".sidebarDocumentosLista")) {
       mostrarMenuBorradoSidebar(event, {
-        label: "Borrar documento",
+        actionLabel: "Reemplazar documento",
+        onAction: () => {
+          if (typeof solicitarReemplazoDocumento === "function") {
+            solicitarReemplazoDocumento(doc.id)
+          }
+        },
+        label: "Eliminar documento",
         onDelete: () => {
           if (typeof eliminarDocumentoDefinitivo === "function") {
             eliminarDocumentoDefinitivo(doc.id)
