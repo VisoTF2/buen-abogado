@@ -365,6 +365,7 @@ function asegurarModalLecturaDocumentos() {
   const cerrar = document.createElement("button")
   cerrar.type = "button"
   cerrar.className = "modal-close"
+  cerrar.id = "documentoLecturaClose"
   cerrar.setAttribute("aria-label", "Cerrar")
   cerrar.textContent = "×"
 

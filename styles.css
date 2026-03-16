@@ -803,7 +803,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .documento-lectura-card {
-      width: min(96vw, 1120px);
+      width: min(98vw, 1400px);
       height: min(92vh, 920px);
       max-height: 92vh;
     }
@@ -2726,7 +2726,8 @@ body.oscuro .modal-close:hover {
 
 
 #modalConfiguracion .modal-close,
-#mallaPreviewClose.modal-close {
+#mallaPreviewClose.modal-close,
+#documentoLecturaClose.modal-close {
   background: transparent;
   border: none;
   color: var(--danger-solid-bg);
@@ -2748,18 +2749,21 @@ body.oscuro .modal-close:hover {
 }
 
 #modalConfiguracion .modal-close:hover,
-#mallaPreviewClose.modal-close:hover {
+#mallaPreviewClose.modal-close:hover,
+#documentoLecturaClose.modal-close:hover {
   background: var(--danger-solid-bg);
   color: #fff;
 }
 
 #modalConfiguracion .modal-close:active,
-#mallaPreviewClose.modal-close:active {
+#mallaPreviewClose.modal-close:active,
+#documentoLecturaClose.modal-close:active {
   transform: translateY(1px);
 }
 
 body.oscuro #modalConfiguracion .modal-close:hover,
-body.oscuro #mallaPreviewClose.modal-close:hover {
+body.oscuro #mallaPreviewClose.modal-close:hover,
+body.oscuro #documentoLecturaClose.modal-close:hover {
   background: var(--danger-solid-bg);
   color: #fff;
 }
@@ -3777,6 +3781,7 @@ body.oscuro .action-buttons .class-delete:hover { background: var(--danger-solid
 
 #modalConfiguracion .modal-close,
 #mallaPreviewClose.modal-close,
+#documentoLecturaClose.modal-close,
 .buscador-cerrar {
   padding-bottom: 2px;
 }
