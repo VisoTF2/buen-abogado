@@ -203,6 +203,20 @@ function obtenerNombreDocumento(nombre = "") {
   return limpio.slice(0, ultimoPunto).trim() || "Documento"
 }
 
+function obtenerNombreDescarga(doc) {
+  if (!doc) return "Documento"
+
+  const nombreBase = (doc.nombre || "").trim() || "Documento"
+  const extension = (doc.extension || "").trim().toLowerCase()
+
+  if (!extension) return nombreBase
+
+  const sufijo = `.${extension}`
+  if (nombreBase.toLowerCase().endsWith(sufijo)) return nombreBase
+
+  return `${nombreBase}${sufijo}`
+}
+
 function leerArchivoComoDataUrl(archivo) {
   return new Promise((resolve, reject) => {
     const lector = new FileReader()
@@ -683,7 +697,7 @@ function mostrarDocumento(id, terminoBusqueda = "", indiceCoincidencia = null) {
     const descarga = document.createElement("a")
     descarga.href = doc.url
     descarga.className = "documento-descarga"
-    descarga.download = doc.nombre
+    descarga.download = obtenerNombreDescarga(doc)
     descarga.textContent = "Descargar original"
     descarga.style.fontWeight = "700"
     descarga.style.color = "var(--accent)"
@@ -833,7 +847,7 @@ function actualizarNombreDocumento(id, nuevoNombre) {
     const titulo = visorDocumentos.querySelector(".documento-preview-titulo")
     if (titulo) titulo.textContent = nombreFinal || "Vista previa"
     const descarga = visorDocumentos.querySelector(".documento-descarga")
-    if (descarga) descarga.download = nombreFinal
+    if (descarga) descarga.download = obtenerNombreDescarga({ ...doc, nombre: nombreFinal })
   }
 }
 
