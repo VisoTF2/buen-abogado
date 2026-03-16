@@ -838,3 +838,34 @@ async function extraerTextoPptx(archivo) {
 
   return chunks.join("\n\n") || "No se encontró texto en la presentación"
 }
+
+function eliminarDocumentoDefinitivo(id) {
+  const doc = documentosCargados.find(d => d.id === id)
+  if (!doc) return false
+
+  documentosCargados = documentosCargados.filter(d => d.id !== id)
+
+  if (typeof removerDocumentoDeCarpetas === "function") {
+    removerDocumentoDeCarpetas(id)
+  }
+
+  if (typeof quitarDocumentoDeSidebar === "function") {
+    quitarDocumentoDeSidebar(id)
+  }
+
+  if (doc.url) {
+    try { URL.revokeObjectURL(doc.url) } catch (e) { /* noop */ }
+  }
+
+  guardarDocumentos()
+  renderDocumentos()
+  sincronizarSidebarDocumentos()
+
+  if (visorDocumentos?.dataset.docActual === id) {
+    cerrarVistaDocumento()
+  }
+
+  return true
+}
+
+window.eliminarDocumentoDefinitivo = eliminarDocumentoDefinitivo
