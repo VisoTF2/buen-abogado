@@ -9,6 +9,7 @@ const visorDocumentos = document.getElementById("visorDocumentos")
 const botonDocumentos = document.querySelector(".documentos-btn")
 
 let documentoPendienteReemplazoId = null
+let modalLecturaDocumentos = null
 
 document.body.appendChild(documentoReemplazoInput)
 
@@ -336,6 +337,104 @@ function solicitarReemplazoDocumento(id) {
   if (!id || !documentoReemplazoInput) return
   documentoPendienteReemplazoId = id
   documentoReemplazoInput.click()
+}
+
+function obtenerDocumentoPorId(id) {
+  return documentosCargados.find(doc => doc.id === id) || null
+}
+
+function asegurarModalLecturaDocumentos() {
+  if (modalLecturaDocumentos) return modalLecturaDocumentos
+
+  const backdrop = document.createElement("div")
+  backdrop.className = "modal-backdrop documento-lectura-backdrop"
+  backdrop.setAttribute("aria-hidden", "true")
+
+  const card = document.createElement("div")
+  card.className = "modal-card documento-lectura-card"
+  card.setAttribute("role", "dialog")
+  card.setAttribute("aria-modal", "true")
+
+  const head = document.createElement("div")
+  head.className = "modal-head"
+
+  const titulo = document.createElement("h3")
+  titulo.className = "documento-lectura-titulo"
+  titulo.textContent = "Lectura de documento"
+
+  const cerrar = document.createElement("button")
+  cerrar.type = "button"
+  cerrar.className = "modal-close"
+  cerrar.setAttribute("aria-label", "Cerrar")
+  cerrar.textContent = "×"
+
+  const body = document.createElement("div")
+  body.className = "modal-body documento-lectura-body"
+
+  head.appendChild(titulo)
+  head.appendChild(cerrar)
+  card.appendChild(head)
+  card.appendChild(body)
+  backdrop.appendChild(card)
+  document.body.appendChild(backdrop)
+
+  const cerrarModal = () => {
+    backdrop.classList.remove("visible")
+    backdrop.setAttribute("aria-hidden", "true")
+  }
+
+  cerrar.addEventListener("click", cerrarModal)
+  backdrop.addEventListener("click", e => {
+    if (e.target === backdrop) cerrarModal()
+  })
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && backdrop.classList.contains("visible")) {
+      cerrarModal()
+    }
+  })
+
+  modalLecturaDocumentos = { backdrop, body, titulo, cerrarModal }
+  return modalLecturaDocumentos
+}
+
+function abrirLecturaDocumento(id) {
+  const doc = obtenerDocumentoPorId(id)
+  if (!doc) return
+
+  const modal = asegurarModalLecturaDocumentos()
+  modal.titulo.textContent = doc.nombre || "Lectura de documento"
+  modal.body.innerHTML = ""
+
+  if (doc.texto) {
+    const texto = document.createElement("div")
+    texto.className = "documento-lectura-texto"
+    texto.textContent = doc.texto
+    modal.body.appendChild(texto)
+  } else if ((doc.extension === "pdf" || doc.extension === "doc" || doc.extension === "docx" || doc.extension === "ppt" || doc.extension === "pptx") && doc.url) {
+    const iframe = document.createElement("iframe")
+    iframe.className = "documento-lectura-iframe"
+    iframe.src = doc.url
+    iframe.title = `Lectura ampliada de ${doc.nombre || "documento"}`
+    modal.body.appendChild(iframe)
+  } else {
+    const alerta = document.createElement("div")
+    alerta.className = "documento-alerta"
+    alerta.textContent = doc.mensaje || "No se pudo generar vista previa ampliada."
+    modal.body.appendChild(alerta)
+  }
+
+  if (doc.url) {
+    const descarga = document.createElement("a")
+    descarga.href = doc.url
+    descarga.className = "documento-descarga"
+    descarga.download = obtenerNombreDescarga(doc)
+    descarga.textContent = "Descargar original"
+    modal.body.appendChild(descarga)
+  }
+
+  modal.backdrop.classList.add("visible")
+  modal.backdrop.setAttribute("aria-hidden", "false")
 }
 
 async function extraerTextoDocx(archivo) {
@@ -719,6 +818,13 @@ function construirEncabezadoVista(doc) {
   encabezado.appendChild(titulo)
 
   if (doc) {
+    const abrirLectura = document.createElement("button")
+    abrirLectura.type = "button"
+    abrirLectura.className = "documento-preview-ampliar"
+    abrirLectura.textContent = "Abrir lectura"
+    abrirLectura.setAttribute("aria-label", "Abrir vista ampliada del documento")
+    abrirLectura.addEventListener("click", () => abrirLecturaDocumento(doc.id))
+
     const cerrar = document.createElement("button")
     cerrar.type = "button"
     cerrar.className = "preview-close-x documento-preview-cerrar"
@@ -779,6 +885,7 @@ function construirEncabezadoVista(doc) {
         activarEdicion()
       }
     })
+    encabezado.appendChild(abrirLectura)
     encabezado.appendChild(cerrar)
   }
 

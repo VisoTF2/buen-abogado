@@ -784,6 +784,61 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       width: 100%;
     }
 
+
+    .documento-preview-ampliar {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .documento-preview-ampliar:hover {
+      border-color: var(--accent-light);
+      background: rgba(30, 58, 138, 0.08);
+    }
+
+    .documento-lectura-card {
+      width: min(96vw, 1120px);
+      height: min(92vh, 920px);
+      max-height: 92vh;
+    }
+
+    .documento-lectura-body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .documento-lectura-texto {
+      white-space: pre-wrap;
+      overflow: auto;
+      flex: 1 1 auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      line-height: 1.6;
+      background: var(--article-bg);
+      color: var(--text);
+    }
+
+    .documento-lectura-iframe {
+      width: 100%;
+      min-height: 560px;
+      height: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      flex: 1 1 auto;
+    }
+
     .preview-close-x {
       background: transparent;
       border: none;
