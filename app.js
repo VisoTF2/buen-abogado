@@ -1649,6 +1649,7 @@ document.addEventListener(
   e => {
     if (!e.ctrlKey) return
     if (window.mallaZoomApi?.handleWheel?.(e)) return
+    if (window.documentoZoomApi?.handleWheel?.(e)) return
     e.preventDefault()
     const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP
     aplicarZoom(zoomActual + delta)
@@ -1658,6 +1659,7 @@ document.addEventListener(
 
 document.addEventListener("keydown", e => {
   if (window.mallaZoomApi?.handleKeydown?.(e)) return
+  if (window.documentoZoomApi?.handleKeydown?.(e)) return
   const ctrl = e.ctrlKey || e.metaKey
   if (!ctrl) return
 

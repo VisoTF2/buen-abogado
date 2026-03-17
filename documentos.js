@@ -560,39 +560,45 @@ function asegurarModalLecturaDocumentos() {
     event.preventDefault()
   })
 
-  body.addEventListener("wheel", event => {
-    if (!event.ctrlKey) return
-    if (!backdrop.classList.contains("visible")) return
-    if (!contentWrap.contains(event.target)) return
-    event.preventDefault()
-    const delta = event.deltaY > 0 ? -DOCUMENTO_ZOOM_STEP : DOCUMENTO_ZOOM_STEP
-    aplicarZoomDocumento(modalLecturaDocumentos, documentoZoomScale + delta)
-  }, { passive: false })
-
   document.addEventListener("keydown", e => {
     if (e.key === "Escape" && backdrop.classList.contains("visible")) {
       cerrarModal()
-      return
-    }
-    const ctrl = e.ctrlKey || e.metaKey
-    if (!ctrl) return
-    if (!backdrop.classList.contains("visible")) return
-    if (!documentoZoomFocus) return
-    if (e.key === "+" || e.key === "=") {
-      e.preventDefault()
-      aplicarZoomDocumento(modalLecturaDocumentos, documentoZoomScale + DOCUMENTO_ZOOM_STEP)
-      return
-    }
-    if (e.key === "-" || e.key === "_") {
-      e.preventDefault()
-      aplicarZoomDocumento(modalLecturaDocumentos, documentoZoomScale - DOCUMENTO_ZOOM_STEP)
-      return
-    }
-    if (e.key === "0") {
-      e.preventDefault()
-      aplicarZoomDocumento(modalLecturaDocumentos, 1)
     }
   })
+
+  window.documentoZoomApi = {
+    handleWheel(event) {
+      if (!event.ctrlKey) return false
+      if (!backdrop.classList.contains("visible")) return false
+      if (!contentWrap.contains(event.target)) return false
+      event.preventDefault()
+      const delta = event.deltaY > 0 ? -DOCUMENTO_ZOOM_STEP : DOCUMENTO_ZOOM_STEP
+      aplicarZoomDocumento(modalLecturaDocumentos, documentoZoomScale + delta)
+      return true
+    },
+    handleKeydown(event) {
+      const ctrl = event.ctrlKey || event.metaKey
+      if (!ctrl) return false
+      if (!backdrop.classList.contains("visible")) return false
+      if (!documentoZoomFocus) return false
+      if (event.key === "+" || event.key === "=") {
+        event.preventDefault()
+        aplicarZoomDocumento(modalLecturaDocumentos, documentoZoomScale + DOCUMENTO_ZOOM_STEP)
+        return true
+      }
+      if (event.key === "-" || event.key === "_") {
+        event.preventDefault()
+        aplicarZoomDocumento(modalLecturaDocumentos, documentoZoomScale - DOCUMENTO_ZOOM_STEP)
+        return true
+      }
+      if (event.key === "0") {
+        event.preventDefault()
+        aplicarZoomDocumento(modalLecturaDocumentos, 1)
+        return true
+      }
+      return false
+    }
+  }
 
   window.addEventListener("resize", () => {
     if (!backdrop.classList.contains("visible")) return
