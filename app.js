@@ -32,7 +32,7 @@ function guardarJSONConRespaldo(key, valor) {
 
 let codigoActual = {}
 let articulos = cargarJSONConRespaldo("articulosGuardados", [])
-  .map(a => ({ ...a, contenidoHTML: a.contenidoHTML ?? null }))
+  .map(a => ({ ...a, contenidoHTML: a.contenidoHTML ?? null, abierto: Boolean(a.abierto) }))
 let materiasOrden = cargarJSONConRespaldo("materiasOrden", {})
 let carpetas = cargarJSONConRespaldo("carpetasMaterias", []).map(c => ({
   ...c,
@@ -1835,7 +1835,8 @@ function agregarArticulo() {
     nota: "",
     color: obtenerColorMateria(mat),
     tituloPersonalizado: "",
-    orden: siguienteOrdenPara(norm, mat)
+    orden: siguienteOrdenPara(norm, mat),
+    abierto: false
   })
 
   setVistaMateriaCerrada(false)
@@ -2726,8 +2727,20 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
     box.appendChild(resizer)
     box.appendChild(botonBorrar)
 
+    if (a.abierto) {
+      box.classList.add("abierto")
+      botonNota.style.display = "inline-block"
+      if (a.nota && a.nota.trim() !== "") {
+        notaBox.style.display = "block"
+        resizer.style.display = "block"
+        botonEliminarNota.style.display = "inline-block"
+      }
+    }
+
     box.addEventListener("click", () => {
       const abierta = box.classList.toggle("abierto")
+      a.abierto = abierta
+      guardarLocal()
 
       if (abierta) {
         botonNota.style.display = "inline-block"
@@ -2773,6 +2786,7 @@ function sincronizarEdiciones() {
 
     const notaEl = box.querySelector(".nota-box")
     if (notaEl) articulo.nota = notaEl.value
+    articulo.abierto = box.classList.contains("abierto")
   })
 
   guardarLocal()
