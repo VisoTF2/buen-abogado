@@ -2419,6 +2419,54 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
   const controles = document.createElement("div")
   controles.className = "materia-controls"
 
+  const selectorCarpeta = document.createElement("select")
+  selectorCarpeta.className = "materia-carpeta-select"
+  selectorCarpeta.setAttribute("aria-label", "Seleccionar carpeta para la materia")
+
+  const carpetaActualId = materiaEnCarpeta(normativa, nombreActual)
+
+  const carpetasOrdenadas = [...carpetas].sort((a, b) => {
+    const semestreA = normalizarSemestre(a.semestre)
+    const semestreB = normalizarSemestre(b.semestre)
+    if (semestreA !== semestreB) return semestreA.localeCompare(semestreB, "es", { sensitivity: "base" })
+    return (a.nombre || "").localeCompare(b.nombre || "", "es", { sensitivity: "base" })
+  })
+
+  if (!carpetasOrdenadas.length) {
+    const option = document.createElement("option")
+    option.value = ""
+    option.textContent = "Sin carpetas disponibles"
+    selectorCarpeta.appendChild(option)
+    selectorCarpeta.disabled = true
+  } else {
+    carpetasOrdenadas.forEach(carpeta => {
+      const option = document.createElement("option")
+      option.value = carpeta.id
+      option.textContent = `${normalizarSemestre(carpeta.semestre)} · ${carpeta.nombre || "Carpeta sin título"}`
+      selectorCarpeta.appendChild(option)
+    })
+
+    if (carpetaActualId && carpetasOrdenadas.some(c => c.id === carpetaActualId)) {
+      selectorCarpeta.value = carpetaActualId
+    } else {
+      selectorCarpeta.value = carpetasOrdenadas[0].id
+    }
+  }
+
+  const moverACarpetaBtn = document.createElement("button")
+  moverACarpetaBtn.type = "button"
+  moverACarpetaBtn.className = "btn-secondary materia-mover-btn"
+  moverACarpetaBtn.textContent = "Mover a carpeta"
+  moverACarpetaBtn.disabled = !carpetas.length
+  moverACarpetaBtn.addEventListener("click", () => {
+    const carpetaDestinoId = selectorCarpeta.value
+    if (!carpetaDestinoId) return
+    moverMateriaACarpeta(normativa, nombreActual, carpetaDestinoId)
+    setVistaMateriaCerrada(false)
+    normativaSeleccionada = normativa
+    materiaSeleccionada = nombreActual
+  })
+
   const colorInput = document.createElement("input")
   colorInput.type = "color"
   colorInput.className = "materia-color-input"
@@ -2476,6 +2524,8 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
   borrarMat.textContent = "Borrar materia"
   borrarMat.onclick = () => borrarMateria(nombreActual, normativa)
 
+  controles.appendChild(selectorCarpeta)
+  controles.appendChild(moverACarpetaBtn)
   controles.appendChild(colorInput)
   controles.appendChild(cerrarVista)
   controles.appendChild(borrarMat)

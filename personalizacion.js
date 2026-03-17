@@ -6,6 +6,10 @@ const BANNER_FILL_ENABLED_KEY = "bannerColorFondoActivo"
 const bannerFillToggle = document.getElementById("bannerFillToggle")
 const fondoInput = document.getElementById("fondoInput")
 const FONDO_STORAGE_KEY = "fondoImagenApp"
+const accentColorInput = document.getElementById("accentColorInput")
+const accentApplyDarkToggle = document.getElementById("accentApplyDarkToggle")
+const ACCENT_COLOR_STORAGE_KEY = "colorAcentoApp"
+const ACCENT_COLOR_APPLY_DARK_KEY = "colorAcentoModoOscuro"
 const mallaInput = document.getElementById("mallaInput")
 const mallaToggle = document.getElementById("mallaToggle")
 const MALLA_STORAGE_KEY = "mallaImagenHorario"
@@ -61,6 +65,71 @@ function aplicarModoGuardado() {
   if (localStorage.getItem(MODO_OSCURO_STORAGE_KEY) === "true") {
     document.body.classList.add("oscuro")
   }
+}
+
+function clampColorByte(value) {
+  return Math.max(0, Math.min(255, value))
+}
+
+function normalizarHexColor(hex) {
+  if (typeof hex !== "string") return ""
+  const limpio = hex.trim().replace("#", "")
+  if (!/^[0-9a-fA-F]{6}$/.test(limpio)) return ""
+  return `#${limpio.toLowerCase()}`
+}
+
+function aclararColor(hex, factor = 0.24) {
+  const normalizado = normalizarHexColor(hex)
+  if (!normalizado) return "#3b5ccc"
+  const r = parseInt(normalizado.slice(1, 3), 16)
+  const g = parseInt(normalizado.slice(3, 5), 16)
+  const b = parseInt(normalizado.slice(5, 7), 16)
+  const blend = canal => Math.round(canal + (255 - canal) * factor)
+  const resultado = [blend(r), blend(g), blend(b)]
+    .map(canal => clampColorByte(canal).toString(16).padStart(2, "0"))
+    .join("")
+  return `#${resultado}`
+}
+
+function aplicarColorAcento(hex, incluirModoOscuro = false) {
+  const color = normalizarHexColor(hex)
+  if (!color) return
+  const colorClaro = aclararColor(color)
+  document.documentElement.style.setProperty("--accent", color)
+  document.documentElement.style.setProperty("--accent-light", colorClaro)
+
+  if (incluirModoOscuro) {
+    document.body.style.setProperty("--accent", color)
+    document.body.style.setProperty("--accent-light", colorClaro)
+  } else {
+    document.body.style.removeProperty("--accent")
+    document.body.style.removeProperty("--accent-light")
+  }
+
+  if (accentColorInput) accentColorInput.value = color
+}
+
+function aplicarColorAcentoGuardado() {
+  const colorGuardado = normalizarHexColor(localStorage.getItem(ACCENT_COLOR_STORAGE_KEY) || "")
+  const incluirModoOscuro = localStorage.getItem(ACCENT_COLOR_APPLY_DARK_KEY) === "true"
+
+  if (accentApplyDarkToggle) accentApplyDarkToggle.checked = incluirModoOscuro
+
+  if (!colorGuardado) {
+    document.documentElement.style.removeProperty("--accent")
+    document.documentElement.style.removeProperty("--accent-light")
+    document.body.style.removeProperty("--accent")
+    document.body.style.removeProperty("--accent-light")
+    if (accentColorInput) accentColorInput.value = "#1e3a8a"
+    return
+  }
+
+  aplicarColorAcento(colorGuardado, incluirModoOscuro)
+}
+
+function restablecerColorAcento() {
+  localStorage.removeItem(ACCENT_COLOR_STORAGE_KEY)
+  aplicarColorAcentoGuardado()
 }
 
 function abrirSelectorBanner() {
@@ -162,7 +231,29 @@ fondoInput?.addEventListener("change", e => {
 function toggleModo() {
   const activo = document.body.classList.toggle("oscuro")
   localStorage.setItem(MODO_OSCURO_STORAGE_KEY, activo ? "true" : "false")
+  aplicarColorAcentoGuardado()
 }
+
+accentColorInput?.addEventListener("input", () => {
+  const color = accentColorInput.value
+  localStorage.setItem(ACCENT_COLOR_STORAGE_KEY, color)
+  aplicarColorAcentoGuardado()
+})
+
+accentColorInput?.addEventListener("change", () => {
+  const color = accentColorInput.value
+  if (normalizarHexColor(color) === "#1e3a8a") {
+    restablecerColorAcento()
+    return
+  }
+  localStorage.setItem(ACCENT_COLOR_STORAGE_KEY, color)
+  aplicarColorAcentoGuardado()
+})
+
+accentApplyDarkToggle?.addEventListener("change", () => {
+  localStorage.setItem(ACCENT_COLOR_APPLY_DARK_KEY, accentApplyDarkToggle.checked ? "true" : "false")
+  aplicarColorAcentoGuardado()
+})
 
 function abrirSelectorMalla() {
   mallaInput?.click()
@@ -715,6 +806,11 @@ window.mallaZoomApi = {
 
 habilitarResizeMalla()
 aplicarModoGuardado()
+const accentColorGuardado = localStorage.getItem(ACCENT_COLOR_STORAGE_KEY) || ""
+if (!normalizarHexColor(accentColorGuardado) && accentColorGuardado) {
+  localStorage.removeItem(ACCENT_COLOR_STORAGE_KEY)
+}
+aplicarColorAcentoGuardado()
 aplicarBanner(localStorage.getItem(BANNER_STORAGE_KEY) || "")
 aplicarFondoBannerActivo(localStorage.getItem(BANNER_FILL_ENABLED_KEY) !== "false")
 aplicarFondo(localStorage.getItem(FONDO_STORAGE_KEY) || "")
