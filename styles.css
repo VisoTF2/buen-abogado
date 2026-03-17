@@ -3097,7 +3097,7 @@ body.oscuro #documentoLecturaClose.modal-close:hover {
       margin-top: 2px;
       margin-bottom: 6px;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
       align-items: end;
       gap: 12px;
     }
