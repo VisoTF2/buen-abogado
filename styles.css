@@ -814,7 +814,42 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       gap: 10px;
       min-height: 0;
       height: 100%;
-      overflow: hidden;
+      overflow: auto;
+      align-items: flex-start;
+      justify-content: flex-start;
+      padding: 6px;
+    }
+
+    .documento-lectura-body.pan-enabled {
+      cursor: grab;
+    }
+
+    .documento-lectura-body.is-panning {
+      cursor: grabbing;
+      user-select: none;
+    }
+
+    .documento-lectura-toolbar {
+      margin-left: auto;
+    }
+
+    .documento-lectura-zoom-area {
+      display: inline-block;
+      flex: 0 0 auto;
+      margin: auto;
+    }
+
+    .documento-lectura-canvas-wrap {
+      position: relative;
+      display: inline-block;
+      transform: scale(var(--documento-zoom, 1));
+      transform-origin: top left;
+    }
+
+    .documento-lectura-canvas-wrap:focus,
+    .documento-lectura-canvas-wrap:focus-visible {
+      outline: none;
+      box-shadow: none;
     }
 
     .documento-lectura-texto {
