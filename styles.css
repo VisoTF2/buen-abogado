@@ -3104,7 +3104,7 @@ body.oscuro #documentoLecturaClose.modal-close:hover {
 
     .materia-controls {
       display: grid;
-      grid-template-columns: minmax(220px, 320px) auto 32px 32px auto;
+      grid-template-columns: minmax(170px, 240px) auto 32px 32px auto;
       align-items: center;
       justify-content: end;
       gap: 8px;
@@ -3148,7 +3148,7 @@ body.oscuro #documentoLecturaClose.modal-close:hover {
     }
 
     .materia-mover-btn {
-      min-width: 92px;
+      min-width: 84px;
       padding: 0 8px !important;
       font-size: 12px;
     }
