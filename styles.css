@@ -49,6 +49,9 @@
       --grade-input-bg: #ffffff;
       --grade-row-bg: #f8fafc;
       --grade-summary-icon: #475569;
+      --scrollbar-track: rgba(148, 163, 184, 0.20);
+      --scrollbar-thumb: rgba(100, 116, 139, 0.62);
+      --scrollbar-thumb-hover: rgba(71, 85, 105, 0.76);
     }
 
     body.oscuro {
@@ -90,6 +93,9 @@
       --grade-input-bg: #0f172a;
       --grade-row-bg: #1f2937;
       --grade-summary-icon: #cbd5e1;
+      --scrollbar-track: rgba(148, 163, 184, 0.16);
+      --scrollbar-thumb: rgba(148, 163, 184, 0.46);
+      --scrollbar-thumb-hover: rgba(203, 213, 225, 0.62);
     }
 
     body {
@@ -100,6 +106,42 @@
       color: var(--text);
       transition: 0.25s ease;
       overflow-x: hidden;
+    }
+
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    }
+
+    *::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: var(--scrollbar-track);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+      min-height: 24px;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+      background: var(--scrollbar-thumb-hover);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    *::-webkit-scrollbar-corner {
+      background: transparent;
     }
 
     body.fondo-personalizado {
