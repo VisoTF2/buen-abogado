@@ -425,15 +425,6 @@ function abrirLecturaDocumento(id) {
     modal.body.appendChild(alerta)
   }
 
-  if (doc.url) {
-    const descarga = document.createElement("a")
-    descarga.href = doc.url
-    descarga.className = "documento-descarga"
-    descarga.download = obtenerNombreDescarga(doc)
-    descarga.textContent = "Descargar original"
-    modal.body.appendChild(descarga)
-  }
-
   modal.backdrop.classList.add("visible")
   modal.backdrop.setAttribute("aria-hidden", "false")
 }

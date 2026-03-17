@@ -2669,6 +2669,14 @@ body.oscuro .carpetaToggle {
   gap: var(--modal-gap);
 }
 
+
+.modal-card.documento-lectura-card {
+  width: min(99.8vw, 2200px);
+  max-width: 99.8vw;
+  height: min(92vh, 920px);
+  max-height: 92vh;
+}
+
 .modal-head {
   display: flex;
   align-items: center;
