@@ -797,7 +797,6 @@ function construirEncabezadoVista(doc) {
   const titulo = document.createElement("h4")
   titulo.className = "documento-preview-titulo"
   titulo.textContent = doc ? doc.nombre : "Vista previa"
-  encabezado.appendChild(titulo)
 
   if (doc) {
     const abrirLectura = document.createElement("button")
@@ -868,7 +867,10 @@ function construirEncabezadoVista(doc) {
       }
     })
     encabezado.appendChild(abrirLectura)
+    encabezado.appendChild(titulo)
     encabezado.appendChild(cerrar)
+  } else {
+    encabezado.appendChild(titulo)
   }
 
   return encabezado
