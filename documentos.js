@@ -1,8 +1,17 @@
 const DOCUMENTOS_STORAGE_KEY = "documentosSubidos"
 const documentoInput = document.getElementById("documentoInput")
+const documentoReemplazoInput = document.createElement("input")
+documentoReemplazoInput.type = "file"
+documentoReemplazoInput.hidden = true
+documentoReemplazoInput.tabIndex = -1
 const listaDocumentos = document.getElementById("listaDocumentos")
 const visorDocumentos = document.getElementById("visorDocumentos")
 const botonDocumentos = document.querySelector(".documentos-btn")
+
+let documentoPendienteReemplazoId = null
+let modalLecturaDocumentos = null
+
+document.body.appendChild(documentoReemplazoInput)
 
 let documentosCargados = cargarDocumentosGuardados()
 let documentoArrastradoId = null
@@ -18,6 +27,17 @@ documentoInput?.addEventListener("change", e => {
     procesarDocumento(archivo)
   }
   e.target.value = ""
+})
+
+documentoReemplazoInput.addEventListener("change", async e => {
+  const archivo = e.target.files?.[0]
+  const documentoId = documentoPendienteReemplazoId
+  documentoPendienteReemplazoId = null
+  e.target.value = ""
+
+  if (!archivo || !documentoId) return
+
+  await reemplazarDocumento(documentoId, archivo)
 })
 
 if (botonDocumentos) {
@@ -174,6 +194,30 @@ function obtenerExtension(nombre = "") {
   return partes.length > 1 ? partes.pop().toLowerCase() : ""
 }
 
+function obtenerNombreDocumento(nombre = "") {
+  const limpio = (nombre || "").trim()
+  if (!limpio) return "Documento"
+
+  const ultimoPunto = limpio.lastIndexOf(".")
+  if (ultimoPunto <= 0) return limpio
+
+  return limpio.slice(0, ultimoPunto).trim() || "Documento"
+}
+
+function obtenerNombreDescarga(doc) {
+  if (!doc) return "Documento"
+
+  const nombreBase = (doc.nombre || "").trim() || "Documento"
+  const extension = (doc.extension || "").trim().toLowerCase()
+
+  if (!extension) return nombreBase
+
+  const sufijo = `.${extension}`
+  if (nombreBase.toLowerCase().endsWith(sufijo)) return nombreBase
+
+  return `${nombreBase}${sufijo}`
+}
+
 function leerArchivoComoDataUrl(archivo) {
   return new Promise((resolve, reject) => {
     const lector = new FileReader()
@@ -184,37 +228,10 @@ function leerArchivoComoDataUrl(archivo) {
 }
 
 async function procesarDocumento(archivo) {
-  const extension = obtenerExtension(archivo.name)
   const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`
-  const base = {
-    id,
-    nombre: archivo.name,
-    extension,
-    url: "",
-    texto: "",
-    mensaje: ""
-  }
 
   try {
-    const dataUrl = await leerArchivoComoDataUrl(archivo)
-    base.url = dataUrl
-
-    if (extension === "pdf") {
-      base.texto = await extraerTextoPdf(archivo)
-    } else if (extension === "docx") {
-      base.texto = await extraerTextoDocx(archivo)
-    } else if (extension === "pptx") {
-      try {
-        base.texto = await extraerTextoPptx(archivo)
-      } catch (error) {
-        base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
-      }
-    } else if (extension === "doc" || extension === "ppt") {
-      base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
-    } else {
-      base.mensaje = "Formato no soportado para vista previa."
-    }
-
+    const base = await construirDocumentoDesdeArchivo(archivo, id)
     documentosCargados = [{ ...base, archived: false }, ...documentosCargados.filter(d => d.nombre !== base.nombre)]
     guardarDocumentos()
     renderDocumentos()
@@ -222,13 +239,194 @@ async function procesarDocumento(archivo) {
     sincronizarSidebarDocumentos()
   } catch (err) {
     console.error("No se pudo procesar el documento", err)
-    base.mensaje = "No se pudo leer el documento."
-    documentosCargados = [{ ...base, archived: false }, ...documentosCargados]
+    const baseError = {
+      id,
+      nombre: obtenerNombreDocumento(archivo.name),
+      extension: obtenerExtension(archivo.name),
+      url: "",
+      texto: "",
+      mensaje: "No se pudo leer el documento."
+    }
+    documentosCargados = [{ ...baseError, archived: false }, ...documentosCargados]
     guardarDocumentos()
     renderDocumentos()
-    mostrarDocumento(base.id)
+    mostrarDocumento(baseError.id)
     sincronizarSidebarDocumentos()
   }
+}
+
+async function construirDocumentoDesdeArchivo(archivo, id, nombreBase = null) {
+  const extension = obtenerExtension(archivo.name)
+  const base = {
+    id,
+    nombre: obtenerNombreDocumento(nombreBase || archivo.name),
+    extension,
+    url: "",
+    texto: "",
+    mensaje: ""
+  }
+
+  const dataUrl = await leerArchivoComoDataUrl(archivo)
+  base.url = dataUrl
+
+  if (extension === "pdf") {
+    try {
+      base.texto = await extraerTextoPdf(archivo)
+    } catch (error) {
+      console.error("No se pudo extraer texto del PDF", error)
+      base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
+    }
+  } else if (extension === "docx") {
+    try {
+      base.texto = await extraerTextoDocx(archivo)
+    } catch (error) {
+      console.error("No se pudo extraer texto del DOCX", error)
+      base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
+    }
+  } else if (extension === "pptx") {
+    try {
+      base.texto = await extraerTextoPptx(archivo)
+    } catch (error) {
+      console.error("No se pudo extraer texto del PPTX", error)
+      base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
+    }
+  } else if (extension === "doc" || extension === "ppt") {
+    base.mensaje = "Vista previa limitada: se muestra en visor embebido cuando el navegador lo permite."
+  } else {
+    base.mensaje = "Formato no soportado para vista previa."
+  }
+
+  return base
+}
+
+async function reemplazarDocumento(id, archivo) {
+  const indice = documentosCargados.findIndex(d => d.id === id)
+  if (indice < 0) return false
+
+  const nombreSiguiente = obtenerNombreDocumento(archivo?.name || "")
+
+  try {
+    const reemplazo = await construirDocumentoDesdeArchivo(archivo, id, nombreSiguiente)
+    documentosCargados[indice] = { ...reemplazo, archived: false }
+  } catch (err) {
+    console.error("No se pudo reemplazar el documento", err)
+    documentosCargados[indice] = {
+      id,
+      nombre: nombreSiguiente,
+      extension: obtenerExtension(archivo.name),
+      url: "",
+      texto: "",
+      mensaje: "No se pudo leer el documento.",
+      archived: false
+    }
+  }
+
+  const docActualizado = documentosCargados[indice]
+  if (docActualizado && typeof actualizarDocumentoEnCarpetas === "function") {
+    actualizarDocumentoEnCarpetas(docActualizado)
+  }
+
+  guardarDocumentos()
+  renderDocumentos()
+  mostrarDocumento(id)
+  sincronizarSidebarDocumentos()
+  return true
+}
+
+function solicitarReemplazoDocumento(id) {
+  if (!id || !documentoReemplazoInput) return
+  documentoPendienteReemplazoId = id
+  documentoReemplazoInput.click()
+}
+
+function obtenerDocumentoPorId(id) {
+  return documentosCargados.find(doc => doc.id === id) || null
+}
+
+function asegurarModalLecturaDocumentos() {
+  if (modalLecturaDocumentos) return modalLecturaDocumentos
+
+  const backdrop = document.createElement("div")
+  backdrop.className = "modal-backdrop documento-lectura-backdrop"
+  backdrop.setAttribute("aria-hidden", "true")
+
+  const card = document.createElement("div")
+  card.className = "modal-card documento-lectura-card"
+  card.setAttribute("role", "dialog")
+  card.setAttribute("aria-modal", "true")
+
+  const head = document.createElement("div")
+  head.className = "modal-head"
+
+  const titulo = document.createElement("h3")
+  titulo.className = "documento-lectura-titulo"
+  titulo.textContent = "Lectura de documento"
+
+  const cerrar = document.createElement("button")
+  cerrar.type = "button"
+  cerrar.className = "modal-close"
+  cerrar.id = "documentoLecturaClose"
+  cerrar.setAttribute("aria-label", "Cerrar")
+  cerrar.textContent = "×"
+
+  const body = document.createElement("div")
+  body.className = "modal-body documento-lectura-body"
+
+  head.appendChild(titulo)
+  head.appendChild(cerrar)
+  card.appendChild(head)
+  card.appendChild(body)
+  backdrop.appendChild(card)
+  document.body.appendChild(backdrop)
+
+  const cerrarModal = () => {
+    backdrop.classList.remove("visible")
+    backdrop.setAttribute("aria-hidden", "true")
+  }
+
+  cerrar.addEventListener("click", cerrarModal)
+  backdrop.addEventListener("click", e => {
+    if (e.target === backdrop) cerrarModal()
+  })
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && backdrop.classList.contains("visible")) {
+      cerrarModal()
+    }
+  })
+
+  modalLecturaDocumentos = { backdrop, body, titulo, cerrarModal }
+  return modalLecturaDocumentos
+}
+
+function abrirLecturaDocumento(id) {
+  const doc = obtenerDocumentoPorId(id)
+  if (!doc) return
+
+  const modal = asegurarModalLecturaDocumentos()
+  modal.titulo.textContent = doc.nombre || "Lectura de documento"
+  modal.body.innerHTML = ""
+
+  if (doc.texto) {
+    const texto = document.createElement("div")
+    texto.className = "documento-lectura-texto"
+    texto.textContent = doc.texto
+    modal.body.appendChild(texto)
+  } else if ((doc.extension === "pdf" || doc.extension === "doc" || doc.extension === "docx" || doc.extension === "ppt" || doc.extension === "pptx") && doc.url) {
+    const iframe = document.createElement("iframe")
+    iframe.className = "documento-lectura-iframe"
+    iframe.src = doc.url
+    iframe.title = `Lectura ampliada de ${doc.nombre || "documento"}`
+    modal.body.appendChild(iframe)
+  } else {
+    const alerta = document.createElement("div")
+    alerta.className = "documento-alerta"
+    alerta.textContent = doc.mensaje || "No se pudo generar vista previa ampliada."
+    modal.body.appendChild(alerta)
+  }
+
+  modal.backdrop.classList.add("visible")
+  modal.backdrop.setAttribute("aria-hidden", "false")
 }
 
 async function extraerTextoDocx(archivo) {
@@ -319,59 +517,6 @@ function renderDocumentos() {
     nombreTexto.className = "documento-nombre-text"
     nombreTexto.textContent = doc.nombre || "Documento"
     nombreTexto.title = doc.nombre || "Documento"
-    nombreTexto.tabIndex = 0
-    nombreTexto.setAttribute("role", "button")
-    nombreTexto.setAttribute("aria-label", "Editar nombre del documento")
-    nombreTexto.addEventListener("mousedown", e => e.stopPropagation())
-
-    const activarEdicion = () => {
-      if (nombreWrap.querySelector(".documento-nombre-input")) return
-      const nombreOriginal = doc.nombre
-
-      const input = document.createElement("input")
-      input.type = "text"
-      input.className = "documento-nombre-input"
-      input.value = doc.nombre
-      input.placeholder = "Nombre del documento"
-
-      const restaurarTexto = () => {
-        const docActual = documentosCargados.find(d => d.id === doc.id)
-        nombreTexto.textContent = docActual?.nombre || "Documento"
-        nombreTexto.title = docActual?.nombre || "Documento"
-        nombreWrap.replaceChildren(nombreTexto)
-      }
-
-      input.addEventListener("input", () => previsualizarNombreDocumentoEnVista(doc.id, input.value))
-      input.addEventListener("blur", () => {
-        normalizarNombreDocumento(doc.id, input)
-        restaurarTexto()
-      })
-      input.addEventListener("mousedown", e => e.stopPropagation())
-      input.addEventListener("keydown", e => {
-        if (e.key === "Enter") {
-          e.preventDefault()
-          input.blur()
-        }
-        if (e.key === "Escape") {
-          input.value = nombreOriginal
-          input.blur()
-        }
-      })
-
-      nombreWrap.replaceChildren(input)
-      requestAnimationFrame(() => {
-        input.focus()
-        input.select()
-      })
-    }
-
-    nombreTexto.addEventListener("click", activarEdicion)
-    nombreTexto.addEventListener("keydown", e => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault()
-        activarEdicion()
-      }
-    })
 
     nombreWrap.appendChild(nombreTexto)
 
@@ -610,17 +755,7 @@ function mostrarDocumento(id, terminoBusqueda = "", indiceCoincidencia = null) {
 
     const tieneBusqueda = Boolean((terminoBusqueda || "").trim())
     if (!tieneBusqueda) {
-      texto.contentEditable = "true"
-      texto.setAttribute("role", "textbox")
-      texto.setAttribute("aria-label", "Editar texto del documento")
-      texto.spellcheck = false
       texto.textContent = doc.texto
-
-      texto.addEventListener("blur", () => {
-        const nuevoTexto = texto.textContent || ""
-        if (nuevoTexto === doc.texto) return
-        guardarTextoDocumentoEditado(doc.id, nuevoTexto)
-      })
     } else {
       aplicarResaltadoEnTexto(doc.texto, texto, terminoBusqueda, indiceCoincidencia)
     }
@@ -643,7 +778,7 @@ function mostrarDocumento(id, terminoBusqueda = "", indiceCoincidencia = null) {
     const descarga = document.createElement("a")
     descarga.href = doc.url
     descarga.className = "documento-descarga"
-    descarga.download = doc.nombre
+    descarga.download = obtenerNombreDescarga(doc)
     descarga.textContent = "Descargar original"
     descarga.style.fontWeight = "700"
     descarga.style.color = "var(--accent)"
@@ -665,12 +800,74 @@ function construirEncabezadoVista(doc) {
   encabezado.appendChild(titulo)
 
   if (doc) {
+    const abrirLectura = document.createElement("button")
+    abrirLectura.type = "button"
+    abrirLectura.className = "documento-preview-ampliar"
+    abrirLectura.textContent = "Abrir lectura"
+    abrirLectura.setAttribute("aria-label", "Abrir vista ampliada del documento")
+    abrirLectura.addEventListener("click", () => abrirLecturaDocumento(doc.id))
+
     const cerrar = document.createElement("button")
     cerrar.type = "button"
     cerrar.className = "preview-close-x documento-preview-cerrar"
     cerrar.textContent = "×"
     cerrar.setAttribute("aria-label", "Cerrar vista previa")
     cerrar.addEventListener("click", cerrarVistaDocumento)
+
+    titulo.tabIndex = 0
+    titulo.setAttribute("role", "button")
+    titulo.setAttribute("aria-label", "Editar nombre del documento")
+    titulo.title = doc.nombre || "Documento"
+
+    const activarEdicion = () => {
+      if (encabezado.querySelector(".documento-nombre-input")) return
+      const nombreOriginal = doc.nombre || ""
+
+      const input = document.createElement("input")
+      input.type = "text"
+      input.className = "documento-nombre-input documento-preview-nombre-input"
+      input.value = doc.nombre || ""
+      input.placeholder = "Nombre del documento"
+
+      const restaurarTitulo = () => {
+        const docActual = documentosCargados.find(d => d.id === doc.id)
+        titulo.textContent = docActual?.nombre || "Documento"
+        titulo.title = docActual?.nombre || "Documento"
+        encabezado.insertBefore(titulo, cerrar)
+        input.remove()
+      }
+
+      input.addEventListener("input", () => previsualizarNombreDocumentoEnVista(doc.id, input.value))
+      input.addEventListener("blur", () => {
+        normalizarNombreDocumento(doc.id, input)
+        restaurarTitulo()
+      })
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault()
+          input.blur()
+        }
+        if (e.key === "Escape") {
+          input.value = nombreOriginal
+          input.blur()
+        }
+      })
+
+      titulo.replaceWith(input)
+      requestAnimationFrame(() => {
+        input.focus()
+        input.select()
+      })
+    }
+
+    titulo.addEventListener("click", activarEdicion)
+    titulo.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault()
+        activarEdicion()
+      }
+    })
+    encabezado.appendChild(abrirLectura)
     encabezado.appendChild(cerrar)
   }
 
@@ -731,6 +928,7 @@ function actualizarNombreDocumento(id, nuevoNombre) {
 
   doc.nombre = nombreFinal
   guardarDocumentos()
+  renderDocumentos()
   actualizarNombreDocumentoEnCarpetas(id, nombreFinal)
   sincronizarSidebarDocumentos()
 
@@ -738,7 +936,7 @@ function actualizarNombreDocumento(id, nuevoNombre) {
     const titulo = visorDocumentos.querySelector(".documento-preview-titulo")
     if (titulo) titulo.textContent = nombreFinal || "Vista previa"
     const descarga = visorDocumentos.querySelector(".documento-descarga")
-    if (descarga) descarga.download = nombreFinal
+    if (descarga) descarga.download = obtenerNombreDescarga({ ...doc, nombre: nombreFinal })
   }
 }
 
@@ -869,3 +1067,4 @@ function eliminarDocumentoDefinitivo(id) {
 }
 
 window.eliminarDocumentoDefinitivo = eliminarDocumentoDefinitivo
+window.solicitarReemplazoDocumento = solicitarReemplazoDocumento
