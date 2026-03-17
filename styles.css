@@ -3148,9 +3148,9 @@ body.oscuro #documentoLecturaClose.modal-close:hover {
     }
 
     .materia-mover-btn {
-      min-width: 108px;
-      padding: 0 10px !important;
-      font-size: 12.5px;
+      min-width: 92px;
+      padding: 0 8px !important;
+      font-size: 12px;
     }
 
     .materia-color-input {
@@ -3317,6 +3317,11 @@ body.oscuro #documentoLecturaClose.modal-close:hover {
   min-height: 34px;
   display: flex;
   align-items: flex-end;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .materia-title:focus {
