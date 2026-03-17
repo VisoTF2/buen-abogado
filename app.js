@@ -2424,12 +2424,6 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
   selectorCarpeta.setAttribute("aria-label", "Seleccionar carpeta para la materia")
 
   const carpetaActualId = materiaEnCarpeta(normativa, nombreActual)
-  const opcionPlaceholder = document.createElement("option")
-  opcionPlaceholder.value = ""
-  opcionPlaceholder.textContent = carpetas.length
-    ? "Selecciona carpeta"
-    : "Sin carpetas disponibles"
-  selectorCarpeta.appendChild(opcionPlaceholder)
 
   const carpetasOrdenadas = [...carpetas].sort((a, b) => {
     const semestreA = normalizarSemestre(a.semestre)
@@ -2438,22 +2432,30 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
     return (a.nombre || "").localeCompare(b.nombre || "", "es", { sensitivity: "base" })
   })
 
-  carpetasOrdenadas.forEach(carpeta => {
+  if (!carpetasOrdenadas.length) {
     const option = document.createElement("option")
-    option.value = carpeta.id
-    option.textContent = `${normalizarSemestre(carpeta.semestre)} · ${carpeta.nombre || "Carpeta sin título"}`
+    option.value = ""
+    option.textContent = "Sin carpetas disponibles"
     selectorCarpeta.appendChild(option)
-  })
+    selectorCarpeta.disabled = true
+  } else {
+    carpetasOrdenadas.forEach(carpeta => {
+      const option = document.createElement("option")
+      option.value = carpeta.id
+      option.textContent = `${normalizarSemestre(carpeta.semestre)} · ${carpeta.nombre || "Carpeta sin título"}`
+      selectorCarpeta.appendChild(option)
+    })
 
-  if (carpetaActualId) {
-    selectorCarpeta.value = carpetaActualId
+    if (carpetaActualId && carpetasOrdenadas.some(c => c.id === carpetaActualId)) {
+      selectorCarpeta.value = carpetaActualId
+    } else {
+      selectorCarpeta.value = carpetasOrdenadas[0].id
+    }
   }
-
-  selectorCarpeta.disabled = !carpetas.length
 
   const moverACarpetaBtn = document.createElement("button")
   moverACarpetaBtn.type = "button"
-  moverACarpetaBtn.className = "btn-secondary"
+  moverACarpetaBtn.className = "btn-secondary materia-mover-btn"
   moverACarpetaBtn.textContent = "Mover a carpeta"
   moverACarpetaBtn.disabled = !carpetas.length
   moverACarpetaBtn.addEventListener("click", () => {

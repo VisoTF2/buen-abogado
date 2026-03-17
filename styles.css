@@ -3103,16 +3103,15 @@ body.oscuro #documentoLecturaClose.modal-close:hover {
     }
 
     .materia-controls {
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(220px, 320px) auto 32px 32px auto;
       align-items: center;
-      justify-content: flex-end;
+      justify-content: end;
       gap: 8px;
-      flex-wrap: wrap;
     }
 
     .materia-carpeta-select {
-      min-width: 220px;
-      max-width: 320px;
+      width: 100%;
       height: 32px;
       border-radius: 8px;
       border: 1px solid var(--border);
@@ -3121,6 +3120,7 @@ body.oscuro #documentoLecturaClose.modal-close:hover {
       font-size: 13px;
       font-weight: 600;
       padding: 0 10px;
+      box-sizing: border-box;
     }
 
     .materia-carpeta-select:focus,
@@ -3130,10 +3130,25 @@ body.oscuro #documentoLecturaClose.modal-close:hover {
       box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.18);
     }
 
-    .materia-controls .btn-secondary {
+    .materia-controls .btn-secondary,
+    .materia-controls .btn-small {
       height: 32px;
       padding: 0 12px;
       white-space: nowrap;
+      margin: 0;
+    }
+
+    .materia-controls .btn-preview-close {
+      margin-left: 0;
+    }
+
+    .materia-controls .preview-close-x {
+      width: 32px;
+      height: 32px;
+    }
+
+    .materia-mover-btn {
+      min-width: 132px;
     }
 
     .materia-color-input {
@@ -3165,10 +3180,26 @@ body.oscuro #documentoLecturaClose.modal-close:hover {
     }
 
 
+@media (max-width: 980px) {
+  .materia-controls {
+    grid-template-columns: minmax(170px, 1fr) auto 32px 32px auto;
+  }
+}
+
 @media (max-width: 760px) {
+  .materia-controls {
+    grid-template-columns: 1fr 1fr;
+    justify-content: stretch;
+  }
+
   .materia-carpeta-select {
-    min-width: 170px;
-    max-width: 100%;
+    grid-column: 1 / -1;
+  }
+
+  .materia-mover-btn,
+  .materia-controls .btn-small {
+    width: 100%;
+    min-width: 0;
   }
 }
 
