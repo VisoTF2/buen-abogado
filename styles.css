@@ -743,6 +743,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       overflow: hidden;
       flex: 1 1 380px;
       min-width: 0;
+      position: relative;
     }
 
     .documentos-preview h4 {
@@ -784,26 +785,41 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       width: 100%;
     }
 
-
-    .documento-preview-ampliar {
+    .documento-preview-lupa {
+      position: absolute;
+      right: 22px;
+      bottom: 22px;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
       border: 1px solid var(--border);
       background: var(--card);
       color: var(--text);
-      border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 12px;
-      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
       cursor: pointer;
-      flex-shrink: 0;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(4px);
+      transition: opacity 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+      z-index: 3;
     }
 
-    .documento-preview-ampliar:hover {
+    .documento-preview-lupa.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .documento-preview-lupa:hover {
       border-color: var(--accent-light);
-      background: rgba(30, 58, 138, 0.08);
     }
 
     .documento-lectura-card {
-      width: min(98vw, 1400px);
+      width: min(99vw, 1680px);
       height: min(92vh, 920px);
       max-height: 92vh;
     }
@@ -1862,15 +1878,6 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       overflow-y: auto;
     }
 
-    .documento-texto[contenteditable="true"] {
-      cursor: text;
-    }
-
-    .documento-texto[contenteditable="true"]:focus {
-      outline: none;
-      border-color: var(--border);
-      box-shadow: none;
-    }
 
     .documento-alerta {
       padding: 14px;
