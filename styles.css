@@ -49,6 +49,10 @@
       --grade-input-bg: #ffffff;
       --grade-row-bg: #f8fafc;
       --grade-summary-icon: #475569;
+      --scrollbar-track: #d2d4d8;
+      --scrollbar-thumb: #8f9399;
+      --scrollbar-thumb-hover: #747a82;
+      --scrollbar-arrow: #8a8a8a;
     }
 
     body.oscuro {
@@ -90,6 +94,10 @@
       --grade-input-bg: #0f172a;
       --grade-row-bg: #1f2937;
       --grade-summary-icon: #cbd5e1;
+      --scrollbar-track: #2b2f36;
+      --scrollbar-thumb: #7f8896;
+      --scrollbar-thumb-hover: #98a2b0;
+      --scrollbar-arrow: #9aa3ad;
     }
 
     body {
@@ -100,6 +108,57 @@
       color: var(--text);
       transition: 0.25s ease;
       overflow-x: hidden;
+    }
+
+    * {
+      scrollbar-width: auto;
+      scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    }
+
+    *::-webkit-scrollbar {
+      width: 14px;
+      height: 14px;
+      background: var(--scrollbar-track);
+    }
+
+    *::-webkit-scrollbar-track {
+      background: var(--scrollbar-track);
+      border-radius: 10px;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+      border-radius: 10px;
+      border: 3px solid var(--scrollbar-track);
+      min-height: 28px;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+      background: var(--scrollbar-thumb-hover);
+    }
+
+    *::-webkit-scrollbar-button:single-button {
+      display: block;
+      height: 14px;
+      width: 14px;
+      background: var(--scrollbar-track);
+      border: none;
+    }
+
+    *::-webkit-scrollbar-button:single-button:vertical:decrement {
+      border-style: solid;
+      border-width: 0 5px 7px 5px;
+      border-color: transparent transparent var(--scrollbar-arrow) transparent;
+    }
+
+    *::-webkit-scrollbar-button:single-button:vertical:increment {
+      border-style: solid;
+      border-width: 7px 5px 0 5px;
+      border-color: var(--scrollbar-arrow) transparent transparent transparent;
+    }
+
+    *::-webkit-scrollbar-corner {
+      background: var(--scrollbar-track);
     }
 
     body.fondo-personalizado {
@@ -814,7 +873,42 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       gap: 10px;
       min-height: 0;
       height: 100%;
-      overflow: hidden;
+      overflow: auto;
+      align-items: flex-start;
+      justify-content: flex-start;
+      padding: 6px;
+    }
+
+    .documento-lectura-body.pan-enabled {
+      cursor: grab;
+    }
+
+    .documento-lectura-body.is-panning {
+      cursor: grabbing;
+      user-select: none;
+    }
+
+    .documento-lectura-toolbar {
+      margin-left: auto;
+    }
+
+    .documento-lectura-zoom-area {
+      display: inline-block;
+      flex: 0 0 auto;
+      margin: auto;
+    }
+
+    .documento-lectura-canvas-wrap {
+      position: relative;
+      display: inline-block;
+      transform: scale(var(--documento-zoom, 1));
+      transform-origin: top left;
+    }
+
+    .documento-lectura-canvas-wrap:focus,
+    .documento-lectura-canvas-wrap:focus-visible {
+      outline: none;
+      box-shadow: none;
     }
 
     .documento-lectura-texto {
