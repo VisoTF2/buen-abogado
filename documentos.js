@@ -758,8 +758,6 @@ function mostrarDocumento(id, terminoBusqueda = "", indiceCoincidencia = null) {
 
   visorDocumentos.appendChild(construirEncabezadoVista(doc))
 
-  let areaPreview = null
-
   if ((doc.extension === "pdf" || doc.extension === "docx" || doc.extension === "pptx") && doc.texto) {
     const texto = document.createElement("div")
     texto.className = "documento-texto"
@@ -771,20 +769,17 @@ function mostrarDocumento(id, terminoBusqueda = "", indiceCoincidencia = null) {
       aplicarResaltadoEnTexto(doc.texto, texto, terminoBusqueda, indiceCoincidencia)
     }
 
-    areaPreview = texto
     visorDocumentos.appendChild(texto)
   } else if ((doc.extension === "pdf" || doc.extension === "doc" || doc.extension === "docx" || doc.extension === "ppt" || doc.extension === "pptx") && doc.url) {
     const iframe = document.createElement("iframe")
     iframe.className = "documento-iframe"
     iframe.src = doc.url
     iframe.title = `Vista previa de ${doc.nombre}`
-    areaPreview = iframe
     visorDocumentos.appendChild(iframe)
   } else {
     const alerta = document.createElement("div")
     alerta.className = "documento-alerta"
     alerta.textContent = doc.mensaje || "No se pudo generar vista previa."
-    areaPreview = alerta
     visorDocumentos.appendChild(alerta)
   }
 
@@ -801,26 +796,6 @@ function mostrarDocumento(id, terminoBusqueda = "", indiceCoincidencia = null) {
     visorDocumentos.appendChild(descarga)
   }
 
-  if (areaPreview) {
-    const lupa = document.createElement("button")
-    lupa.type = "button"
-    lupa.className = "documento-preview-lupa"
-    lupa.setAttribute("aria-label", "Abrir lectura ampliada")
-    lupa.title = "Abrir lectura ampliada"
-    lupa.textContent = "🔍"
-    lupa.addEventListener("click", () => abrirLecturaDocumento(doc.id))
-
-    areaPreview.addEventListener("click", () => {
-      lupa.classList.add("visible")
-    })
-
-    if (areaPreview.tagName === "IFRAME") {
-      lupa.classList.add("visible")
-    }
-
-    visorDocumentos.appendChild(lupa)
-  }
-
   actualizarBotonesVer()
 }
 
@@ -834,6 +809,13 @@ function construirEncabezadoVista(doc) {
   encabezado.appendChild(titulo)
 
   if (doc) {
+    const abrirLectura = document.createElement("button")
+    abrirLectura.type = "button"
+    abrirLectura.className = "documento-preview-ampliar"
+    abrirLectura.textContent = "Abrir lectura"
+    abrirLectura.setAttribute("aria-label", "Abrir vista ampliada del documento")
+    abrirLectura.addEventListener("click", () => abrirLecturaDocumento(doc.id))
+
     const cerrar = document.createElement("button")
     cerrar.type = "button"
     cerrar.className = "preview-close-x documento-preview-cerrar"
@@ -894,6 +876,7 @@ function construirEncabezadoVista(doc) {
         activarEdicion()
       }
     })
+    encabezado.appendChild(abrirLectura)
     encabezado.appendChild(cerrar)
   }
 
