@@ -343,6 +343,73 @@ function obtenerDocumentoPorId(id) {
   return documentosCargados.find(doc => doc.id === id) || null
 }
 
+const DOCUMENTO_ZOOM_STEP = 0.05
+const DOCUMENTO_MIN_ZOOM = 1
+const DOCUMENTO_MAX_ZOOM = 2.5
+let documentoZoomScale = 1
+let documentoZoomBaseSize = null
+let documentoZoomFocus = false
+let documentoPanActivo = false
+let documentoPanPointerId = null
+let documentoPanStartX = 0
+let documentoPanStartY = 0
+let documentoPanScrollLeft = 0
+let documentoPanScrollTop = 0
+
+function calcularBaseDocumentoSize(modal) {
+  if (!modal?.body || !modal?.contentWrap) return null
+  const contenido = modal.contentWrap.firstElementChild
+  if (!contenido) return null
+  const bodyWidth = modal.body.clientWidth || 1
+  const bodyHeight = modal.body.clientHeight || 1
+  const contenidoWidth = Math.max(contenido.scrollWidth || 0, contenido.clientWidth || 0, contenido.offsetWidth || 0)
+  const contenidoHeight = Math.max(contenido.scrollHeight || 0, contenido.clientHeight || 0, contenido.offsetHeight || 0)
+  const width = Math.max(1, Math.min(bodyWidth, contenidoWidth || bodyWidth))
+  const height = Math.max(1, Math.min(Math.max(bodyHeight, 560), contenidoHeight || bodyHeight))
+  return { width: Math.round(width), height: Math.round(height) }
+}
+
+function actualizarEstadoPaneoDocumento(modal) {
+  if (!modal?.body || !modal?.backdrop) return
+  const previewVisible = modal.backdrop.classList.contains("visible")
+  const paneoDisponible = previewVisible && documentoZoomScale > 1
+  modal.body.classList.toggle("pan-enabled", paneoDisponible)
+  modal.body.classList.toggle("is-panning", paneoDisponible && documentoPanActivo)
+}
+
+function detenerPaneoDocumento(modal) {
+  documentoPanActivo = false
+  documentoPanPointerId = null
+  actualizarEstadoPaneoDocumento(modal)
+}
+
+function actualizarZoomDocumento(modal) {
+  if (!modal?.contentWrap || !modal?.zoomArea || !documentoZoomBaseSize) return
+  const width = documentoZoomBaseSize.width
+  const height = documentoZoomBaseSize.height
+  const scaledWidth = Math.round(width * documentoZoomScale)
+  const scaledHeight = Math.round(height * documentoZoomScale)
+  modal.contentWrap.style.setProperty("--documento-zoom", documentoZoomScale.toFixed(3))
+  modal.zoomArea.style.width = `${scaledWidth}px`
+  modal.zoomArea.style.height = `${scaledHeight}px`
+  actualizarEstadoPaneoDocumento(modal)
+}
+
+function aplicarZoomDocumento(modal, nivel) {
+  const limitado = Math.min(DOCUMENTO_MAX_ZOOM, Math.max(DOCUMENTO_MIN_ZOOM, nivel))
+  documentoZoomScale = limitado
+  actualizarZoomDocumento(modal)
+}
+
+function ajustarZoomDocumento(modal) {
+  const baseSize = calcularBaseDocumentoSize(modal)
+  if (!baseSize || !modal?.contentWrap) return
+  documentoZoomBaseSize = baseSize
+  modal.contentWrap.style.width = `${baseSize.width}px`
+  modal.contentWrap.style.height = `${baseSize.height}px`
+  actualizarZoomDocumento(modal)
+}
+
 function asegurarModalLecturaDocumentos() {
   if (modalLecturaDocumentos) return modalLecturaDocumentos
 
@@ -362,6 +429,27 @@ function asegurarModalLecturaDocumentos() {
   titulo.className = "documento-lectura-titulo"
   titulo.textContent = "Lectura de documento"
 
+  const toolbar = document.createElement("div")
+  toolbar.className = "malla-preview-toolbar documento-lectura-toolbar"
+
+  const zoomControls = document.createElement("div")
+  zoomControls.className = "malla-zoom-controls"
+  zoomControls.setAttribute("aria-label", "Controles de zoom del documento")
+
+  const zoomIn = document.createElement("button")
+  zoomIn.type = "button"
+  zoomIn.className = "zoom-btn"
+  zoomIn.setAttribute("aria-label", "Aumentar zoom del documento")
+  zoomIn.setAttribute("title", "Aumentar zoom (Ctrl +)")
+  zoomIn.textContent = "+"
+
+  const zoomOut = document.createElement("button")
+  zoomOut.type = "button"
+  zoomOut.className = "zoom-btn"
+  zoomOut.setAttribute("aria-label", "Disminuir zoom del documento")
+  zoomOut.setAttribute("title", "Disminuir zoom (Ctrl -)")
+  zoomOut.textContent = "−"
+
   const cerrar = document.createElement("button")
   cerrar.type = "button"
   cerrar.className = "modal-close"
@@ -372,14 +460,32 @@ function asegurarModalLecturaDocumentos() {
   const body = document.createElement("div")
   body.className = "modal-body documento-lectura-body"
 
+  const zoomArea = document.createElement("div")
+  zoomArea.className = "documento-lectura-zoom-area"
+
+  const contentWrap = document.createElement("div")
+  contentWrap.className = "documento-lectura-canvas-wrap"
+  contentWrap.tabIndex = 0
+  contentWrap.setAttribute("aria-label", "Vista del documento con zoom")
+
+  zoomControls.appendChild(zoomIn)
+  zoomControls.appendChild(zoomOut)
+  toolbar.appendChild(zoomControls)
+
   head.appendChild(titulo)
+  head.appendChild(toolbar)
   head.appendChild(cerrar)
+
+  zoomArea.appendChild(contentWrap)
+  body.appendChild(zoomArea)
+
   card.appendChild(head)
   card.appendChild(body)
   backdrop.appendChild(card)
   document.body.appendChild(backdrop)
 
   const cerrarModal = () => {
+    detenerPaneoDocumento(modalLecturaDocumentos)
     backdrop.classList.remove("visible")
     backdrop.setAttribute("aria-hidden", "true")
   }
@@ -389,13 +495,125 @@ function asegurarModalLecturaDocumentos() {
     if (e.target === backdrop) cerrarModal()
   })
 
+  zoomIn.addEventListener("click", () => {
+    aplicarZoomDocumento(modalLecturaDocumentos, documentoZoomScale + DOCUMENTO_ZOOM_STEP)
+  })
+
+  zoomOut.addEventListener("click", () => {
+    aplicarZoomDocumento(modalLecturaDocumentos, documentoZoomScale - DOCUMENTO_ZOOM_STEP)
+  })
+
+  contentWrap.addEventListener("mouseenter", () => {
+    documentoZoomFocus = true
+  })
+
+  contentWrap.addEventListener("mouseleave", () => {
+    documentoZoomFocus = false
+  })
+
+  contentWrap.addEventListener("focusin", () => {
+    documentoZoomFocus = true
+  })
+
+  contentWrap.addEventListener("focusout", () => {
+    documentoZoomFocus = false
+  })
+
+  contentWrap.addEventListener("pointerdown", () => {
+    contentWrap.focus?.()
+  })
+
+  body.addEventListener("pointerdown", event => {
+    if (event.pointerType !== "mouse" || event.button !== 2) return
+    if (!backdrop.classList.contains("visible")) return
+    if (documentoZoomScale <= 1) return
+    documentoPanActivo = true
+    documentoPanPointerId = event.pointerId
+    documentoPanStartX = event.clientX
+    documentoPanStartY = event.clientY
+    documentoPanScrollLeft = body.scrollLeft
+    documentoPanScrollTop = body.scrollTop
+    body.setPointerCapture?.(event.pointerId)
+    event.preventDefault()
+    actualizarEstadoPaneoDocumento(modalLecturaDocumentos)
+  })
+
+  body.addEventListener("pointermove", event => {
+    if (!documentoPanActivo || event.pointerId !== documentoPanPointerId) return
+    const deltaX = event.clientX - documentoPanStartX
+    const deltaY = event.clientY - documentoPanStartY
+    body.scrollLeft = documentoPanScrollLeft - deltaX
+    body.scrollTop = documentoPanScrollTop - deltaY
+  })
+
+  const detenerPaneoPorPointer = event => {
+    if (event.pointerId !== documentoPanPointerId) return
+    body.releasePointerCapture?.(event.pointerId)
+    detenerPaneoDocumento(modalLecturaDocumentos)
+  }
+
+  body.addEventListener("pointerup", detenerPaneoPorPointer)
+  body.addEventListener("pointercancel", detenerPaneoPorPointer)
+  body.addEventListener("contextmenu", event => {
+    if (!backdrop.classList.contains("visible")) return
+    if (documentoZoomScale <= 1) return
+    event.preventDefault()
+  })
+
   document.addEventListener("keydown", e => {
     if (e.key === "Escape" && backdrop.classList.contains("visible")) {
       cerrarModal()
     }
   })
 
-  modalLecturaDocumentos = { backdrop, body, titulo, cerrarModal }
+  window.documentoZoomApi = {
+    handleWheel(event) {
+      if (!event.ctrlKey) return false
+      if (!backdrop.classList.contains("visible")) return false
+      if (!contentWrap.contains(event.target)) return false
+      event.preventDefault()
+      const delta = event.deltaY > 0 ? -DOCUMENTO_ZOOM_STEP : DOCUMENTO_ZOOM_STEP
+      aplicarZoomDocumento(modalLecturaDocumentos, documentoZoomScale + delta)
+      return true
+    },
+    handleKeydown(event) {
+      const ctrl = event.ctrlKey || event.metaKey
+      if (!ctrl) return false
+      if (!backdrop.classList.contains("visible")) return false
+      if (!documentoZoomFocus) return false
+      if (event.key === "+" || event.key === "=") {
+        event.preventDefault()
+        aplicarZoomDocumento(modalLecturaDocumentos, documentoZoomScale + DOCUMENTO_ZOOM_STEP)
+        return true
+      }
+      if (event.key === "-" || event.key === "_") {
+        event.preventDefault()
+        aplicarZoomDocumento(modalLecturaDocumentos, documentoZoomScale - DOCUMENTO_ZOOM_STEP)
+        return true
+      }
+      if (event.key === "0") {
+        event.preventDefault()
+        aplicarZoomDocumento(modalLecturaDocumentos, 1)
+        return true
+      }
+      return false
+    }
+  }
+
+  window.addEventListener("resize", () => {
+    if (!backdrop.classList.contains("visible")) return
+    ajustarZoomDocumento(modalLecturaDocumentos)
+  })
+
+  modalLecturaDocumentos = {
+    backdrop,
+    body,
+    titulo,
+    zoomArea,
+    contentWrap,
+    cerrarModal
+  }
+
   return modalLecturaDocumentos
 }
 
@@ -405,28 +623,31 @@ function abrirLecturaDocumento(id) {
 
   const modal = asegurarModalLecturaDocumentos()
   modal.titulo.textContent = doc.nombre || "Lectura de documento"
-  modal.body.innerHTML = ""
+  modal.contentWrap.innerHTML = ""
 
   if (doc.texto) {
     const texto = document.createElement("div")
     texto.className = "documento-lectura-texto"
     texto.textContent = doc.texto
-    modal.body.appendChild(texto)
+    modal.contentWrap.appendChild(texto)
   } else if ((doc.extension === "pdf" || doc.extension === "doc" || doc.extension === "docx" || doc.extension === "ppt" || doc.extension === "pptx") && doc.url) {
     const iframe = document.createElement("iframe")
     iframe.className = "documento-lectura-iframe"
     iframe.src = doc.url
     iframe.title = `Lectura ampliada de ${doc.nombre || "documento"}`
-    modal.body.appendChild(iframe)
+    modal.contentWrap.appendChild(iframe)
   } else {
     const alerta = document.createElement("div")
     alerta.className = "documento-alerta"
     alerta.textContent = doc.mensaje || "No se pudo generar vista previa ampliada."
-    modal.body.appendChild(alerta)
+    modal.contentWrap.appendChild(alerta)
   }
 
+  documentoZoomScale = 1
+  documentoZoomBaseSize = null
   modal.backdrop.classList.add("visible")
   modal.backdrop.setAttribute("aria-hidden", "false")
+  requestAnimationFrame(() => ajustarZoomDocumento(modal))
 }
 
 async function extraerTextoDocx(archivo) {
@@ -797,7 +1018,6 @@ function construirEncabezadoVista(doc) {
   const titulo = document.createElement("h4")
   titulo.className = "documento-preview-titulo"
   titulo.textContent = doc ? doc.nombre : "Vista previa"
-  encabezado.appendChild(titulo)
 
   if (doc) {
     const abrirLectura = document.createElement("button")
@@ -868,7 +1088,10 @@ function construirEncabezadoVista(doc) {
       }
     })
     encabezado.appendChild(abrirLectura)
+    encabezado.appendChild(titulo)
     encabezado.appendChild(cerrar)
+  } else {
+    encabezado.appendChild(titulo)
   }
 
   return encabezado
