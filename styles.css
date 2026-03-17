@@ -1509,6 +1509,10 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       align-items: end;
     }
 
+    .grade-config-grid > * {
+      min-width: 0;
+    }
+
     .grade-field {
       display: flex;
       flex-direction: column;
@@ -1516,6 +1520,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       font-size: 11px;
       color: var(--grade-subtle-text);
       font-weight: 700;
+      min-width: 0;
     }
 
     .grade-field span {
@@ -1523,7 +1528,8 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       line-height: 1.2;
       display: flex;
       align-items: flex-end;
-      white-space: nowrap;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }
 
     .grade-field input,
@@ -1734,6 +1740,13 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       .grade-control-remove,
       .grade-danger-btn {
         width: 100%;
+      }
+    }
+
+
+    @media (max-width: 560px) {
+      .grade-config-grid {
+        grid-template-columns: 1fr;
       }
     }
 
