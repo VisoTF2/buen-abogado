@@ -659,14 +659,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     .documento-nombre-text {
       padding: 6px 0;
       border-radius: 6px;
-      cursor: text;
+      cursor: default;
       min-width: 0;
       display: block;
-    }
-
-    .documento-nombre-text:focus {
-      outline: none;
-      box-shadow: inset 0 -1px 0 var(--accent-light);
     }
 
     .documento-nombre-input {
@@ -748,6 +743,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       overflow: hidden;
       flex: 1 1 380px;
       min-width: 0;
+      position: relative;
     }
 
     .documentos-preview h4 {
@@ -769,12 +765,78 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       text-overflow: ellipsis;
     }
 
+    .documento-preview-nombre-input {
+      color: inherit;
+      font: inherit;
+      font-weight: 700;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .documento-preview-nombre-input:focus {
+      color: inherit;
+    }
+
     .documento-preview-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
       width: 100%;
+    }
+
+
+    .documento-preview-ampliar {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .documento-preview-ampliar:hover {
+      border-color: var(--accent-light);
+      background: rgba(30, 58, 138, 0.08);
+    }
+
+    .documento-lectura-card {
+      width: min(860px, 94vw);
+      max-height: min(88vh, 860px);
+    }
+
+    .documento-lectura-body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .documento-lectura-texto {
+      white-space: pre-wrap;
+      overflow: auto;
+      flex: 1 1 auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      line-height: 1.6;
+      background: var(--article-bg);
+      color: var(--text);
+    }
+
+    .documento-lectura-iframe {
+      width: 100%;
+      min-height: 560px;
+      height: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      flex: 1 1 auto;
     }
 
     .preview-close-x {
@@ -1800,15 +1862,6 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       overflow-y: auto;
     }
 
-    .documento-texto[contenteditable="true"] {
-      cursor: text;
-    }
-
-    .documento-texto[contenteditable="true"]:focus {
-      outline: none;
-      border-color: var(--border);
-      box-shadow: none;
-    }
 
     .documento-alerta {
       padding: 14px;
@@ -2615,6 +2668,13 @@ body.oscuro .carpetaToggle {
   gap: var(--modal-gap);
 }
 
+
+.modal-card.documento-lectura-card {
+  width: min(860px, 94vw);
+  max-width: min(860px, 94vw);
+  max-height: min(88vh, 860px);
+}
+
 .modal-head {
   display: flex;
   align-items: center;
@@ -2664,7 +2724,8 @@ body.oscuro .modal-close:hover {
 
 
 #modalConfiguracion .modal-close,
-#mallaPreviewClose.modal-close {
+#mallaPreviewClose.modal-close,
+#documentoLecturaClose.modal-close {
   background: transparent;
   border: none;
   color: var(--danger-solid-bg);
@@ -2686,18 +2747,21 @@ body.oscuro .modal-close:hover {
 }
 
 #modalConfiguracion .modal-close:hover,
-#mallaPreviewClose.modal-close:hover {
+#mallaPreviewClose.modal-close:hover,
+#documentoLecturaClose.modal-close:hover {
   background: var(--danger-solid-bg);
   color: #fff;
 }
 
 #modalConfiguracion .modal-close:active,
-#mallaPreviewClose.modal-close:active {
+#mallaPreviewClose.modal-close:active,
+#documentoLecturaClose.modal-close:active {
   transform: translateY(1px);
 }
 
 body.oscuro #modalConfiguracion .modal-close:hover,
-body.oscuro #mallaPreviewClose.modal-close:hover {
+body.oscuro #mallaPreviewClose.modal-close:hover,
+body.oscuro #documentoLecturaClose.modal-close:hover {
   background: var(--danger-solid-bg);
   color: #fff;
 }
@@ -3715,6 +3779,7 @@ body.oscuro .action-buttons .class-delete:hover { background: var(--danger-solid
 
 #modalConfiguracion .modal-close,
 #mallaPreviewClose.modal-close,
+#documentoLecturaClose.modal-close,
 .buscador-cerrar {
   padding-bottom: 2px;
 }
