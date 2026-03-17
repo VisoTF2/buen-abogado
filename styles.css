@@ -2923,13 +2923,25 @@ body.oscuro #documentoLecturaClose.modal-close:hover {
 }
 
 .config-option-color input[type="color"] {
-  width: 36px;
-  height: 28px;
-  padding: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background: transparent;
+  padding: 0;
   cursor: pointer;
+  background: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.config-option-color input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 3px;
+  border-radius: 50%;
+}
+
+.config-option-color input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 50%;
 }
 
 .config-range {
