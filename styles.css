@@ -2922,6 +2922,16 @@ body.oscuro #documentoLecturaClose.modal-close:hover {
   justify-self: end;
 }
 
+.config-option-color input[type="color"] {
+  width: 36px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+
 .config-range {
   display: flex;
   flex-direction: column;
