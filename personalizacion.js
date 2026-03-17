@@ -7,7 +7,9 @@ const bannerFillToggle = document.getElementById("bannerFillToggle")
 const fondoInput = document.getElementById("fondoInput")
 const FONDO_STORAGE_KEY = "fondoImagenApp"
 const accentColorInput = document.getElementById("accentColorInput")
+const accentApplyDarkToggle = document.getElementById("accentApplyDarkToggle")
 const ACCENT_COLOR_STORAGE_KEY = "colorAcentoApp"
+const ACCENT_COLOR_APPLY_DARK_KEY = "colorAcentoModoOscuro"
 const mallaInput = document.getElementById("mallaInput")
 const mallaToggle = document.getElementById("mallaToggle")
 const MALLA_STORAGE_KEY = "mallaImagenHorario"
@@ -89,20 +91,45 @@ function aclararColor(hex, factor = 0.24) {
   return `#${resultado}`
 }
 
-function aplicarColorAcento(hex) {
+function aplicarColorAcento(hex, incluirModoOscuro = false) {
   const color = normalizarHexColor(hex)
   if (!color) return
   const colorClaro = aclararColor(color)
   document.documentElement.style.setProperty("--accent", color)
   document.documentElement.style.setProperty("--accent-light", colorClaro)
+
+  if (incluirModoOscuro) {
+    document.body.style.setProperty("--accent", color)
+    document.body.style.setProperty("--accent-light", colorClaro)
+  } else {
+    document.body.style.removeProperty("--accent")
+    document.body.style.removeProperty("--accent-light")
+  }
+
   if (accentColorInput) accentColorInput.value = color
 }
 
+function aplicarColorAcentoGuardado() {
+  const colorGuardado = normalizarHexColor(localStorage.getItem(ACCENT_COLOR_STORAGE_KEY) || "")
+  const incluirModoOscuro = localStorage.getItem(ACCENT_COLOR_APPLY_DARK_KEY) === "true"
+
+  if (accentApplyDarkToggle) accentApplyDarkToggle.checked = incluirModoOscuro
+
+  if (!colorGuardado) {
+    document.documentElement.style.removeProperty("--accent")
+    document.documentElement.style.removeProperty("--accent-light")
+    document.body.style.removeProperty("--accent")
+    document.body.style.removeProperty("--accent-light")
+    if (accentColorInput) accentColorInput.value = "#1e3a8a"
+    return
+  }
+
+  aplicarColorAcento(colorGuardado, incluirModoOscuro)
+}
+
 function restablecerColorAcento() {
-  document.documentElement.style.removeProperty("--accent")
-  document.documentElement.style.removeProperty("--accent-light")
   localStorage.removeItem(ACCENT_COLOR_STORAGE_KEY)
-  if (accentColorInput) accentColorInput.value = "#1e3a8a"
+  aplicarColorAcentoGuardado()
 }
 
 function abrirSelectorBanner() {
@@ -204,11 +231,13 @@ fondoInput?.addEventListener("change", e => {
 function toggleModo() {
   const activo = document.body.classList.toggle("oscuro")
   localStorage.setItem(MODO_OSCURO_STORAGE_KEY, activo ? "true" : "false")
+  aplicarColorAcentoGuardado()
 }
 
 accentColorInput?.addEventListener("input", () => {
-  aplicarColorAcento(accentColorInput.value)
-  localStorage.setItem(ACCENT_COLOR_STORAGE_KEY, accentColorInput.value)
+  const color = accentColorInput.value
+  localStorage.setItem(ACCENT_COLOR_STORAGE_KEY, color)
+  aplicarColorAcentoGuardado()
 })
 
 accentColorInput?.addEventListener("change", () => {
@@ -217,8 +246,13 @@ accentColorInput?.addEventListener("change", () => {
     restablecerColorAcento()
     return
   }
-  aplicarColorAcento(color)
   localStorage.setItem(ACCENT_COLOR_STORAGE_KEY, color)
+  aplicarColorAcentoGuardado()
+})
+
+accentApplyDarkToggle?.addEventListener("change", () => {
+  localStorage.setItem(ACCENT_COLOR_APPLY_DARK_KEY, accentApplyDarkToggle.checked ? "true" : "false")
+  aplicarColorAcentoGuardado()
 })
 
 function abrirSelectorMalla() {
@@ -773,12 +807,10 @@ window.mallaZoomApi = {
 habilitarResizeMalla()
 aplicarModoGuardado()
 const accentColorGuardado = localStorage.getItem(ACCENT_COLOR_STORAGE_KEY) || ""
-if (normalizarHexColor(accentColorGuardado)) {
-  aplicarColorAcento(accentColorGuardado)
-} else {
-  if (accentColorGuardado) localStorage.removeItem(ACCENT_COLOR_STORAGE_KEY)
-  if (accentColorInput) accentColorInput.value = "#1e3a8a"
+if (!normalizarHexColor(accentColorGuardado) && accentColorGuardado) {
+  localStorage.removeItem(ACCENT_COLOR_STORAGE_KEY)
 }
+aplicarColorAcentoGuardado()
 aplicarBanner(localStorage.getItem(BANNER_STORAGE_KEY) || "")
 aplicarFondoBannerActivo(localStorage.getItem(BANNER_FILL_ENABLED_KEY) !== "false")
 aplicarFondo(localStorage.getItem(FONDO_STORAGE_KEY) || "")
