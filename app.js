@@ -44,6 +44,7 @@ let carpetas = cargarJSONConRespaldo("carpetasMaterias", []).map(c => ({
 let normativaSeleccionada = null
 let materiaSeleccionada = null
 const MATERIA_PREVIEW_CERRADA_KEY = "materiaPreviewCerrada"
+const MATERIA_ACTIVA_STORAGE_KEY = "materiaActivaSeleccionada"
 let vistaMateriaCerrada = cargarVistaMateriaCerrada()
 let materiaDropProcesado = false
 const appRoot = document.getElementById("appRoot")
@@ -93,10 +94,38 @@ function cargarVistaMateriaCerrada() {
   return localStorage.getItem(MATERIA_PREVIEW_CERRADA_KEY) === "1"
 }
 
+function cargarMateriaActiva() {
+  try {
+    const guardada = JSON.parse(localStorage.getItem(MATERIA_ACTIVA_STORAGE_KEY) || "null")
+    if (!guardada || typeof guardada !== "object") return
+    if (typeof guardada.normativa !== "string" || typeof guardada.materia !== "string") return
+
+    normativaSeleccionada = guardada.normativa
+    materiaSeleccionada = guardada.materia
+  } catch (_error) {
+    normativaSeleccionada = null
+    materiaSeleccionada = null
+  }
+}
+
+function guardarMateriaActiva() {
+  if (!normativaSeleccionada || !materiaSeleccionada) {
+    localStorage.removeItem(MATERIA_ACTIVA_STORAGE_KEY)
+    return
+  }
+
+  localStorage.setItem(
+    MATERIA_ACTIVA_STORAGE_KEY,
+    JSON.stringify({ normativa: normativaSeleccionada, materia: materiaSeleccionada })
+  )
+}
+
 function setVistaMateriaCerrada(valor) {
   vistaMateriaCerrada = Boolean(valor)
   localStorage.setItem(MATERIA_PREVIEW_CERRADA_KEY, vistaMateriaCerrada ? "1" : "0")
 }
+
+cargarMateriaActiva()
 
 function agregarDocumentoASidebar(documentoId) {
   if (!documentoId) return false
@@ -2009,6 +2038,7 @@ function ordenarYMostrar() {
         setVistaMateriaCerrada(false)
         normativaSeleccionada = norm
         materiaSeleccionada = m
+        guardarMateriaActiva()
         sidebar.querySelectorAll(".sidebarItem").forEach(i => i.classList.remove("activa"))
         item.classList.add("activa")
         mostrarArticulosDeMateria(norm, m, agrupado[norm][m])
@@ -2060,6 +2090,8 @@ function ordenarYMostrar() {
     normativaSeleccionada = combos[0].normativa
     materiaSeleccionada = combos[0].materia
   }
+
+  guardarMateriaActiva()
 
   const activo = sidebar.querySelector(
     `.sidebarItem[data-normativa="${normativaSeleccionada}"][data-materia="${materiaSeleccionada}"]`
@@ -2299,6 +2331,7 @@ function renderizarCarpetasSidebar(contenedor, agrupado, sidebar) {
             setVistaMateriaCerrada(false)
             normativaSeleccionada = normativa
             materiaSeleccionada = materia
+            guardarMateriaActiva()
             sidebar.querySelectorAll(".sidebarItem").forEach(i => i.classList.remove("activa"))
             item.classList.add("activa")
             mostrarArticulosDeMateria(normativa, materia, agrupado[normativa][materia])
