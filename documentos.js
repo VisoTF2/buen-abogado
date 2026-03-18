@@ -189,6 +189,8 @@ function guardarTextoDocumentoEditado(id, textoEditado) {
   }
 }
 
+const EXTENSIONES_DOCUMENTO_OCULTABLES = new Set(["pdf", "doc", "docx", "ppt", "pptx"])
+
 function obtenerExtension(nombre = "") {
   const partes = nombre.split(".")
   return partes.length > 1 ? partes.pop().toLowerCase() : ""
@@ -198,10 +200,12 @@ function obtenerNombreDocumento(nombre = "") {
   const limpio = (nombre || "").trim()
   if (!limpio) return "Documento"
 
-  const ultimoPunto = limpio.lastIndexOf(".")
-  if (ultimoPunto <= 0) return limpio
+  const extension = obtenerExtension(limpio)
+  if (!EXTENSIONES_DOCUMENTO_OCULTABLES.has(extension)) return limpio
 
-  return limpio.slice(0, ultimoPunto).trim() || "Documento"
+  const sufijo = `.${extension}`
+  const nombreSinExtension = limpio.slice(0, -sufijo.length).trim()
+  return nombreSinExtension || "Documento"
 }
 
 function obtenerNombreDescarga(doc) {
