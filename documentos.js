@@ -923,6 +923,8 @@ function eliminarDocumento(id) {
   const doc = documentosCargados.find(d => d.id === id)
   if (!doc) return
 
+  const estabaAbiertoEnVista = visorDocumentos?.dataset.docActual === id
+
   if (estaDocumentoVinculado(id)) {
     documentosCargados = documentosCargados.map(item => (
       item.id === id ? { ...item, archived: true } : item
@@ -932,7 +934,7 @@ function eliminarDocumento(id) {
     renderDocumentos()
     sincronizarSidebarDocumentos()
 
-    if (visorDocumentos?.dataset.docActual === id) {
+    if (estabaAbiertoEnVista) {
       cerrarVistaDocumento()
     }
     return
@@ -953,9 +955,8 @@ function eliminarDocumento(id) {
   renderDocumentos()
   sincronizarSidebarDocumentos()
 
-  const vistaActualId = visorDocumentos?.dataset.docActual
-  if (doc && vistaActualId === doc.id) {
-    mostrarDocumento(documentosCargados[0]?.id)
+  if (estabaAbiertoEnVista) {
+    cerrarVistaDocumento()
   }
 }
 
