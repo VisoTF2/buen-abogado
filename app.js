@@ -2489,7 +2489,7 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
 
   const moverACarpetaBtn = document.createElement("button")
   moverACarpetaBtn.type = "button"
-  moverACarpetaBtn.className = "btn-secondary materia-mover-btn"
+  moverACarpetaBtn.className = "documento-preview-ampliar materia-mover-btn"
   moverACarpetaBtn.textContent = "Mover a carpeta"
   moverACarpetaBtn.disabled = !carpetas.length
   moverACarpetaBtn.addEventListener("click", () => {
