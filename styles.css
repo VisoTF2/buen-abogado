@@ -3115,22 +3115,22 @@ body.oscuro #documentoLecturaClose.modal-close:hover {
 
     .materia-carpeta-select {
       width: 100%;
-      min-height: 50px;
-      border-radius: 10px;
-      border: 2px solid var(--border);
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
       background: var(--card);
       color: var(--text);
-      font-size: 16px;
-      font-weight: 400;
-      padding: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 0 10px;
       box-sizing: border-box;
     }
 
     .materia-carpeta-select:focus,
     .materia-carpeta-select:focus-visible {
       outline: none;
-      border-color: var(--focus-contrast);
-      box-shadow: none;
+      border-color: var(--accent-light);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.18);
     }
 
     .materia-controls .btn-secondary,
