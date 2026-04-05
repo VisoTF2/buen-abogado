@@ -3958,73 +3958,26 @@ body.oscuro .action-buttons .class-delete:hover { background: var(--danger-solid
 .buscador-cerrar {
   padding-bottom: 2px;
 }
-.cloud-section {
+
+.backup-section {
   border-top: 1px solid rgba(120, 130, 160, 0.25);
   padding-top: 1rem;
 }
 
-.cloud-status-grid {
-  display: grid;
-  gap: 0.35rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.92rem;
-}
-
-.cloud-endpoint-row input {
-  width: min(100%, 380px);
-}
-
-.cloud-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 0.8rem;
-  margin-bottom: 0.8rem;
-}
-
-.cloud-card {
-  border: 1px solid rgba(120, 130, 160, 0.25);
-  border-radius: 10px;
-  padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.5);
-  display: grid;
-  gap: 0.55rem;
-}
-
-body.dark .cloud-card {
-  background: rgba(18, 24, 39, 0.65);
-}
-
-.cloud-card h5 {
-  margin: 0;
-  font-size: 0.95rem;
-}
-
-.cloud-card input {
-  width: 100%;
-  padding: 0.5rem 0.55rem;
-  border-radius: 8px;
-  border: 1px solid rgba(120, 130, 160, 0.45);
-}
-
-.cloud-actions {
+.backup-actions {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  margin-top: 0.5rem;
 }
 
-.cloud-helper {
-  margin: 0;
-  font-size: 0.85rem;
-  opacity: 0.8;
-}
-
-.cloud-message {
-  margin-top: 0.4rem;
+.backup-message {
+  margin-top: 0.6rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #2563eb;
+  color: #1d4ed8;
 }
 
-.cloud-message.error {
+.backup-message.error {
   color: #dc2626;
 }
