@@ -819,8 +819,9 @@ body.oscuro .btn-secondary:hover { background: #334155; }
     }
 
     .documento-lectura-card {
-      width: min(860px, 94vw);
-      max-height: min(88vh, 860px);
+      width: min(1200px, 96vw);
+      max-width: min(1200px, 96vw);
+      max-height: min(92vh, 1000px);
     }
 
     .documento-lectura-body {
@@ -2743,9 +2744,9 @@ body.oscuro .carpetaToggle {
 
 
 .modal-card.documento-lectura-card {
-  width: min(860px, 94vw);
-  max-width: min(860px, 94vw);
-  max-height: min(88vh, 860px);
+  width: min(1200px, 96vw);
+  max-width: min(1200px, 96vw);
+  max-height: min(92vh, 1000px);
 }
 
 .modal-head {
