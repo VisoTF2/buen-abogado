@@ -58,18 +58,18 @@
     if (!container) return
 
     const section = document.createElement('section')
-    section.className = 'config-section backup-section'
+    section.className = 'config-section'
     section.innerHTML = `
       <div class="config-section-head">
         <h4>Respaldo entre dispositivos</h4>
         <p>Descarga un archivo de respaldo y cárgalo en otro dispositivo para migrar tus datos.</p>
       </div>
-      <div class="backup-actions">
+      <div class="config-actions">
         <button class="modo config-action" type="button" id="backupDownloadBtn">Descargar respaldo</button>
         <button class="modo config-action" type="button" id="backupUploadBtn">Cargar respaldo</button>
       </div>
       <input type="file" id="backupFileInput" accept="application/json,.json" hidden>
-      <p class="backup-message" id="backupMessage" role="status" aria-live="polite"></p>
+      <p class="backup-message error" id="backupMessage" role="alert" aria-live="assertive" hidden></p>
     `
 
     container.appendChild(section)
@@ -77,17 +77,22 @@
     const fileInput = document.getElementById('backupFileInput')
     const message = document.getElementById('backupMessage')
 
-    function setMessage(text, isError = false) {
+    function clearMessage() {
+      message.textContent = ''
+      message.hidden = true
+    }
+
+    function setErrorMessage(text) {
       message.textContent = text
-      message.classList.toggle('error', isError)
+      message.hidden = false
     }
 
     document.getElementById('backupDownloadBtn').addEventListener('click', () => {
       try {
         downloadBackupFile()
-        setMessage('Respaldo descargado correctamente.')
+        clearMessage()
       } catch (error) {
-        setMessage(`No se pudo descargar el respaldo: ${error.message}`, true)
+        setErrorMessage(`No se pudo descargar el respaldo: ${error.message}`)
       }
     })
 
@@ -104,10 +109,10 @@
         const text = await file.text()
         const snapshot = JSON.parse(text)
         applySnapshot(snapshot)
-        setMessage('Respaldo cargado. La app se recargará para aplicar cambios.')
+        clearMessage()
         setTimeout(() => window.location.reload(), 500)
       } catch (error) {
-        setMessage(`No se pudo cargar el respaldo: ${error.message}`, true)
+        setErrorMessage(`No se pudo cargar el respaldo: ${error.message}`)
       }
     })
   }
