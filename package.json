@@ -5,7 +5,9 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-packager . --platform=win32 --arch=x64 --overwrite --icon=logo.ico"
+    "build": "electron-packager . --platform=win32 --arch=x64 --overwrite --icon=logo.ico",
+    "start:cloud": "node cloud-backend.js",
+    "start:web": "node server.js"
   },
   "devDependencies": {
     "electron": "^28.0.0",
