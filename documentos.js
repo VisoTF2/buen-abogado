@@ -189,6 +189,8 @@ function guardarTextoDocumentoEditado(id, textoEditado) {
   }
 }
 
+const EXTENSIONES_DOCUMENTO_OCULTABLES = new Set(["pdf", "doc", "docx", "ppt", "pptx"])
+
 function obtenerExtension(nombre = "") {
   const partes = nombre.split(".")
   return partes.length > 1 ? partes.pop().toLowerCase() : ""
@@ -198,10 +200,12 @@ function obtenerNombreDocumento(nombre = "") {
   const limpio = (nombre || "").trim()
   if (!limpio) return "Documento"
 
-  const ultimoPunto = limpio.lastIndexOf(".")
-  if (ultimoPunto <= 0) return limpio
+  const extension = obtenerExtension(limpio)
+  if (!EXTENSIONES_DOCUMENTO_OCULTABLES.has(extension)) return limpio
 
-  return limpio.slice(0, ultimoPunto).trim() || "Documento"
+  const sufijo = `.${extension}`
+  const nombreSinExtension = limpio.slice(0, -sufijo.length).trim()
+  return nombreSinExtension || "Documento"
 }
 
 function obtenerNombreDescarga(doc) {
@@ -919,6 +923,8 @@ function eliminarDocumento(id) {
   const doc = documentosCargados.find(d => d.id === id)
   if (!doc) return
 
+  const estabaAbiertoEnVista = visorDocumentos?.dataset.docActual === id
+
   if (estaDocumentoVinculado(id)) {
     documentosCargados = documentosCargados.map(item => (
       item.id === id ? { ...item, archived: true } : item
@@ -928,7 +934,7 @@ function eliminarDocumento(id) {
     renderDocumentos()
     sincronizarSidebarDocumentos()
 
-    if (visorDocumentos?.dataset.docActual === id) {
+    if (estabaAbiertoEnVista) {
       cerrarVistaDocumento()
     }
     return
@@ -949,9 +955,8 @@ function eliminarDocumento(id) {
   renderDocumentos()
   sincronizarSidebarDocumentos()
 
-  const vistaActualId = visorDocumentos?.dataset.docActual
-  if (doc && vistaActualId === doc.id) {
-    mostrarDocumento(documentosCargados[0]?.id)
+  if (estabaAbiertoEnVista) {
+    cerrarVistaDocumento()
   }
 }
 
