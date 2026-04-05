@@ -831,7 +831,7 @@ body.oscuro .btn-secondary:hover { background: #334155; }
       min-height: 0;
       height: 100%;
       overflow: auto;
-      align-items: flex-start;
+      align-items: stretch;
       justify-content: flex-start;
       padding: 6px;
     }
