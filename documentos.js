@@ -19,6 +19,9 @@ document.body.appendChild(documentoReemplazoInput)
 
 let documentosCargados = cargarDocumentosGuardados()
 let documentoArrastradoId = null
+window.__backupExportDocumentosState = function __backupExportDocumentosState() {
+  return Array.isArray(documentosCargados) ? documentosCargados : []
+}
 
 if (typeof pdfjsLib !== "undefined") {
   pdfjsLib.GlobalWorkerOptions.workerSrc =
