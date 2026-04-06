@@ -173,6 +173,7 @@
       <div class="config-actions">
         <button class="modo config-action" type="button" id="backupDownloadBtn">Descargar respaldo</button>
         <button class="modo config-action" type="button" id="backupUploadBtn">Cargar respaldo</button>
+        <button class="modo config-action" type="button" id="backupResetBtn">Restaurar app</button>
       </div>
       <input type="file" id="backupFileInput" accept="application/json,.json" hidden>
       <p class="backup-message error" id="backupMessage" role="alert" aria-live="assertive" hidden></p>
@@ -205,6 +206,27 @@
     document.getElementById('backupUploadBtn').addEventListener('click', () => {
       fileInput.value = ''
       fileInput.click()
+    })
+
+    document.getElementById('backupResetBtn').addEventListener('click', () => {
+      const confirmar = window.confirm(
+        'Se eliminarán los datos guardados en este dispositivo (artículos, carpetas, documentos y personalización). ¿Deseas continuar?'
+      )
+      if (!confirmar) return
+
+      try {
+        const keys = []
+        for (let index = 0; index < localStorage.length; index += 1) {
+          const key = localStorage.key(index)
+          if (!key || key.startsWith(RESERVED_PREFIX)) continue
+          keys.push(key)
+        }
+        keys.forEach(key => localStorage.removeItem(key))
+        clearMessage()
+        setTimeout(() => window.location.reload(), 200)
+      } catch (error) {
+        setErrorMessage(`No se pudo restaurar la app: ${error.message}`)
+      }
     })
 
     fileInput.addEventListener('change', async event => {
