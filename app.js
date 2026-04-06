@@ -2920,6 +2920,26 @@ inicializarMenuBorradoSidebar()
 renderDocumentos()
 ordenarYMostrar()
 
+// AUTO-GUARDADO AUTOMÁTICO CADA 5 SEGUNDOS
+// Asegura que SIEMPRE hay datos en localStorage para hacer backup
+setInterval(() => {
+  try {
+    guardarJSONConRespaldo("articulosGuardados", articulos)
+    guardarJSONConRespaldo("carpetasMaterias", carpetas)
+    guardarJSONConRespaldo("materiasOrden", materiasOrden)
+    guardarJSONConRespaldo("documentosSidebarIds", documentosSidebarIds)
+    if (window.documentosCargados && Array.isArray(window.documentosCargados)) {
+      guardarJSONConRespaldo("documentosSubidos", window.documentosCargados)
+    }
+    if (typeof window.temaOscuro === 'boolean') {
+      localStorage.setItem('modoOscuroActivo', window.temaOscuro ? 'true' : 'false')
+    }
+    console.log('[AutoSave] Datos guardados a localStorage')
+  } catch (error) {
+    console.error('[AutoSave] Error:', error)
+  }
+}, 5000) // Cada 5 segundos
+
 window.addEventListener("beforeunload", sincronizarEdiciones)
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") sincronizarEdiciones()
