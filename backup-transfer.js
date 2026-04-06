@@ -47,10 +47,33 @@
 
     keysToDelete.forEach(key => localStorage.removeItem(key))
 
-    Object.entries(snapshot.entries).forEach(([key, value]) => {
-      if (typeof key !== 'string' || key.startsWith(RESERVED_PREFIX)) return
-      localStorage.setItem(key, value)
+    const skippedByQuota = []
+    const entries = Object.entries(snapshot.entries)
+      .filter(([key]) => typeof key === 'string' && !key.startsWith(RESERVED_PREFIX))
+      .sort(([, valueA], [, valueB]) => String(valueA ?? '').length - String(valueB ?? '').length)
+
+    entries.forEach(([key, value]) => {
+      const safeValue = typeof value === 'string' ? value : JSON.stringify(value)
+
+      try {
+        localStorage.setItem(key, safeValue)
+      } catch (error) {
+        if (isQuotaExceededError(error)) {
+          skippedByQuota.push(key)
+          return
+        }
+        throw error
+      }
     })
+
+    return {
+      skippedByQuota
+    }
+  }
+
+  function isQuotaExceededError(error) {
+    if (!error) return false
+    return error.name === 'QuotaExceededError' || error.code === 22 || error.code === 1014
   }
 
   function addBackupUi() {
@@ -108,8 +131,14 @@
       try {
         const text = await file.text()
         const snapshot = JSON.parse(text)
-        applySnapshot(snapshot)
-        clearMessage()
+        const result = applySnapshot(snapshot)
+        if (result.skippedByQuota.length > 0) {
+          setErrorMessage(
+            `Respaldo cargado parcialmente: no hubo espacio para ${result.skippedByQuota.length} elemento(s) (${result.skippedByQuota.join(', ')}).`
+          )
+        } else {
+          clearMessage()
+        }
         setTimeout(() => window.location.reload(), 500)
       } catch (error) {
         setErrorMessage(`No se pudo cargar el respaldo: ${error.message}`)
