@@ -5,6 +5,7 @@
   const CHUNK_INDEX_PATTERN = /__chunk__\d+$/
   const CHUNK_COUNT_PATTERN = /__chunks_count$/
   const BACKUP_COPY_PATTERN = /__backup$/
+  const CRITICAL_STATE_KEYS = ['articulosGuardados', 'carpetasMaterias', 'documentosSubidos', 'materiasOrden', 'documentosSidebarIds']
 
   function getAppSnapshot() {
     const rawEntries = {}
@@ -38,7 +39,8 @@
       app: 'Buen abogado',
       schemaVersion: 1,
       exportedAt: new Date().toISOString(),
-      entries
+      entries,
+      fullState: buildFullState(entries)
     }
   }
 
@@ -55,11 +57,32 @@
   function intentarParseJSON(valor) {
     if (typeof valor !== 'string') return { ok: false }
     try {
-      JSON.parse(valor)
-      return { ok: true }
+      const value = JSON.parse(valor)
+      return { ok: true, value }
     } catch (_error) {
       return { ok: false }
     }
+  }
+
+  function buildFullState(entries) {
+    const fullState = {}
+
+    try {
+      if (typeof window.__backupExportAppState === 'function') {
+        Object.assign(fullState, window.__backupExportAppState())
+      }
+      if (typeof window.__backupExportDocumentosState === 'function') {
+        fullState.documentosSubidos = window.__backupExportDocumentosState()
+      }
+    } catch (_error) {}
+
+    CRITICAL_STATE_KEYS.forEach(key => {
+      if (fullState[key] !== undefined) return
+      const parsed = intentarParseJSON(entries[key])
+      if (parsed.ok) fullState[key] = parsed.value
+    })
+
+    return fullState
   }
 
   function downloadBackupFile() {
@@ -79,8 +102,11 @@
   }
 
   function applySnapshot(snapshot) {
-    if (!snapshot || typeof snapshot !== 'object' || typeof snapshot.entries !== 'object') {
+    if (!snapshot || typeof snapshot !== 'object') {
       throw new Error('El archivo de respaldo no tiene un formato válido.')
+    }
+    if (typeof snapshot.entries !== 'object' && typeof snapshot.fullState !== 'object') {
+      throw new Error('El archivo de respaldo no contiene datos utilizables.')
     }
 
     const keysToDelete = []
@@ -93,7 +119,7 @@
     keysToDelete.forEach(key => localStorage.removeItem(key))
 
     const skippedByQuota = []
-    const entries = Object.entries(snapshot.entries)
+    const entries = Object.entries(snapshot.entries || {})
       .filter(([key]) => typeof key === 'string' && !key.startsWith(RESERVED_PREFIX))
       .filter(([key]) => !BACKUP_COPY_PATTERN.test(key))
       .sort(([, valueA], [, valueB]) => String(valueA ?? '').length - String(valueB ?? '').length)
@@ -114,9 +140,31 @@
       }
     })
 
+    applyFullState(snapshot.fullState, skippedByQuota)
+
     return {
       skippedByQuota
     }
+  }
+
+  function applyFullState(fullState, skippedByQuota) {
+    if (!fullState || typeof fullState !== 'object') return
+
+    CRITICAL_STATE_KEYS.forEach(key => {
+      if (!(key in fullState)) return
+      const serialized = JSON.stringify(fullState[key])
+
+      try {
+        localStorage.setItem(key, serialized)
+      } catch (error) {
+        if (isQuotaExceededError(error)) {
+          const storedAsChunks = tryStoreChunkedValue(key, serialized)
+          if (!storedAsChunks) skippedByQuota.push(key)
+          return
+        }
+        throw error
+      }
+    })
   }
 
   function isQuotaExceededError(error) {

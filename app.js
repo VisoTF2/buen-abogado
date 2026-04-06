@@ -157,6 +157,14 @@ function quitarDocumentoDeSidebar(documentoId) {
 }
 
 window.quitarDocumentoDeSidebar = quitarDocumentoDeSidebar
+window.__backupExportAppState = function __backupExportAppState() {
+  return {
+    articulosGuardados: Array.isArray(articulos) ? articulos : [],
+    materiasOrden: materiasOrden && typeof materiasOrden === "object" ? materiasOrden : {},
+    carpetasMaterias: Array.isArray(carpetas) ? carpetas : [],
+    documentosSidebarIds: Array.isArray(documentosSidebarIds) ? documentosSidebarIds : []
+  }
+}
 
 
 modalConfiguracion?.addEventListener("click", e => {
