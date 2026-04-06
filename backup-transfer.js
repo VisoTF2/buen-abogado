@@ -1,5 +1,7 @@
 (function initBackupTransfer() {
   const RESERVED_PREFIX = '__backup_tool_'
+  const CHUNKED_MARKER_PREFIX = '__chunked__:'
+  const CHUNK_SIZE = 350000
 
   function getAppSnapshot() {
     const entries = {}
@@ -59,6 +61,8 @@
         localStorage.setItem(key, safeValue)
       } catch (error) {
         if (isQuotaExceededError(error)) {
+          const storedAsChunks = tryStoreChunkedValue(key, safeValue)
+          if (storedAsChunks) return
           skippedByQuota.push(key)
           return
         }
@@ -74,6 +78,41 @@
   function isQuotaExceededError(error) {
     if (!error) return false
     return error.name === 'QuotaExceededError' || error.code === 22 || error.code === 1014
+  }
+
+  function tryStoreChunkedValue(key, value) {
+    const chunkPrefix = `${key}__chunk__`
+    const chunkCountKey = `${key}__chunks_count`
+    const totalChunks = Math.ceil(value.length / CHUNK_SIZE)
+    if (totalChunks <= 0) return false
+
+    localStorage.removeItem(key)
+    localStorage.removeItem(chunkCountKey)
+
+    let index = 0
+    while (localStorage.getItem(`${chunkPrefix}${index}`) !== null) {
+      localStorage.removeItem(`${chunkPrefix}${index}`)
+      index += 1
+    }
+
+    try {
+      for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex += 1) {
+        const start = chunkIndex * CHUNK_SIZE
+        const end = start + CHUNK_SIZE
+        localStorage.setItem(`${chunkPrefix}${chunkIndex}`, value.slice(start, end))
+      }
+      localStorage.setItem(chunkCountKey, String(totalChunks))
+      localStorage.setItem(key, `${CHUNKED_MARKER_PREFIX}${totalChunks}`)
+      return true
+    } catch (error) {
+      if (!isQuotaExceededError(error)) throw error
+      for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex += 1) {
+        localStorage.removeItem(`${chunkPrefix}${chunkIndex}`)
+      }
+      localStorage.removeItem(chunkCountKey)
+      localStorage.removeItem(key)
+      return false
+    }
   }
 
   function addBackupUi() {
