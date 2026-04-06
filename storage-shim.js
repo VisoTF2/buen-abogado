@@ -3,6 +3,8 @@
   const CHUNK_SIZE = 350000
   const CHUNK_SUFFIX = '__chunk__'
   const CHUNK_COUNT_SUFFIX = '__chunks_count'
+  const CHUNK_INDEX_PATTERN = /__chunk__\d+$/
+  const CHUNK_COUNT_PATTERN = /__chunks_count$/
 
   if (typeof Storage === 'undefined' || Storage.prototype.__chunkedShimInstalled) return
 
@@ -63,6 +65,9 @@
 
     try {
       originalSetItem.call(this, key, safeValue)
+      if (!CHUNK_INDEX_PATTERN.test(key) && !CHUNK_COUNT_PATTERN.test(key)) {
+        window.persistentState?.set?.(key, safeValue)
+      }
       return
     } catch (error) {
       if (error?.name !== 'QuotaExceededError' && error?.code !== 22 && error?.code !== 1014) {
@@ -85,6 +90,9 @@
       }
       originalSetItem.call(this, chunkCountKey(key), String(totalChunks))
       originalSetItem.call(this, key, `${CHUNK_MARKER_PREFIX}${totalChunks}`)
+      if (!CHUNK_INDEX_PATTERN.test(key) && !CHUNK_COUNT_PATTERN.test(key)) {
+        window.persistentState?.set?.(key, safeValue)
+      }
     } catch (error) {
       clearChunkArtifacts(this, key)
       originalRemoveItem.call(this, key)
@@ -95,6 +103,9 @@
   Storage.prototype.removeItem = function patchedRemoveItem(key) {
     clearChunkArtifacts(this, key)
     originalRemoveItem.call(this, key)
+    if (!CHUNK_INDEX_PATTERN.test(key) && !CHUNK_COUNT_PATTERN.test(key)) {
+      window.persistentState?.remove?.(key)
+    }
   }
 
   Storage.prototype.__chunkedShimInstalled = true

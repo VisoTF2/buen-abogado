@@ -5,7 +5,18 @@
   const CHUNK_INDEX_PATTERN = /__chunk__\d+$/
   const CHUNK_COUNT_PATTERN = /__chunks_count$/
   const BACKUP_COPY_PATTERN = /__backup$/
-  const CRITICAL_STATE_KEYS = ['articulosGuardados', 'carpetasMaterias', 'documentosSubidos', 'materiasOrden', 'documentosSidebarIds']
+  const CRITICAL_STATE_KEYS = [
+    'articulosGuardados',
+    'carpetasMaterias',
+    'documentosSubidos',
+    'materiasOrden',
+    'documentosSidebarIds',
+    'horarioClases',
+    'horarioDiasActivos',
+    'horarioTitulo',
+    'fondoImagenApp'
+  ]
+  const RAW_CRITICAL_KEYS = new Set(['horarioTitulo', 'fondoImagenApp'])
   const CRITICAL_WITH_BACKUP_COPY = new Set(['articulosGuardados', 'carpetasMaterias', 'materiasOrden'])
 
   function getAppSnapshot() {
@@ -80,7 +91,11 @@
     CRITICAL_STATE_KEYS.forEach(key => {
       if (fullState[key] !== undefined) return
       const parsed = intentarParseJSON(entries[key])
-      if (parsed.ok) fullState[key] = parsed.value
+      if (parsed.ok) {
+        fullState[key] = parsed.value
+      } else if (RAW_CRITICAL_KEYS.has(key) && typeof entries[key] === 'string') {
+        fullState[key] = entries[key]
+      }
     })
 
     return fullState
@@ -163,7 +178,11 @@
     CRITICAL_STATE_KEYS.forEach(key => {
       if (base[key] !== undefined) return
       const parsed = intentarParseJSON(entries[key])
-      if (parsed.ok) base[key] = parsed.value
+      if (parsed.ok) {
+        base[key] = parsed.value
+      } else if (RAW_CRITICAL_KEYS.has(key) && typeof entries[key] === 'string') {
+        base[key] = entries[key]
+      }
     })
 
     return base
@@ -174,7 +193,7 @@
 
     CRITICAL_STATE_KEYS.forEach(key => {
       if (!(key in fullState)) return
-      const serialized = JSON.stringify(fullState[key])
+      const serialized = typeof fullState[key] === 'string' ? fullState[key] : JSON.stringify(fullState[key])
 
       try {
         localStorage.setItem(key, serialized)
