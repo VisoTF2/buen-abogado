@@ -1,6 +1,6 @@
 ;(function initChunkedStorageShim() {
   const CHUNK_MARKER_PREFIX = '__chunked__:'
-  const CHUNK_SIZE = 350000
+  const CHUNK_SIZE = 5000000 // Aumentado de 350000 a 5MB por chunk
   const CHUNK_SUFFIX = '__chunk__'
   const CHUNK_COUNT_SUFFIX = '__chunks_count'
   const CHUNK_INDEX_PATTERN = /__chunk__\d+$/
@@ -65,7 +65,8 @@
 
     try {
       originalSetItem.call(this, key, safeValue)
-      if (!CHUNK_INDEX_PATTERN.test(key) && !CHUNK_COUNT_PATTERN.test(key)) {
+      // Solo sincroniza con persistentState si NO estamos en medio de un restore
+      if (!window.__backupRestoringState && !CHUNK_INDEX_PATTERN.test(key) && !CHUNK_COUNT_PATTERN.test(key)) {
         window.persistentState?.set?.(key, safeValue)
       }
       return
@@ -90,7 +91,8 @@
       }
       originalSetItem.call(this, chunkCountKey(key), String(totalChunks))
       originalSetItem.call(this, key, `${CHUNK_MARKER_PREFIX}${totalChunks}`)
-      if (!CHUNK_INDEX_PATTERN.test(key) && !CHUNK_COUNT_PATTERN.test(key)) {
+      // Solo sincroniza si NO estamos en medio de un restore
+      if (!window.__backupRestoringState && !CHUNK_INDEX_PATTERN.test(key) && !CHUNK_COUNT_PATTERN.test(key)) {
         window.persistentState?.set?.(key, safeValue)
       }
     } catch (error) {
@@ -103,7 +105,8 @@
   Storage.prototype.removeItem = function patchedRemoveItem(key) {
     clearChunkArtifacts(this, key)
     originalRemoveItem.call(this, key)
-    if (!CHUNK_INDEX_PATTERN.test(key) && !CHUNK_COUNT_PATTERN.test(key)) {
+    // Solo sincroniza si NO estamos en medio de un restore
+    if (!window.__backupRestoringState && !CHUNK_INDEX_PATTERN.test(key) && !CHUNK_COUNT_PATTERN.test(key)) {
       window.persistentState?.remove?.(key)
     }
   }

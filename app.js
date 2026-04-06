@@ -13,6 +13,10 @@ function cargarJSONConRespaldo(key, fallback) {
   // Primero intenta desde localStorage (prioridad)
   const valorPrincipal = intentarParse(localStorage.getItem(key))
   if (valorPrincipal !== null) {
+    // Log para debugging
+    if (typeof console !== 'undefined' && typeof console.log === 'function') {
+      console.log(`[Backup] Cargado desde localStorage: ${key}, items: ${Array.isArray(valorPrincipal) ? valorPrincipal.length : Object.keys(valorPrincipal).length}`)
+    }
     // Guarda el respaldo de seguridad silenciosamente
     try {
       localStorage.setItem(respaldoKey, JSON.stringify(valorPrincipal))
@@ -29,6 +33,9 @@ function cargarJSONConRespaldo(key, fallback) {
   // Si no está el principal, intenta la copia de respaldo
   const valorRespaldo = intentarParse(localStorage.getItem(respaldoKey))
   if (valorRespaldo !== null) {
+    if (typeof console !== 'undefined' && typeof console.log === 'function') {
+      console.log(`[Backup] Cargado desde respaldo: ${key}, items: ${Array.isArray(valorRespaldo) ? valorRespaldo.length : Object.keys(valorRespaldo).length}`)
+    }
     localStorage.setItem(key, JSON.stringify(valorRespaldo))
     // Intenta sincronizar con persistentState si está disponible
     if (window.persistentState?.set) {
@@ -40,6 +47,9 @@ function cargarJSONConRespaldo(key, fallback) {
   // Si nada en localStorage, intenta desde persistentState (para compatibilidad)
   const persistido = window.persistentState?.getCached?.(key)
   if (persistido !== undefined) {
+    if (typeof console !== 'undefined' && typeof console.log === 'function') {
+      console.log(`[Backup] Cargado desde persistentState: ${key}`)
+    }
     // Guarda en localStorage también para que no se pierda
     try {
       const serializado = JSON.stringify(persistido)
@@ -49,6 +59,10 @@ function cargarJSONConRespaldo(key, fallback) {
       // Si no hay espacio, ignora
     }
     return persistido
+  }
+
+  if (typeof console !== 'undefined' && typeof console.log === 'function') {
+    console.log(`[Backup] No encontrado: ${key}, usando fallback`)
   }
 
   return fallback
@@ -76,6 +90,15 @@ let carpetas = cargarJSONConRespaldo("carpetasMaterias", []).map(c => ({
   documentos: c.documentos || [],
   documentosData: c.documentosData || {}
 }))
+
+// Debug: verifica qué se cargó
+if (typeof console !== 'undefined') {
+  console.log('[DEBUG] Artículos cargados:', articulos.length)
+  console.log('[DEBUG] Carpetas cargadas:', carpetas.length)
+  console.log('[DEBUG] MaterialesOrden keys:', Object.keys(materiasOrden).length)
+  console.log('[DEBUG] localStorage.articulosGuardados exists:', !!localStorage.getItem('articulosGuardados'))
+  console.log('[DEBUG] localStorage.carpetasMaterias exists:', !!localStorage.getItem('carpetasMaterias'))
+}
 let normativaSeleccionada = null
 let materiaSeleccionada = null
 const MATERIA_PREVIEW_CERRADA_KEY = "materiaPreviewCerrada"

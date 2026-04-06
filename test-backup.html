@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Backup</title>
+</head>
+<body>
+    <h1>Test de Respaldo</h1>
+    <button onclick="crearDatosTest()">Crear Datos de Test</button>
+    <button onclick="descargarRespaldo()">Descargar Respaldo</button>
+    <button onclick="cargarRespaldo()">Cargar Respaldo</button>
+    <button onclick="verLocalStorage()">Ver localStorage</button>
+    <pre id="output" style="background: #f0f0f0; padding: 10px; height: 400px; overflow: auto;"></pre>
+
+    <script>
+        const output = document.getElementById('output');
+
+        function log(msg) {
+            output.textContent += msg + '\n';
+            console.log(msg);
+        }
+
+        function crearDatosTest() {
+            output.textContent = '';
+            log('=== Creando Datos de Test ===\n');
+            
+            const articulos = [
+                { id: '1', numero: '128', materia: 'Sucesión', normativa: 'Código Civil' },
+                { id: '2', numero: '256', materia: 'Contrato', normativa: 'Código Civil' }
+            ];
+            
+            const carpetas = [
+                { id: '1', nombre: 'Carpeta Test', color: '#ff0000' }
+            ];
+
+            localStorage.setItem('articulosGuardados', JSON.stringify(articulos));
+            localStorage.setItem('carpetasMaterias', JSON.stringify(carpetas));
+            localStorage.setItem('materiasOrden', JSON.stringify({}));
+            
+            log('Artículos guardados: ' + articulos.length);
+            log('Carpetas guardadas: ' + carpetas.length);
+            log('localStorage.length: ' + localStorage.length);
+        }
+
+        function descargarRespaldo() {
+            output.textContent = '';
+            log('=== Descargando Respaldo ===\n');
+            
+            const backup = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                backup[key] = localStorage.getItem(key);
+            }
+
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'test-respaldo.json';
+            a.click();
+            
+            log('Respaldo descargado: test-respaldo.json');
+            log('Keys en respaldo: ' + Object.keys(backup).length);
+            log('articulosGuardados present: ' + ('articulosGuardados' in backup));
+            log('carpetasMaterias present: ' + ('carpetasMaterias' in backup));
+        }
+
+        function cargarRespaldo() {
+            output.textContent = '';
+            log('=== Cargando Respaldo ===\n');
+            
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const backup = JSON.parse(event.target.result);
+                        log('Respaldo parseado');
+                        log('Keys: ' + Object.keys(backup).length);
+                        
+                        // Limpiar localStorage
+                        const keysToDelete = [];
+                        for (let i = 0; i < localStorage.length; i++) {
+                            keysToDelete.push(localStorage.key(i));
+                        }
+                        keysToDelete.forEach(key => localStorage.removeItem(key));
+                        log('localStorage limpio');
+                        
+                        // Guardar nuevo
+                        Object.entries(backup).forEach(([key, value]) => {
+                            localStorage.setItem(key, value);
+                        });
+                        log('Datos restaurados');
+                        
+                        // Verificar
+                        verLocalStorage();
+                    } catch (err) {
+                        log('Error: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function verLocalStorage() {
+            output.textContent = '';
+            log('=== Estado de localStorage ===\n');
+            log('Total keys: ' + localStorage.length + '\n');
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                const preview = value.length > 100 ? value.substring(0, 100) + '...' : value;
+                log(`${key}: ${preview}`);
+            }
+            
+            // Verificar artículos específicamente
+            log('\n=== Verificación Artículos ===');
+            const articulos = localStorage.getItem('articulosGuardados');
+            if (articulos) {
+                try {
+                    const parsed = JSON.parse(articulos);
+                    log('articulosGuardados parseado: ' + (Array.isArray(parsed) ? parsed.length + ' items' : typeof parsed));
+                } catch (err) {
+                    log('Error parsing articulosGuardados: ' + err.message);
+                }
+            } else {
+                log('articulosGuardados: NO ENCONTRADO');
+            }
+        }
+
+        // Auto log inicial
+        log('Página de test cargada');
+        log('localStorage.length: ' + localStorage.length);
+    </script>
+</body>
+</html>
