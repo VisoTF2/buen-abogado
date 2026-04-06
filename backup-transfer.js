@@ -11,6 +11,27 @@
     'documentosSidebarIds',
     'fondoImagenApp'
   ]
+  const SECTION_KEYS = {
+    horario: [
+      'horarioClases',
+      'horarioDiasActivos',
+      'horarioTitulo',
+      'mallaImagenHorario',
+      'mallaImagenBaseHorario',
+      'mallaOverlayHorario',
+      'mallaActivaHorario',
+      'mallaSizeHorario'
+    ],
+    articulos: [
+      'articulosGuardados',
+      'carpetasMaterias',
+      'materiasOrden',
+      'documentosSidebarIds',
+      'materiaActivaSeleccionada',
+      'materiaPreviewCerrada'
+    ],
+    documentos: ['documentosSubidos']
+  }
 
   function getAppSnapshot() {
     const localStorageState = {}
@@ -50,6 +71,46 @@
       localStorage: localStorageState,
       persistentState,
       runtimeState
+    }
+  }
+
+  function getSectionSnapshot(section) {
+    if (!SECTION_KEYS[section]) {
+      throw new Error('Tipo de respaldo no soportado.')
+    }
+
+    const runtimeState = collectRuntimeState()
+    const persistentState =
+      window.persistentState?.exportAll && typeof window.persistentState.exportAll === 'function'
+        ? window.persistentState.exportAll()
+        : {}
+    const state = {}
+
+    SECTION_KEYS[section].forEach(key => {
+      const resolved = resolveBestStateValue(key, runtimeState, persistentState)
+      if (resolved === undefined) return
+      state[key] = resolved
+    })
+
+    return {
+      app: 'Buen abogado',
+      schemaVersion: 3,
+      backupType: section,
+      exportedAt: new Date().toISOString(),
+      state
+    }
+  }
+
+  function resolveBestStateValue(key, runtimeState, persistentState) {
+    if (runtimeState && key in runtimeState) return runtimeState[key]
+    if (persistentState && key in persistentState) return persistentState[key]
+
+    const raw = localStorage.getItem(key)
+    if (typeof raw !== 'string') return undefined
+    try {
+      return JSON.parse(raw)
+    } catch (_error) {
+      return raw
     }
   }
 
@@ -146,6 +207,35 @@
     }
   }
 
+  function normalizeSectionSnapshot(snapshot, expectedType) {
+    if (!snapshot || typeof snapshot !== 'object') {
+      throw new Error('El archivo de respaldo no tiene un formato válido.')
+    }
+
+    if (snapshot.schemaVersion === 3 && snapshot.backupType && snapshot.state) {
+      if (expectedType && snapshot.backupType !== expectedType) {
+        throw new Error(`Este archivo corresponde a \"${snapshot.backupType}\" y no a \"${expectedType}\".`)
+      }
+      return {
+        backupType: snapshot.backupType,
+        state: snapshot.state && typeof snapshot.state === 'object' ? snapshot.state : {}
+      }
+    }
+
+    // Compatibilidad: permite cargar un respaldo completo en una sección.
+    const normalized = normalizeSnapshot(snapshot)
+    const targetType = expectedType || 'articulos'
+    const state = {}
+    ;(SECTION_KEYS[targetType] || []).forEach(key => {
+      if (normalized.runtimeState && key in normalized.runtimeState) {
+        state[key] = normalized.runtimeState[key]
+      } else if (normalized.persistentState && key in normalized.persistentState) {
+        state[key] = normalized.persistentState[key]
+      }
+    })
+    return { backupType: targetType, state }
+  }
+
   function isQuotaExceededError(error) {
     if (!error) return false
     return error.name === 'QuotaExceededError' || error.code === 22 || error.code === 1014
@@ -184,6 +274,68 @@
       localStorage.removeItem(key)
       return false
     }
+  }
+
+  function removeChunkedValue(key) {
+    const chunkPrefix = `${key}__chunk__`
+    const chunkCountKey = `${key}__chunks_count`
+    const count = parseInt(localStorage.getItem(chunkCountKey) || '0', 10)
+    if (Number.isFinite(count) && count > 0) {
+      for (let index = 0; index < count; index += 1) {
+        localStorage.removeItem(`${chunkPrefix}${index}`)
+      }
+    }
+    let cleanupIndex = 0
+    while (localStorage.getItem(`${chunkPrefix}${cleanupIndex}`) !== null) {
+      localStorage.removeItem(`${chunkPrefix}${cleanupIndex}`)
+      cleanupIndex += 1
+    }
+    localStorage.removeItem(chunkCountKey)
+  }
+
+  async function applySectionSnapshot(snapshot, expectedType) {
+    const normalized = normalizeSectionSnapshot(snapshot, expectedType)
+    const keys = SECTION_KEYS[normalized.backupType] || []
+    const skippedLocalStorage = []
+    const skippedPersistent = []
+
+    for (const key of keys) {
+      localStorage.removeItem(key)
+      localStorage.removeItem(`${key}__backup`)
+      removeChunkedValue(key)
+      await window.persistentState?.remove?.(key)
+    }
+
+    for (const [key, value] of Object.entries(normalized.state || {})) {
+      if (!keys.includes(key)) continue
+
+      if (window.persistentState?.set) {
+        await window.persistentState.set(key, value).catch(() => {
+          if (!skippedPersistent.includes(key)) skippedPersistent.push(key)
+        })
+      }
+
+      let serialized = null
+      try {
+        serialized = typeof value === 'string' ? value : JSON.stringify(value)
+      } catch (_error) {
+        skippedLocalStorage.push(key)
+        continue
+      }
+
+      try {
+        localStorage.setItem(key, serialized)
+        if (WITH_BACKUP_COPY.has(key)) {
+          localStorage.setItem(`${key}__backup`, serialized)
+        }
+      } catch (error) {
+        if (!isQuotaExceededError(error) || !tryStoreChunkedValue(key, serialized)) {
+          if (!skippedLocalStorage.includes(key)) skippedLocalStorage.push(key)
+        }
+      }
+    }
+
+    return { skippedLocalStorage, skippedPersistent }
   }
 
   async function applySnapshot(snapshot) {
@@ -279,6 +431,22 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
+  function downloadSectionBackupFile(section) {
+    const snapshot = getSectionSnapshot(section)
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    const dateTag = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+
+    a.href = url
+    a.download = `buen-abogado-respaldo-${section}-${dateTag}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+
   function addBackupUi() {
     const container = document.querySelector('.configuracion-body')
     if (!container) return
@@ -288,11 +456,23 @@
     section.innerHTML = `
       <div class="config-section-head">
         <h4>Respaldo entre dispositivos</h4>
-        <p>Descarga un archivo de respaldo y cárgalo en otro dispositivo para migrar tus datos.</p>
+        <p>Elige qué quieres respaldar: horario, artículos o documentos.</p>
       </div>
       <div class="config-actions">
-        <button class="modo config-action" type="button" id="backupDownloadBtn">Descargar respaldo</button>
-        <button class="modo config-action" type="button" id="backupUploadBtn">Cargar respaldo</button>
+        <button class="modo config-action" type="button" id="backupDownloadHorarioBtn">Descargar horario</button>
+        <button class="modo config-action" type="button" id="backupUploadHorarioBtn">Cargar horario</button>
+      </div>
+      <div class="config-actions">
+        <button class="modo config-action" type="button" id="backupDownloadArticulosBtn">Descargar artículos</button>
+        <button class="modo config-action" type="button" id="backupUploadArticulosBtn">Cargar artículos</button>
+      </div>
+      <div class="config-actions">
+        <button class="modo config-action" type="button" id="backupDownloadDocumentosBtn">Descargar documentos</button>
+        <button class="modo config-action" type="button" id="backupUploadDocumentosBtn">Cargar documentos</button>
+      </div>
+      <div class="config-actions">
+        <button class="modo config-action" type="button" id="backupDownloadBtn">Descargar respaldo completo</button>
+        <button class="modo config-action" type="button" id="backupUploadBtn">Cargar respaldo completo</button>
         <button class="modo config-action" type="button" id="backupResetBtn">Restaurar app</button>
       </div>
       <input type="file" id="backupFileInput" accept="application/json,.json" hidden>
@@ -303,6 +483,7 @@
 
     const fileInput = document.getElementById('backupFileInput')
     const message = document.getElementById('backupMessage')
+    let uploadMode = 'full'
 
     function clearMessage() {
       message.textContent = ''
@@ -324,6 +505,52 @@
     })
 
     document.getElementById('backupUploadBtn').addEventListener('click', () => {
+      uploadMode = 'full'
+      fileInput.value = ''
+      fileInput.click()
+    })
+
+    document.getElementById('backupDownloadHorarioBtn').addEventListener('click', () => {
+      try {
+        downloadSectionBackupFile('horario')
+        clearMessage()
+      } catch (error) {
+        setErrorMessage(`No se pudo descargar el respaldo de horario: ${error.message}`)
+      }
+    })
+
+    document.getElementById('backupDownloadArticulosBtn').addEventListener('click', () => {
+      try {
+        downloadSectionBackupFile('articulos')
+        clearMessage()
+      } catch (error) {
+        setErrorMessage(`No se pudo descargar el respaldo de artículos: ${error.message}`)
+      }
+    })
+
+    document.getElementById('backupDownloadDocumentosBtn').addEventListener('click', () => {
+      try {
+        downloadSectionBackupFile('documentos')
+        clearMessage()
+      } catch (error) {
+        setErrorMessage(`No se pudo descargar el respaldo de documentos: ${error.message}`)
+      }
+    })
+
+    document.getElementById('backupUploadHorarioBtn').addEventListener('click', () => {
+      uploadMode = 'horario'
+      fileInput.value = ''
+      fileInput.click()
+    })
+
+    document.getElementById('backupUploadArticulosBtn').addEventListener('click', () => {
+      uploadMode = 'articulos'
+      fileInput.value = ''
+      fileInput.click()
+    })
+
+    document.getElementById('backupUploadDocumentosBtn').addEventListener('click', () => {
+      uploadMode = 'documentos'
       fileInput.value = ''
       fileInput.click()
     })
@@ -352,7 +579,8 @@
       try {
         const text = await file.text()
         const snapshot = JSON.parse(text)
-        const result = await applySnapshot(snapshot)
+        const result =
+          uploadMode === 'full' ? await applySnapshot(snapshot) : await applySectionSnapshot(snapshot, uploadMode)
         const skippedTotal = result.skippedLocalStorage.length + result.skippedPersistent.length
 
         if (skippedTotal > 0) {
