@@ -93,9 +93,9 @@ window.carpetas = cargarJSONConRespaldo("carpetasMaterias", []).map(c => ({
 
 // Debug: verifica qué se cargó
 if (typeof console !== 'undefined') {
-  console.log('[DEBUG] Artículos cargados:', articulos.length)
-  console.log('[DEBUG] Carpetas cargadas:', carpetas.length)
-  console.log('[DEBUG] MaterialesOrden keys:', Object.keys(materiasOrden).length)
+  console.log('[DEBUG] Artículos cargados:', window.articulos.length)
+  console.log('[DEBUG] Carpetas cargadas:', window.carpetas.length)
+  console.log('[DEBUG] MaterialesOrden keys:', Object.keys(window.materiasOrden).length)
   console.log('[DEBUG] localStorage.articulosGuardados exists:', !!localStorage.getItem('articulosGuardados'))
   console.log('[DEBUG] localStorage.carpetasMaterias exists:', !!localStorage.getItem('carpetasMaterias'))
 }
@@ -206,10 +206,10 @@ function quitarDocumentoDeSidebar(documentoId) {
 window.quitarDocumentoDeSidebar = quitarDocumentoDeSidebar
 window.__backupExportAppState = function __backupExportAppState() {
   return {
-    articulosGuardados: Array.isArray(articulos) ? articulos : [],
-    materiasOrden: materiasOrden && typeof materiasOrden === "object" ? materiasOrden : {},
-    carpetasMaterias: Array.isArray(carpetas) ? carpetas : [],
-    documentosSidebarIds: Array.isArray(documentosSidebarIds) ? documentosSidebarIds : []
+    articulosGuardados: Array.isArray(window.articulos) ? window.articulos : [],
+    materiasOrden: window.materiasOrden && typeof window.materiasOrden === "object" ? window.materiasOrden : {},
+    carpetasMaterias: Array.isArray(window.carpetas) ? window.carpetas : [],
+    documentosSidebarIds: Array.isArray(window.documentosSidebarIds) ? window.documentosSidebarIds : []
   }
 }
 
@@ -287,12 +287,12 @@ function valorOrdenArticulo(a) {
 }
 
 function guardarOrdenMaterias() {
-  guardarJSONConRespaldo("materiasOrden", materiasOrden)
+  guardarJSONConRespaldo("materiasOrden", window.materiasOrden)
 }
 
 function siguienteOrdenMateria(normativa) {
-  const ordenes = materiasOrden[normativa]
-    ? Object.values(materiasOrden[normativa]).filter(n => typeof n === "number")
+  const ordenes = window.materiasOrden[normativa]
+    ? Object.values(window.materiasOrden[normativa]).filter(n => typeof n === "number")
     : []
 
   if (!ordenes.length) return 1
@@ -300,9 +300,9 @@ function siguienteOrdenMateria(normativa) {
 }
 
 function asegurarOrdenMateria(normativa, materia) {
-  if (!materiasOrden[normativa]) materiasOrden[normativa] = {}
-  if (typeof materiasOrden[normativa][materia] !== "number") {
-    materiasOrden[normativa][materia] = siguienteOrdenMateria(normativa)
+  if (!window.materiasOrden[normativa]) window.materiasOrden[normativa] = {}
+  if (typeof window.materiasOrden[normativa][materia] !== "number") {
+    window.materiasOrden[normativa][materia] = siguienteOrdenMateria(normativa)
     guardarOrdenMaterias()
   }
 }
@@ -310,12 +310,12 @@ function asegurarOrdenMateria(normativa, materia) {
 function ordenarMaterias(nombres, normativa) {
   nombres.forEach(nombre => asegurarOrdenMateria(normativa, nombre))
   return [...nombres].sort(
-    (a, b) => (materiasOrden[normativa][a] ?? 0) - (materiasOrden[normativa][b] ?? 0)
+    (a, b) => (window.materiasOrden[normativa][a] ?? 0) - (window.materiasOrden[normativa][b] ?? 0)
   )
 }
 
 function guardarCarpetas() {
-  guardarJSONConRespaldo("carpetasMaterias", carpetas)
+  guardarJSONConRespaldo("carpetasMaterias", window.carpetas)
 }
 
 function crearCarpeta(nombre) {
@@ -676,9 +676,9 @@ function aplicarOrdenMateriasDesdeDOM(lista) {
   })
 
   Object.entries(ordenesPorNormativa).forEach(([normativa, materias]) => {
-    if (!materiasOrden[normativa]) materiasOrden[normativa] = {}
+    if (!window.materiasOrden[normativa]) window.materiasOrden[normativa] = {}
     materias.forEach(({ materia, posicion }) => {
-      materiasOrden[normativa][materia] = posicion
+      window.materiasOrden[normativa][materia] = posicion
     })
   })
 
@@ -1173,7 +1173,7 @@ function aplicarOrdenDesdeDOM(contenedorLista, normativa, materia) {
     .filter(Boolean)
 
   idsEnOrden.forEach((id, index) => {
-    const art = articulos.find(a => a.id === id)
+    const art = window.articulos.find(a => a.id === id)
     if (art && art.normativa === normativa && art.materia === materia) {
       art.orden = index + 1
     }
@@ -1845,7 +1845,7 @@ function mostrarError(msg) {
 }
 
 function obtenerColorMateria(nombre) {
-  const art = articulos.find(a => a.materia === nombre && a.color)
+  const art = window.articulos.find(a => a.materia === nombre && a.color)
   return art ? art.color : "#1e3a8a"
 }
 
@@ -1890,7 +1890,7 @@ function agregarArticulo() {
 
   asegurarOrdenMateria(norm, mat)
 
-  articulos.push({
+  window.articulos.push({
     id: Date.now(),
     numero: num,
     materia: mat,
@@ -2000,7 +2000,7 @@ function ordenarYMostrar() {
 
   const agrupado = { civil: {}, penal: {} }
 
-  articulos.forEach(a => {
+  window.articulos.forEach(a => {
     if (!agrupado[a.normativa]) agrupado[a.normativa] = {}
     if (!agrupado[a.normativa][a.materia]) agrupado[a.normativa][a.materia] = []
     agrupado[a.normativa][a.materia].push(a)
@@ -2009,7 +2009,7 @@ function ordenarYMostrar() {
   const combos = []
   let tieneSeleccionValida = false
 
-  carpetas.forEach(carpeta => {
+  window.carpetas.forEach(carpeta => {
     (carpeta.materias || []).forEach(({ normativa, materia }) => {
       if (!agrupado[normativa]?.[materia]) return
       if (!combos.some(c => c.normativa === normativa && c.materia === materia)) {
@@ -2482,7 +2482,7 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
     const nuevo = tituloM.textContent.trim()
     if (nuevo === "" || nuevo === nombreActual) return
 
-    articulos.forEach(a => {
+    window.articulos.forEach(a => {
       if (a.materia === nombreActual && a.normativa === normativa) {
         a.materia = nuevo
       }
@@ -2599,7 +2599,7 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
 
   colorInput.addEventListener("change", () => {
     const nuevoColor = colorInput.value
-    articulos.forEach(a => {
+    window.articulos.forEach(a => {
       if (a.materia === nombreActual && a.normativa === normativa) a.color = nuevoColor
     })
     guardarLocal()
@@ -2832,13 +2832,13 @@ function mostrarArticulosDeMateria(normativa, materia, items) {
 }
 
 function guardarLocal() {
-  guardarJSONConRespaldo("articulosGuardados", articulos)
+  guardarJSONConRespaldo("articulosGuardados", window.articulos)
 }
 
 function sincronizarEdiciones() {
   document.querySelectorAll(".articulo").forEach(box => {
     const id = Number(box.dataset.id)
-    const articulo = articulos.find(a => a.id === id)
+    const articulo = window.articulos.find(a => a.id === id)
     if (!articulo) return
 
     const tituloEl = box.querySelector(".articulo-titulo-texto")
@@ -2859,13 +2859,13 @@ function sincronizarEdiciones() {
 }
 
 function borrarArticulo(id) {
-  articulos = articulos.filter(a => a.id !== id)
+  window.articulos = window.articulos.filter(a => a.id !== id)
   guardarLocal()
   ordenarYMostrar()
 }
 
 function borrarMateria(nombre, normativa = null) {
-  articulos = articulos.filter(a => {
+  window.articulos = window.articulos.filter(a => {
     if (normativa) return a.materia !== nombre || a.normativa !== normativa
     return a.materia !== nombre
   })
@@ -2905,8 +2905,8 @@ async function cargarDocumentoProcedimiento(ruta = "/docs/codigo_de_procedimient
     if (!res.ok) throw new Error("No se pudo cargar el documento: " + res.status)
     const nuevos = await res.json() // esperar array de artículos { id, numero, materia, normativa: "procedimiento", tituloPersonalizado?, contenido? ... }
     // evitar duplicados por id
-    const existentesIds = new Set(articulos.map(a => a.id))
-    nuevos.forEach(n => { if (!existentesIds.has(n.id)) articulos.push(n) })
+    const existentesIds = new Set(window.articulos.map(a => a.id))
+    nuevos.forEach(n => { if (!existentesIds.has(n.id)) window.articulos.push(n) })
     guardarLocal()
     ordenarYMostrar()
   } catch (err) {
