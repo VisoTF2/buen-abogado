@@ -7,20 +7,58 @@
   const BACKUP_COPY_PATTERN = /__backup$/
 
   function getAppSnapshot() {
-    const entries = {}
+    const rawEntries = {}
     for (let index = 0; index < localStorage.length; index += 1) {
       const key = localStorage.key(index)
       if (!key || key.startsWith(RESERVED_PREFIX)) continue
       if (CHUNK_INDEX_PATTERN.test(key) || CHUNK_COUNT_PATTERN.test(key)) continue
-      if (BACKUP_COPY_PATTERN.test(key)) continue
-      entries[key] = localStorage.getItem(key)
+      rawEntries[key] = localStorage.getItem(key)
     }
+
+    const entries = {}
+    const keys = Object.keys(rawEntries)
+
+    keys.forEach(key => {
+      if (BACKUP_COPY_PATTERN.test(key)) return
+
+      const backupKey = `${key}__backup`
+      const principal = rawEntries[key]
+      const respaldo = rawEntries[backupKey]
+      entries[key] = elegirValorExportable(principal, respaldo)
+    })
+
+    keys.forEach(key => {
+      if (!BACKUP_COPY_PATTERN.test(key)) return
+      const baseKey = key.replace(BACKUP_COPY_PATTERN, '')
+      if (Object.prototype.hasOwnProperty.call(entries, baseKey)) return
+      entries[baseKey] = rawEntries[key]
+    })
 
     return {
       app: 'Buen abogado',
       schemaVersion: 1,
       exportedAt: new Date().toISOString(),
       entries
+    }
+  }
+
+  function elegirValorExportable(principal, respaldo) {
+    const principalParseado = intentarParseJSON(principal)
+    if (principalParseado.ok) return principal
+
+    const respaldoParseado = intentarParseJSON(respaldo)
+    if (respaldoParseado.ok) return respaldo
+
+    return principal ?? respaldo ?? null
+  }
+
+  function intentarParseJSON(valor) {
+    if (typeof valor !== 'string') return { ok: false }
+    try {
+      JSON.parse(valor)
+      return { ok: true }
+    } catch (_error) {
+      return { ok: false }
     }
   }
 
@@ -135,6 +173,7 @@
       <div class="config-actions">
         <button class="modo config-action" type="button" id="backupDownloadBtn">Descargar respaldo</button>
         <button class="modo config-action" type="button" id="backupUploadBtn">Cargar respaldo</button>
+        <button class="modo config-action" type="button" id="backupResetBtn">Restaurar app</button>
       </div>
       <input type="file" id="backupFileInput" accept="application/json,.json" hidden>
       <p class="backup-message error" id="backupMessage" role="alert" aria-live="assertive" hidden></p>
@@ -167,6 +206,27 @@
     document.getElementById('backupUploadBtn').addEventListener('click', () => {
       fileInput.value = ''
       fileInput.click()
+    })
+
+    document.getElementById('backupResetBtn').addEventListener('click', () => {
+      const confirmar = window.confirm(
+        'Se eliminarán los datos guardados en este dispositivo (artículos, carpetas, documentos y personalización). ¿Deseas continuar?'
+      )
+      if (!confirmar) return
+
+      try {
+        const keys = []
+        for (let index = 0; index < localStorage.length; index += 1) {
+          const key = localStorage.key(index)
+          if (!key || key.startsWith(RESERVED_PREFIX)) continue
+          keys.push(key)
+        }
+        keys.forEach(key => localStorage.removeItem(key))
+        clearMessage()
+        setTimeout(() => window.location.reload(), 200)
+      } catch (error) {
+        setErrorMessage(`No se pudo restaurar la app: ${error.message}`)
+      }
     })
 
     fileInput.addEventListener('change', async event => {
