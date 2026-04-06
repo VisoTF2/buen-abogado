@@ -4,6 +4,7 @@
   const CHUNK_SIZE = 350000
   const CHUNK_INDEX_PATTERN = /__chunk__\d+$/
   const CHUNK_COUNT_PATTERN = /__chunks_count$/
+  const BACKUP_COPY_PATTERN = /__backup$/
 
   function getAppSnapshot() {
     const entries = {}
@@ -11,6 +12,7 @@
       const key = localStorage.key(index)
       if (!key || key.startsWith(RESERVED_PREFIX)) continue
       if (CHUNK_INDEX_PATTERN.test(key) || CHUNK_COUNT_PATTERN.test(key)) continue
+      if (BACKUP_COPY_PATTERN.test(key)) continue
       entries[key] = localStorage.getItem(key)
     }
 
@@ -55,6 +57,7 @@
     const skippedByQuota = []
     const entries = Object.entries(snapshot.entries)
       .filter(([key]) => typeof key === 'string' && !key.startsWith(RESERVED_PREFIX))
+      .filter(([key]) => !BACKUP_COPY_PATTERN.test(key))
       .sort(([, valueA], [, valueB]) => String(valueA ?? '').length - String(valueB ?? '').length)
 
     entries.forEach(([key, value]) => {
