@@ -42,6 +42,12 @@
    */
   function restaurarApp() {
     try {
+      // Limpiar persistentState PRIMERO
+      if (window.persistentState && typeof window.persistentState.clear === 'function') {
+        window.persistentState.clear()
+        console.log('[SimpleBackup] persistentState limpiado')
+      }
+
       // Limpiar localStorage
       const keysToDelete = []
       for (let i = 0; i < localStorage.length; i++) {
@@ -50,12 +56,10 @@
           keysToDelete.push(key)
         }
       }
-      keysToDelete.forEach(key => localStorage.removeItem(key))
-
-      // Limpiar persistentState si existe
-      if (window.persistentState && typeof window.persistentState.clear === 'function') {
-        window.persistentState.clear()
-      }
+      keysToDelete.forEach(key => {
+        localStorage.removeItem(key)
+        console.log('[SimpleBackup] Borrado:', key)
+      })
 
       console.log('[SimpleBackup] ✓ App restaurada a estado inicial')
       
@@ -123,7 +127,13 @@
           throw new Error('El archivo no parece ser un respaldo válido de Buen Abogado')
         }
 
-        // LIMPIAR localStorage primero (excepto prefijos internos)
+        // LIMPIAR persistentState PRIMERO
+        if (window.persistentState && typeof window.persistentState.clear === 'function') {
+          window.persistentState.clear()
+          console.log('[SimpleBackup] persistentState limpiado')
+        }
+
+        // LIMPIAR localStorage segundo
         const keysToDelete = []
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i)
@@ -133,7 +143,7 @@
         }
         keysToDelete.forEach(key => {
           localStorage.removeItem(key)
-          console.log('[SimpleBackup] Borrrado:', key)
+          console.log('[SimpleBackup] Borrado de localStorage:', key)
         })
 
         // RESTAURAR todas las claves del respaldo en localStorage
@@ -141,16 +151,16 @@
           Object.entries(datos.localStorage).forEach(([key, value]) => {
             try {
               localStorage.setItem(key, value)
-              console.log('[SimpleBackup] Restaurado:', key)
+              console.log('[SimpleBackup] Restaurado en localStorage:', key)
             } catch (error) {
               console.error('[SimpleBackup] Error al guardar', key, ':', error)
             }
           })
         }
 
-        console.log('[SimpleBackup] ✓✓✓ RESPALDO CARGADO EN LOCALSTORAGE')
+        console.log('[SimpleBackup] ✓✓✓ RESPALDO CARGADO COMPLETAMENTE')
         
-        // Recargar
+        // Recargar para que se reconstruya TODO desde localStorage (sin caché vieja)
         setTimeout(() => {
           window.location.reload()
         }, 500)
