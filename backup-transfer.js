@@ -105,13 +105,9 @@
     if (runtimeState && key in runtimeState) return runtimeState[key]
     if (persistentState && key in persistentState) return persistentState[key]
 
-    const raw = localStorage.getItem(key)
+    const raw = readStorageValue(key)
     if (typeof raw !== 'string') return undefined
-    try {
-      return JSON.parse(raw)
-    } catch (_error) {
-      return raw
-    }
+    return parseMaybeJson(raw)
   }
 
   function collectRuntimeState() {
@@ -137,13 +133,9 @@
         return
       }
 
-      const raw = localStorage.getItem(key)
+      const raw = readStorageValue(key)
       if (typeof raw !== 'string') return
-      try {
-        state[key] = JSON.parse(raw)
-      } catch (_error) {
-        state[key] = raw
-      }
+      state[key] = parseMaybeJson(raw)
     })
 
     return state
@@ -239,6 +231,34 @@
   function isQuotaExceededError(error) {
     if (!error) return false
     return error.name === 'QuotaExceededError' || error.code === 22 || error.code === 1014
+  }
+
+  function parseMaybeJson(raw) {
+    try {
+      return JSON.parse(raw)
+    } catch (_error) {
+      return raw
+    }
+  }
+
+  function readStorageValue(key) {
+    const raw = localStorage.getItem(key)
+    if (typeof raw !== 'string') return null
+    if (!raw.startsWith(CHUNKED_MARKER_PREFIX)) return raw
+
+    const chunkPrefix = `${key}__chunk__`
+    const chunkCountKey = `${key}__chunks_count`
+    const count = parseInt(localStorage.getItem(chunkCountKey) || '0', 10)
+    if (!Number.isFinite(count) || count <= 0) return raw
+
+    let combined = ''
+    for (let index = 0; index < count; index += 1) {
+      const part = localStorage.getItem(`${chunkPrefix}${index}`)
+      if (typeof part !== 'string') return raw
+      combined += part
+    }
+
+    return combined || raw
   }
 
   function tryStoreChunkedValue(key, value) {
