@@ -82,7 +82,6 @@
       }
 
       console.log('[SimpleBackup] ✓ App restaurada a estado inicial')
-      alert('✓ App restaurada. La página se recargará...')
       
       setTimeout(() => {
         window.location.reload()
@@ -90,7 +89,6 @@
 
     } catch (error) {
       console.error('[SimpleBackup] Error al restaurar la app:', error)
-      alert('❌ Error al restaurar: ' + error.message)
     }
   }
 
@@ -118,10 +116,8 @@
       URL.revokeObjectURL(url)
       
       console.log('[SimpleBackup] ✓ Respaldo descargado:', nombreArchivo)
-      alert(`✓ Respaldo descargado: ${nombreArchivo}`)
     } catch (error) {
       console.error('[SimpleBackup] Error al descargar:', error)
-      alert('❌ Error al descargar respaldo: ' + error.message)
     }
   }
 
@@ -143,13 +139,25 @@
           throw new Error('El archivo no parece ser un respaldo válido de Buen Abogado')
         }
 
-        // Restaurar DIRECTAMENTE en las variables globales
-        if (Array.isArray(datos.articulos)) {
+        // Limpiar localStorage PRIMERO
+        const keysToDelete = []
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && !key.startsWith('__backup_tool_')) {
+            keysToDelete.push(key)
+          }
+        }
+        keysToDelete.forEach(key => localStorage.removeItem(key))
+
+        // GUARDAR DIRECTAMENTE A LOCALSTORAGE para que persista
+        if (Array.isArray(datos.articulos) && datos.articulos.length > 0) {
+          localStorage.setItem('articulosGuardados', JSON.stringify(datos.articulos))
           window.articulos = datos.articulos
-          console.log('[SimpleBackup] ✓ Artículos restaurados:', datos.articulos.length)
+          console.log('[SimpleBackup] ✓ Artículos restaurados y guardados:', datos.articulos.length)
         }
 
-        if (Array.isArray(datos.carpetas)) {
+        if (Array.isArray(datos.carpetas) && datos.carpetas.length > 0) {
+          localStorage.setItem('carpetasMaterias', JSON.stringify(datos.carpetas))
           window.carpetas = datos.carpetas.map(c => ({
             ...c,
             color: c.color || "#1e3a8a",
@@ -157,71 +165,56 @@
             documentos: c.documentos || [],
             documentosData: c.documentosData || {}
           }))
-          console.log('[SimpleBackup] ✓ Carpetas restauradas:', datos.carpetas.length)
+          console.log('[SimpleBackup] ✓ Carpetas restauradas y guardadas:', datos.carpetas.length)
         }
 
-        if (typeof datos.materiasOrden === 'object') {
+        if (typeof datos.materiasOrden === 'object' && Object.keys(datos.materiasOrden).length > 0) {
+          localStorage.setItem('materiasOrden', JSON.stringify(datos.materiasOrden))
           window.materiasOrden = datos.materiasOrden
-          console.log('[SimpleBackup] ✓ Materias orden restaurado')
+          console.log('[SimpleBackup] ✓ Materias orden restaurado y guardado')
         }
 
-        if (Array.isArray(datos.documentosSidebarIds)) {
+        if (Array.isArray(datos.documentosSidebarIds) && datos.documentosSidebarIds.length > 0) {
+          localStorage.setItem('documentosSidebarIds', JSON.stringify(datos.documentosSidebarIds))
           window.documentosSidebarIds = datos.documentosSidebarIds
-          console.log('[SimpleBackup] ✓ Sidebar IDs restaurado')
+          console.log('[SimpleBackup] ✓ Sidebar IDs restaurado y guardado')
         }
 
-        if (Array.isArray(datos.documentosCargados)) {
+        if (Array.isArray(datos.documentosCargados) && datos.documentosCargados.length > 0) {
+          localStorage.setItem('documentosSubidos', JSON.stringify(datos.documentosCargados))
           window.documentosCargados = datos.documentosCargados
-          console.log('[SimpleBackup] ✓ Documentos cargados restaurados:', datos.documentosCargados.length)
+          console.log('[SimpleBackup] ✓ Documentos cargados restaurados y guardados:', datos.documentosCargados.length)
         }
 
         if (datos.fondoImagenApp !== null && typeof datos.fondoImagenApp !== 'undefined') {
+          localStorage.setItem('fondoImagenApp', JSON.stringify(datos.fondoImagenApp))
           window.fondoImagenApp = datos.fondoImagenApp
-          aplicarFondoImagenApp(window.fondoImagenApp)
-          console.log('[SimpleBackup] ✓ Fondo de pantalla restaurado')
+          if (typeof aplicarFondoImagenApp === 'function') {
+            aplicarFondoImagenApp(window.fondoImagenApp)
+          }
+          console.log('[SimpleBackup] ✓ Fondo de pantalla restaurado y guardado')
         }
 
         if (typeof datos.temaOscuro === 'boolean') {
+          localStorage.setItem('temaOscuro', JSON.stringify(datos.temaOscuro))
           window.temaOscuro = datos.temaOscuro
-          console.log('[SimpleBackup] ✓ Tema restaurado')
+          console.log('[SimpleBackup] ✓ Tema restaurado y guardado')
         }
 
-        if (Array.isArray(datos.horario)) {
-          window.horario = datos.horario
-          console.log('[SimpleBackup] ✓ Horario restaurado')
-        }
-
-        if (Array.isArray(datos.notas)) {
-          window.notas = datos.notas
-          console.log('[SimpleBackup] ✓ Notas restauradas')
-        }
-
-        if (Array.isArray(datos.tareas)) {
-          window.tareas = datos.tareas
-          console.log('[SimpleBackup] ✓ Tareas restauradas')
-        }
-
-        if (Array.isArray(datos.calificaciones)) {
-          window.calificaciones = datos.calificaciones
-          console.log('[SimpleBackup] ✓ Calificaciones restauradas')
-        }
-
-        console.log('[SimpleBackup] ✓✓✓ RESPALDO CARGADO EXITOSAMENTE')
-        alert('✓ Respaldo cargado exitosamente. La página se recargará...')
+        console.log('[SimpleBackup] ✓✓✓ RESPALDO CARGADO EXITOSAMENTE EN LOCALSTORAGE')
         
-        // Recargar después de 1 segundo para que se reconstruya la UI
+        // Recargar después para que se reconstruya la UI con los datos de localStorage
         setTimeout(() => {
           window.location.reload()
-        }, 1000)
+        }, 800)
 
       } catch (error) {
         console.error('[SimpleBackup] Error al cargar respaldo:', error)
-        alert('❌ Error al cargar respaldo: ' + error.message)
       }
     }
 
     lector.onerror = function() {
-      alert('❌ Error al leer el archivo')
+      console.error('[SimpleBackup] Error al leer el archivo')
     }
 
     lector.readAsText(archivo)
