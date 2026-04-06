@@ -7,20 +7,58 @@
   const BACKUP_COPY_PATTERN = /__backup$/
 
   function getAppSnapshot() {
-    const entries = {}
+    const rawEntries = {}
     for (let index = 0; index < localStorage.length; index += 1) {
       const key = localStorage.key(index)
       if (!key || key.startsWith(RESERVED_PREFIX)) continue
       if (CHUNK_INDEX_PATTERN.test(key) || CHUNK_COUNT_PATTERN.test(key)) continue
-      if (BACKUP_COPY_PATTERN.test(key)) continue
-      entries[key] = localStorage.getItem(key)
+      rawEntries[key] = localStorage.getItem(key)
     }
+
+    const entries = {}
+    const keys = Object.keys(rawEntries)
+
+    keys.forEach(key => {
+      if (BACKUP_COPY_PATTERN.test(key)) return
+
+      const backupKey = `${key}__backup`
+      const principal = rawEntries[key]
+      const respaldo = rawEntries[backupKey]
+      entries[key] = elegirValorExportable(principal, respaldo)
+    })
+
+    keys.forEach(key => {
+      if (!BACKUP_COPY_PATTERN.test(key)) return
+      const baseKey = key.replace(BACKUP_COPY_PATTERN, '')
+      if (Object.prototype.hasOwnProperty.call(entries, baseKey)) return
+      entries[baseKey] = rawEntries[key]
+    })
 
     return {
       app: 'Buen abogado',
       schemaVersion: 1,
       exportedAt: new Date().toISOString(),
       entries
+    }
+  }
+
+  function elegirValorExportable(principal, respaldo) {
+    const principalParseado = intentarParseJSON(principal)
+    if (principalParseado.ok) return principal
+
+    const respaldoParseado = intentarParseJSON(respaldo)
+    if (respaldoParseado.ok) return respaldo
+
+    return principal ?? respaldo ?? null
+  }
+
+  function intentarParseJSON(valor) {
+    if (typeof valor !== 'string') return { ok: false }
+    try {
+      JSON.parse(valor)
+      return { ok: true }
+    } catch (_error) {
+      return { ok: false }
     }
   }
 
