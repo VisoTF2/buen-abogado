@@ -21,9 +21,6 @@ async function createWindow() {
 
   win.loadURL("http://127.0.0.1:3000");
 
-  // Abrir DevTools para debugging
-  win.webContents.openDevTools();
-
   win.setMenuBarVisibility(false);
 }
 
