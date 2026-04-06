@@ -206,22 +206,8 @@
     try {
       console.log('[BackupCompleto] Iniciando restauración completa de la aplicación...')
       
-      // Obtener todos los keys actuales
-      const allKeys = Object.keys(localStorage)
-      
-      // Limpiar TODO lo que no sea respaldo
-      allKeys.forEach(key => {
-        if (!key.endsWith('__backup')) {
-          localStorage.removeItem(key)
-        }
-      })
-
-      // Limpiar chunks de documentos explícitamente
-      const chunksCount = parseInt(localStorage.getItem(DOCUMENTOS_CHUNK_COUNT_KEY) || '0', 10)
-      for (let i = 0; i < chunksCount; i++) {
-        localStorage.removeItem(`${DOCUMENTOS_CHUNK_PREFIX}${i}`)
-      }
-      localStorage.removeItem(DOCUMENTOS_CHUNK_COUNT_KEY)
+      // LIMPIAR TODO sin excepciones
+      localStorage.clear()
 
       console.log('[BackupCompleto] ✓ Aplicación completamente limpiada')
       mostrarNotificacion('✓ Aplicación restaurada. Recargando...', 'success')
@@ -583,12 +569,7 @@
     }
 
     if (btnRestaurarApp) {
-      btnRestaurarApp.addEventListener('click', () => {
-        const confirmar = confirm('⚠️ Esto borrará TODOS los datos y restaurará la app. ¿Estás seguro?')
-        if (confirmar) {
-          restaurarAppCompletamente()
-        }
-      })
+      btnRestaurarApp.addEventListener('click', restaurarAppCompletamente)
       console.log('[BackupCompleto] ✓ Botón restaurar app inicializado')
     }
   }
