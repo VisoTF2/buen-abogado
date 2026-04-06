@@ -6,6 +6,7 @@
   const CHUNK_COUNT_PATTERN = /__chunks_count$/
   const BACKUP_COPY_PATTERN = /__backup$/
   const CRITICAL_STATE_KEYS = ['articulosGuardados', 'carpetasMaterias', 'documentosSubidos', 'materiasOrden', 'documentosSidebarIds']
+  const CRITICAL_WITH_BACKUP_COPY = new Set(['articulosGuardados', 'carpetasMaterias', 'materiasOrden'])
 
   function getAppSnapshot() {
     const rawEntries = {}
@@ -164,6 +165,14 @@
         }
         throw error
       }
+
+      if (CRITICAL_WITH_BACKUP_COPY.has(key)) {
+        try {
+          localStorage.setItem(`${key}__backup`, serialized)
+        } catch (_error) {
+          // Si no cabe la copia adicional, mantenemos al menos la clave principal.
+        }
+      }
     })
   }
 
@@ -257,11 +266,6 @@
     })
 
     document.getElementById('backupResetBtn').addEventListener('click', () => {
-      const confirmar = window.confirm(
-        'Se eliminarán los datos guardados en este dispositivo (artículos, carpetas, documentos y personalización). ¿Deseas continuar?'
-      )
-      if (!confirmar) return
-
       try {
         const keys = []
         for (let index = 0; index < localStorage.length; index += 1) {
