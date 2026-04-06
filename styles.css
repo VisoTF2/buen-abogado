@@ -3969,47 +3969,38 @@ body.oscuro .action-buttons .class-delete:hover { background: var(--danger-solid
   color: #dc2626;
 }
 
-.backup-config-shortcuts {
+.backup-rows {
   display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.backup-config-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.backup-config-option {
+.backup-row {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   border: 1px solid var(--line);
   background: var(--surface);
   border-radius: 12px;
   padding: 12px;
-  cursor: pointer;
 }
 
-.backup-config-option span {
-  display: grid;
-  gap: 5px;
-}
-
-.backup-config-option small {
+.backup-row small {
+  display: block;
+  margin-top: 4px;
   color: var(--muted);
   font-size: 12px;
-  line-height: 1.25;
 }
 
-.backup-config-option input[type="checkbox"] {
-  margin-top: 2px;
+.backup-inline-option {
+  margin-top: 8px;
+  max-width: 420px;
 }
 
 @media (max-width: 760px) {
-  .backup-config-grid {
-    grid-template-columns: 1fr;
+  .backup-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

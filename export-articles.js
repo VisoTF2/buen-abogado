@@ -8,7 +8,7 @@
 (function() {
   'use strict'
   const HORARIO_KEYS = ['horarioClases', 'horarioTitulo', 'horarioDiasActivos']
-  const HORARIO_MALLA_KEYS = ['mallaImagenHorario', 'mallaImagenBaseHorario', 'mallaOverlayHorario', 'mallaActivaHorario', 'mallaSizeHorario']
+  const MALLA_KEYS = ['mallaImagenHorario', 'mallaImagenBaseHorario', 'mallaOverlayHorario', 'mallaActivaHorario', 'mallaSizeHorario']
   const ESTILO_KEYS = ['modoOscuroActivo', 'fondoImagenApp', 'colorAcentoApp', 'colorAcentoModoOscuro']
   const CALENDARIO_KEYS = ['calendarEvents', 'calendarEvents__backup']
   const RAMOS_KEYS = ['materiasOrden', 'gradeCalculatorSubjectsV2']
@@ -16,15 +16,6 @@
   const DOCUMENTOS_CHUNK_PREFIX = `${DOCUMENTOS_STORAGE_KEY}__chunk__`
   const DOCUMENTOS_CHUNK_COUNT_KEY = `${DOCUMENTOS_STORAGE_KEY}__chunks_count`
   const DOCUMENTOS_CHUNK_SIZE = 350000
-  const EXPORT_OPTIONS = [
-    { key: 'articulos', label: 'Artículos', description: 'Solo los artículos. Sin carpetas ni documentos.' },
-    { key: 'carpetas', label: 'Carpetas', description: 'Carpetas con sus materias, artículos relacionados y documentos vinculados.' },
-    { key: 'documentos', label: 'Documentos', description: 'Documentos fuera de carpetas (sidebar principal).' },
-    { key: 'horario', label: 'Horario + malla', description: 'Horario semanal con título, días activos y malla.' },
-    { key: 'calendario', label: 'Calendario', description: 'Eventos del calendario mensual.' },
-    { key: 'ramos', label: 'Ramos', description: 'Orden de materias y ramos de calculadora de notas.' },
-    { key: 'estilo', label: 'Estilo', description: 'Modo oscuro, fondo y colores de acento.' }
-  ]
 
   /**
    * Mostrar notificación temporal
@@ -75,14 +66,6 @@
         }
       }, 300)
     }, 4000)
-  }
-
-  function leerSeleccionConfiguracion() {
-    const seleccion = {}
-    document.querySelectorAll('.backup-section-toggle').forEach(input => {
-      seleccion[input.dataset.key] = input.checked
-    })
-    return seleccion
   }
 
   function limpiarChunksDocumentosCompat() {
@@ -187,7 +170,7 @@
     return window.articulos.filter(a => materiaSet.has(`${a.normativa}::${a.materia}`))
   }
 
-  function construirDatosExportablesPorSeleccion(seleccion) {
+  function construirDatosExportablesPorSeleccion(seleccion, opciones = {}) {
     const datos = {}
 
     if (seleccion.articulos) {
@@ -196,16 +179,17 @@
 
     if (seleccion.carpetas) {
       const carpetas = Array.isArray(window.carpetas) ? window.carpetas : []
-      const articulosCarpetas = carpetas.flatMap(carpeta => obtenerArticulosPorMaterias(carpeta.materias || []))
+      const incluirContenido = opciones.incluirContenidoCarpeta !== false
+      const articulosCarpetas = incluirContenido ? carpetas.flatMap(carpeta => obtenerArticulosPorMaterias(carpeta.materias || [])) : []
       const idsDocumentosCarpeta = new Set(carpetas.flatMap(carpeta => Array.isArray(carpeta.documentos) ? carpeta.documentos : []))
-      const documentos = (window.documentosCargados || []).filter(doc => idsDocumentosCarpeta.has(doc.id))
+      const documentos = incluirContenido ? (window.documentosCargados || []).filter(doc => idsDocumentosCarpeta.has(doc.id)) : []
       datos.carpetas = {
         carpetas,
         articulosRelacionados: articulosCarpetas,
         documentos,
-        documentosEnCarpetas: carpetas
+        documentosEnCarpetas: incluirContenido ? carpetas
           .filter(carpeta => Array.isArray(carpeta.documentos) && carpeta.documentos.length)
-          .map(carpeta => ({ carpetaId: carpeta.id, documentos: carpeta.documentos })),
+          .map(carpeta => ({ carpetaId: carpeta.id, documentos: carpeta.documentos })) : [],
         materiasOrden: window.materiasOrden || {}
       }
     }
@@ -215,7 +199,7 @@
         (window.carpetas || []).flatMap(carpeta => Array.isArray(carpeta.documentos) ? carpeta.documentos : [])
       )
       datos.documentos = {
-        documentos: (window.documentosCargados || []).filter(doc => !idsEnCarpetas.has(doc.id)),
+        documentos: (window.documentosCargados || []).filter(doc => opciones.incluirDocumentosEnCarpetas ? true : !idsEnCarpetas.has(doc.id)),
         documentosSidebarIds: Array.isArray(window.documentosSidebarIds) ? window.documentosSidebarIds : []
       }
     }
@@ -226,9 +210,13 @@
         const value = localStorage.getItem(key)
         if (value !== null) datos.horario[key] = value
       })
-      HORARIO_MALLA_KEYS.forEach(key => {
+    }
+
+    if (seleccion.malla) {
+      datos.malla = {}
+      MALLA_KEYS.forEach(key => {
         const value = localStorage.getItem(key)
-        if (value !== null) datos.horario[key] = value
+        if (value !== null) datos.malla[key] = value
       })
     }
 
@@ -298,27 +286,13 @@
     return { nuevos, idsEnCarpetas }
   }
 
-  function exportarSeleccionado() {
-    const seleccion = leerSeleccionConfiguracion()
-    const tieneAlgo = Object.values(seleccion).some(Boolean)
-    if (!tieneAlgo) {
-      mostrarNotificacion('✗ Debes seleccionar al menos una sección', 'error')
-      return
-    }
-
-    const backup = {
-      version: '2.1',
-      tipo: 'backup-selectivo',
-      timestamp: new Date().toISOString(),
-      datos: construirDatosExportablesPorSeleccion(seleccion)
-    }
-
+  function descargarJson(nombreBase, backup, mensajeExito) {
     const jsonStr = JSON.stringify(backup, null, 2)
     const blob = new Blob([jsonStr], { type: 'application/json; charset=utf-8' })
     const ahora = new Date()
     const fecha = ahora.toISOString().split('T')[0]
     const hora = ahora.toTimeString().split(' ')[0].replace(/:/g, '-')
-    const nombre = `backup-seleccionado-${fecha}-${hora}.json`
+    const nombre = `${nombreBase}-${fecha}-${hora}.json`
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -327,106 +301,94 @@
     link.click()
     document.body.removeChild(link)
     URL.revokeObjectURL(url)
-    mostrarNotificacion('✓ Exportación completada', 'success')
+    mostrarNotificacion(mensajeExito, 'success')
   }
 
-  function importarSeleccionado(archivo) {
+  function exportarSeccion(seccion, opciones = {}) {
+    const backup = {
+      version: '3.0',
+      tipo: 'backup-seccion',
+      seccion,
+      timestamp: new Date().toISOString(),
+      datos: construirDatosExportablesPorSeleccion({ [seccion]: true }, opciones)
+    }
+    const total = Object.values(backup.datos[seccion] || {}).length
+    descargarJson(`backup-${seccion}`, backup, `✓ ${seccion} exportado (${total} bloques)`)
+  }
+
+  function aplicarImportacionPorSeccion(seccion, datos, opciones = {}) {
+    if (seccion === 'carpetas' && datos.carpetas) {
+      const agregados = importarArticulosDesdeDatos({
+        articulos: opciones.incluirContenidoCarpeta ? (datos.carpetas.articulosRelacionados || []) : [],
+        materiasOrden: datos.carpetas.materiasOrden || {},
+        carpetas: datos.carpetas.carpetas || []
+      })
+      if (opciones.incluirContenidoCarpeta) {
+        mergearDocumentosImportados(datos.carpetas.documentos || [], datos.carpetas.documentosEnCarpetas || [])
+      }
+      return `carpetas (${agregados} artículos)`
+    }
+
+    if (seccion === 'documentos' && datos.documentos && Array.isArray(datos.documentos.documentos)) {
+      const resultadoDocs = mergearDocumentosImportados(
+        datos.documentos.documentos,
+        opciones.incluirDocumentosEnCarpetas ? (datos.documentos.documentosEnCarpetas || []) : []
+      )
+      return `${resultadoDocs.nuevos.length} documentos`
+    }
+
+    if (seccion === 'horario' && datos.horario) {
+      Object.keys(datos.horario).forEach(key => localStorage.setItem(key, datos.horario[key]))
+      return 'horario'
+    }
+
+    if (seccion === 'malla' && datos.malla) {
+      Object.keys(datos.malla).forEach(key => localStorage.setItem(key, datos.malla[key]))
+      return 'malla'
+    }
+
+    if (seccion === 'calendario' && datos.calendario) {
+      Object.keys(datos.calendario).forEach(key => localStorage.setItem(key, datos.calendario[key]))
+      return 'calendario'
+    }
+
+    if (seccion === 'ramos' && datos.ramos) {
+      Object.keys(datos.ramos).forEach(key => localStorage.setItem(key, datos.ramos[key]))
+      if (typeof datos.ramos.materiasOrden === 'string') {
+        try {
+          window.materiasOrden = JSON.parse(datos.ramos.materiasOrden)
+          guardarJSONConRespaldo('materiasOrden', window.materiasOrden)
+        } catch (_e) {}
+      }
+      return 'ramos'
+    }
+
+    if (seccion === 'estilo' && datos.estilo) {
+      ESTILO_KEYS.forEach(key => {
+        if (typeof datos.estilo[key] === 'string') localStorage.setItem(key, datos.estilo[key])
+      })
+      if (typeof aplicarModoGuardado === 'function') aplicarModoGuardado()
+      if (typeof aplicarColorAcentoGuardado === 'function') aplicarColorAcentoGuardado()
+      if (typeof aplicarFondo === 'function') aplicarFondo(localStorage.getItem('fondoImagenApp') || '')
+      return 'estilo'
+    }
+
+    return null
+  }
+
+  function importarSeccion(archivo, seccion, opciones = {}) {
     if (!archivo) return
     const lector = new FileReader()
     lector.onload = function(evento) {
       try {
         const datosArchivo = JSON.parse(evento.target.result)
-        const esArticuloLegacy = Array.isArray(datosArchivo.articulos)
-        const datos = esArticuloLegacy
-          ? { articulos: { articulos: datosArchivo.articulos, materiasOrden: datosArchivo.materiasOrden, carpetas: datosArchivo.carpetas } }
-          : (datosArchivo.datos || {})
-        if (!datos || typeof datos !== 'object') {
-          throw new Error('Archivo no válido')
-        }
-
-        const seleccionUsuario = leerSeleccionConfiguracion()
-        const seleccion = {}
-        EXPORT_OPTIONS.forEach(option => {
-          const existeEnArchivo = Boolean(datos[option.key])
-          if (existeEnArchivo && seleccionUsuario[option.key]) seleccion[option.key] = true
-        })
-
-        if (!Object.values(seleccion).some(Boolean)) {
-          throw new Error('No hay secciones marcadas que coincidan con el archivo')
-        }
-
-        let resumen = []
-
-        if (seleccion.articulos && datos.articulos) {
-          const agregados = importarArticulosDesdeDatos({
-            articulos: datos.articulos.articulos || [],
-            materiasOrden: datos.articulos.materiasOrden || {},
-            carpetas: datos.articulos.carpetas || []
-          })
-          resumen.push(`${agregados} artículos`)
-        }
-
-        if (seleccion.carpetas && datos.carpetas) {
-          const agregados = importarArticulosDesdeDatos({
-            articulos: datos.carpetas.articulosRelacionados || [],
-            materiasOrden: datos.carpetas.materiasOrden || {},
-            carpetas: datos.carpetas.carpetas || []
-          })
-          const resultadoDocs = mergearDocumentosImportados(
-            datos.carpetas.documentos || [],
-            datos.carpetas.documentosEnCarpetas || []
-          )
-          resumen.push(`carpetas (${agregados} artículos, ${resultadoDocs.nuevos.length} documentos)`)
-        }
-
-        if (seleccion.horario && datos.horario) {
-          Object.keys(datos.horario).forEach(key => localStorage.setItem(key, datos.horario[key]))
-          resumen.push('horario')
-        }
-
-        if (seleccion.documentos && datos.documentos && Array.isArray(datos.documentos.documentos)) {
-          const resultadoDocs = mergearDocumentosImportados(datos.documentos.documentos, [])
-          const sidebarInicial = Array.isArray(datos.documentos.documentosSidebarIds) ? datos.documentos.documentosSidebarIds : []
-          const sidebarBase = Array.isArray(window.documentosSidebarIds) ? [...window.documentosSidebarIds, ...sidebarInicial] : sidebarInicial
-          const sidebarSet = new Set(sidebarBase)
-          window.documentosCargados.forEach(doc => {
-            if (!resultadoDocs.idsEnCarpetas.has(doc.id)) sidebarSet.add(doc.id)
-          })
-          window.documentosSidebarIds = Array.from(sidebarSet)
-          guardarJSONConRespaldo('documentosSidebarIds', window.documentosSidebarIds)
-          resumen.push(`${resultadoDocs.nuevos.length} documentos`)
-        }
-
-        if (seleccion.calendario && datos.calendario) {
-          Object.keys(datos.calendario).forEach(key => localStorage.setItem(key, datos.calendario[key]))
-          resumen.push('calendario')
-        }
-
-        if (seleccion.ramos && datos.ramos) {
-          Object.keys(datos.ramos).forEach(key => localStorage.setItem(key, datos.ramos[key]))
-          if (typeof datos.ramos.materiasOrden === 'string') {
-            try {
-              window.materiasOrden = JSON.parse(datos.ramos.materiasOrden)
-              guardarJSONConRespaldo('materiasOrden', window.materiasOrden)
-            } catch (_e) {}
-          }
-          resumen.push('ramos')
-        }
-
-        if (seleccion.estilo && datos.estilo) {
-          ESTILO_KEYS.forEach(key => {
-            if (typeof datos.estilo[key] === 'string') localStorage.setItem(key, datos.estilo[key])
-          })
-          if (typeof aplicarModoGuardado === 'function') aplicarModoGuardado()
-          if (typeof aplicarColorAcentoGuardado === 'function') aplicarColorAcentoGuardado()
-          if (typeof aplicarFondo === 'function') aplicarFondo(localStorage.getItem('fondoImagenApp') || '')
-          resumen.push('estilo')
-        }
-
+        const datos = datosArchivo.datos || {}
+        const resumen = aplicarImportacionPorSeccion(seccion, datos, opciones)
+        if (!resumen) throw new Error(`El archivo no contiene la sección ${seccion}`)
         if (typeof ordenarYMostrar === 'function') ordenarYMostrar()
-        mostrarNotificacion(`✓ Importación completada (${resumen.join(', ')})`, 'success')
+        mostrarNotificacion(`✓ Importación completada (${resumen})`, 'success')
       } catch (error) {
-        console.error('[ExportArticles] Error importando seleccionado:', error)
+        console.error('[ExportArticles] Error importando sección:', error)
         mostrarNotificacion(`✗ Error: ${error.message}`, 'error')
       }
     }
@@ -448,13 +410,14 @@
         return
       }
 
+      const incluirCarpetas = document.getElementById('articlesIncludeFoldersToggle')?.checked !== false
       const backup = {
         version: '3.0',
         timestamp: new Date().toISOString(),
         cantidad: window.articulos.length,
         articulos: window.articulos,
         materiasOrden: window.materiasOrden || {},
-        carpetas: window.carpetas || []
+        carpetas: incluirCarpetas ? (window.carpetas || []) : []
       }
 
       console.log('[ExportArticles] Exportando', backup.cantidad, 'artículos con carpetas y orden...')
@@ -499,6 +462,9 @@
     lector.onload = function(evento) {
       try {
         const datos = JSON.parse(evento.target.result)
+        if (document.getElementById('articlesIncludeFoldersToggle')?.checked === false) {
+          datos.carpetas = []
+        }
         const agregados = importarArticulosDesdeDatos(datos)
         console.log('[ExportArticles] ✓ Agregados:', agregados)
 
@@ -534,11 +500,27 @@
     const btnExportar = document.getElementById('exportArticlesBtn')
     const btnImportar = document.getElementById('importArticlesBtn')
     const inputArchivo = document.getElementById('inputImportArticles')
-    const btnExportarSelectivo = document.getElementById('exportSelectedDataBtn')
-    const btnImportarSelectivo = document.getElementById('importSelectedDataBtn')
-    const inputImportarSelectivo = document.getElementById('inputImportSelectedData')
-    const btnSelectAll = document.getElementById('backupSelectAllBtn')
-    const btnClear = document.getElementById('backupClearBtn')
+    const btnExportarCarpetas = document.getElementById('exportFoldersBtn')
+    const btnImportarCarpetas = document.getElementById('importFoldersBtn')
+    const inputCarpetas = document.getElementById('inputImportFolders')
+    const btnExportarDocumentos = document.getElementById('exportDocsBtn')
+    const btnImportarDocumentos = document.getElementById('importDocsBtn')
+    const inputDocumentos = document.getElementById('inputImportDocs')
+    const btnExportarHorario = document.getElementById('exportScheduleBtn')
+    const btnImportarHorario = document.getElementById('importScheduleBtn')
+    const inputHorario = document.getElementById('inputImportSchedule')
+    const btnExportarMalla = document.getElementById('exportMallaBtn')
+    const btnImportarMalla = document.getElementById('importMallaBtn')
+    const inputMalla = document.getElementById('inputImportMalla')
+    const btnExportarCalendario = document.getElementById('exportCalendarBtn')
+    const btnImportarCalendario = document.getElementById('importCalendarBtn')
+    const inputCalendario = document.getElementById('inputImportCalendar')
+    const btnExportarRamos = document.getElementById('exportRamosBtn')
+    const btnImportarRamos = document.getElementById('importRamosBtn')
+    const inputRamos = document.getElementById('inputImportRamos')
+    const btnExportarEstilo = document.getElementById('exportStyleBtn')
+    const btnImportarEstilo = document.getElementById('importStyleBtn')
+    const inputEstilo = document.getElementById('inputImportStyle')
 
     if (btnExportar) {
       btnExportar.addEventListener('click', exportarArticulos)
@@ -563,35 +545,73 @@
       })
     }
 
-    if (btnExportarSelectivo) {
-      btnExportarSelectivo.addEventListener('click', exportarSeleccionado)
-    }
-
-    if (btnImportarSelectivo && inputImportarSelectivo) {
-      btnImportarSelectivo.addEventListener('click', () => inputImportarSelectivo.click())
-      inputImportarSelectivo.addEventListener('change', e => {
-        if (e.target.files[0]) {
-          importarSeleccionado(e.target.files[0])
-          e.target.value = ''
-        }
+    btnExportarCarpetas?.addEventListener('click', () => {
+      exportarSeccion('carpetas', {
+        incluirContenidoCarpeta: document.getElementById('foldersIncludeContentToggle')?.checked !== false
       })
-    }
-
-    if (btnSelectAll) {
-      btnSelectAll.addEventListener('click', () => {
-        document.querySelectorAll('.backup-section-toggle').forEach(input => {
-          input.checked = true
-        })
+    })
+    btnImportarCarpetas?.addEventListener('click', () => inputCarpetas?.click())
+    inputCarpetas?.addEventListener('change', e => {
+      if (!e.target.files[0]) return
+      importarSeccion(e.target.files[0], 'carpetas', {
+        incluirContenidoCarpeta: document.getElementById('foldersIncludeContentToggle')?.checked !== false
       })
-    }
+      e.target.value = ''
+    })
 
-    if (btnClear) {
-      btnClear.addEventListener('click', () => {
-        document.querySelectorAll('.backup-section-toggle').forEach(input => {
-          input.checked = false
-        })
+    btnExportarDocumentos?.addEventListener('click', () => {
+      exportarSeccion('documentos', {
+        incluirDocumentosEnCarpetas: document.getElementById('docsIncludeFoldersToggle')?.checked === true
       })
-    }
+    })
+    btnImportarDocumentos?.addEventListener('click', () => inputDocumentos?.click())
+    inputDocumentos?.addEventListener('change', e => {
+      if (!e.target.files[0]) return
+      importarSeccion(e.target.files[0], 'documentos', {
+        incluirDocumentosEnCarpetas: document.getElementById('docsIncludeFoldersToggle')?.checked === true
+      })
+      e.target.value = ''
+    })
+
+    btnExportarHorario?.addEventListener('click', () => exportarSeccion('horario'))
+    btnImportarHorario?.addEventListener('click', () => inputHorario?.click())
+    inputHorario?.addEventListener('change', e => {
+      if (!e.target.files[0]) return
+      importarSeccion(e.target.files[0], 'horario')
+      e.target.value = ''
+    })
+
+    btnExportarMalla?.addEventListener('click', () => exportarSeccion('malla'))
+    btnImportarMalla?.addEventListener('click', () => inputMalla?.click())
+    inputMalla?.addEventListener('change', e => {
+      if (!e.target.files[0]) return
+      importarSeccion(e.target.files[0], 'malla')
+      e.target.value = ''
+    })
+
+    btnExportarCalendario?.addEventListener('click', () => exportarSeccion('calendario'))
+    btnImportarCalendario?.addEventListener('click', () => inputCalendario?.click())
+    inputCalendario?.addEventListener('change', e => {
+      if (!e.target.files[0]) return
+      importarSeccion(e.target.files[0], 'calendario')
+      e.target.value = ''
+    })
+
+    btnExportarRamos?.addEventListener('click', () => exportarSeccion('ramos'))
+    btnImportarRamos?.addEventListener('click', () => inputRamos?.click())
+    inputRamos?.addEventListener('change', e => {
+      if (!e.target.files[0]) return
+      importarSeccion(e.target.files[0], 'ramos')
+      e.target.value = ''
+    })
+
+    btnExportarEstilo?.addEventListener('click', () => exportarSeccion('estilo'))
+    btnImportarEstilo?.addEventListener('click', () => inputEstilo?.click())
+    inputEstilo?.addEventListener('change', e => {
+      if (!e.target.files[0]) return
+      importarSeccion(e.target.files[0], 'estilo')
+      e.target.value = ''
+    })
   }
 
   if (document.readyState === 'loading') {
