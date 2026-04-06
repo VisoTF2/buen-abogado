@@ -24,7 +24,6 @@
     for (let index = 0; index < localStorage.length; index += 1) {
       const key = localStorage.key(index)
       if (!key || key.startsWith(RESERVED_PREFIX)) continue
-      if (CHUNK_INDEX_PATTERN.test(key) || CHUNK_COUNT_PATTERN.test(key)) continue
       rawEntries[key] = localStorage.getItem(key)
     }
 
@@ -33,18 +32,20 @@
 
     keys.forEach(key => {
       if (BACKUP_COPY_PATTERN.test(key)) return
+      if (CHUNK_INDEX_PATTERN.test(key) || CHUNK_COUNT_PATTERN.test(key)) return
 
       const backupKey = `${key}__backup`
-      const principal = rawEntries[key]
-      const respaldo = rawEntries[backupKey]
+      const principal = rehidratarValorChunkeado(rawEntries, key)
+      const respaldo = rehidratarValorChunkeado(rawEntries, backupKey)
       entries[key] = elegirValorExportable(principal, respaldo)
     })
 
     keys.forEach(key => {
+      if (CHUNK_INDEX_PATTERN.test(key) || CHUNK_COUNT_PATTERN.test(key)) return
       if (!BACKUP_COPY_PATTERN.test(key)) return
       const baseKey = key.replace(BACKUP_COPY_PATTERN, '')
       if (Object.prototype.hasOwnProperty.call(entries, baseKey)) return
-      entries[baseKey] = rawEntries[key]
+      entries[baseKey] = rehidratarValorChunkeado(rawEntries, key)
     })
 
     return {
@@ -54,6 +55,34 @@
       entries,
       fullState: buildFullState(entries)
     }
+  }
+
+  function rehidratarValorChunkeado(rawEntries, key) {
+    if (!key || !Object.prototype.hasOwnProperty.call(rawEntries, key)) return null
+    const principal = rawEntries[key]
+    if (typeof principal !== 'string' || !principal.startsWith(CHUNKED_MARKER_PREFIX)) {
+      return principal
+    }
+
+    const reconstruido = reconstruirDesdeChunks(rawEntries, key)
+    return reconstruido ?? principal
+  }
+
+  function reconstruirDesdeChunks(rawEntries, key) {
+    const chunkCountKey = `${key}__chunks_count`
+    const chunkPrefix = `${key}__chunk__`
+    const chunksCount = parseInt(rawEntries[chunkCountKey] || '0', 10)
+
+    if (!Number.isFinite(chunksCount) || chunksCount <= 0) return null
+
+    let combinado = ''
+    for (let index = 0; index < chunksCount; index += 1) {
+      const parte = rawEntries[`${chunkPrefix}${index}`]
+      if (typeof parte !== 'string') return null
+      combinado += parte
+    }
+
+    return combinado
   }
 
   function elegirValorExportable(principal, respaldo) {
