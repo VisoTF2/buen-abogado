@@ -77,73 +77,12 @@
     }, 4000)
   }
 
-  function crearModalSeleccion(titulo, descripcion, opciones, onConfirm) {
-    const backdrop = document.createElement('div')
-    backdrop.className = 'backup-modal-backdrop'
-    backdrop.innerHTML = `
-      <div class="backup-modal" role="dialog" aria-modal="true" aria-label="${titulo}">
-        <div class="backup-modal-header">
-          <h3>${titulo}</h3>
-          <button type="button" class="backup-modal-close" data-action="close" aria-label="Cerrar">×</button>
-        </div>
-        <p class="backup-modal-desc">${descripcion}</p>
-        <div class="backup-modal-shortcuts">
-          <button type="button" class="modo config-action" data-action="all">Seleccionar todo</button>
-          <button type="button" class="modo config-action" data-action="none">Limpiar</button>
-        </div>
-        <div class="backup-options-grid"></div>
-        <div class="backup-modal-actions">
-          <button type="button" class="modo config-action" data-action="cancel">Cancelar</button>
-          <button type="button" class="modo config-action" data-action="confirm">Continuar</button>
-        </div>
-      </div>
-    `
-
-    const optionsGrid = backdrop.querySelector('.backup-options-grid')
-    opciones.forEach(op => {
-      const card = document.createElement('label')
-      card.className = 'backup-option-card'
-      card.innerHTML = `
-        <input type="checkbox" data-key="${op.key}" ${op.checked ? 'checked' : ''}>
-        <span class="backup-option-copy">
-          <strong>${op.label}</strong>
-          <small>${op.description || ''}</small>
-        </span>
-      `
-      optionsGrid.appendChild(card)
+  function leerSeleccionConfiguracion() {
+    const seleccion = {}
+    document.querySelectorAll('.backup-section-toggle').forEach(input => {
+      seleccion[input.dataset.key] = input.checked
     })
-
-    const close = () => {
-      if (backdrop.parentElement) backdrop.parentElement.removeChild(backdrop)
-    }
-
-    backdrop.querySelector('[data-action="close"]').addEventListener('click', close)
-    backdrop.querySelector('[data-action="cancel"]').addEventListener('click', close)
-    backdrop.querySelector('[data-action="all"]').addEventListener('click', () => {
-      optionsGrid.querySelectorAll('input[type="checkbox"]').forEach(input => {
-        input.checked = true
-      })
-    })
-    backdrop.querySelector('[data-action="none"]').addEventListener('click', () => {
-      optionsGrid.querySelectorAll('input[type="checkbox"]').forEach(input => {
-        input.checked = false
-      })
-    })
-
-    backdrop.querySelector('[data-action="confirm"]').addEventListener('click', () => {
-      const seleccion = {}
-      optionsGrid.querySelectorAll('input[type="checkbox"]').forEach(input => {
-        seleccion[input.dataset.key] = input.checked
-      })
-      close()
-      onConfirm(seleccion)
-    })
-
-    backdrop.addEventListener('click', e => {
-      if (e.target === backdrop) close()
-    })
-
-    document.body.appendChild(backdrop)
+    return seleccion
   }
 
   function limpiarChunksDocumentosCompat() {
@@ -360,43 +299,35 @@
   }
 
   function exportarSeleccionado() {
-    const opciones = EXPORT_OPTIONS.map(option => ({ ...option, checked: true }))
+    const seleccion = leerSeleccionConfiguracion()
+    const tieneAlgo = Object.values(seleccion).some(Boolean)
+    if (!tieneAlgo) {
+      mostrarNotificacion('✗ Debes seleccionar al menos una sección', 'error')
+      return
+    }
 
-    crearModalSeleccion(
-      'Exportar datos',
-      'Elige exactamente qué quieres incluir en el archivo.',
-      opciones,
-      seleccion => {
-        const tieneAlgo = Object.values(seleccion).some(Boolean)
-        if (!tieneAlgo) {
-          mostrarNotificacion('✗ Debes seleccionar al menos una sección', 'error')
-          return
-        }
+    const backup = {
+      version: '2.1',
+      tipo: 'backup-selectivo',
+      timestamp: new Date().toISOString(),
+      datos: construirDatosExportablesPorSeleccion(seleccion)
+    }
 
-        const backup = {
-          version: '2.0',
-          tipo: 'backup-selectivo',
-          timestamp: new Date().toISOString(),
-          datos: construirDatosExportablesPorSeleccion(seleccion)
-        }
-
-        const jsonStr = JSON.stringify(backup, null, 2)
-        const blob = new Blob([jsonStr], { type: 'application/json; charset=utf-8' })
-        const ahora = new Date()
-        const fecha = ahora.toISOString().split('T')[0]
-        const hora = ahora.toTimeString().split(' ')[0].replace(/:/g, '-')
-        const nombre = `backup-seleccionado-${fecha}-${hora}.json`
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement('a')
-        link.href = url
-        link.download = nombre
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(url)
-        mostrarNotificacion('✓ Exportación completada', 'success')
-      }
-    )
+    const jsonStr = JSON.stringify(backup, null, 2)
+    const blob = new Blob([jsonStr], { type: 'application/json; charset=utf-8' })
+    const ahora = new Date()
+    const fecha = ahora.toISOString().split('T')[0]
+    const hora = ahora.toTimeString().split(' ')[0].replace(/:/g, '-')
+    const nombre = `backup-seleccionado-${fecha}-${hora}.json`
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = nombre
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    mostrarNotificacion('✓ Exportación completada', 'success')
   }
 
   function importarSeleccionado(archivo) {
@@ -413,89 +344,87 @@
           throw new Error('Archivo no válido')
         }
 
-        const opciones = EXPORT_OPTIONS
-          .map(option => ({ ...option, checked: Boolean(datos[option.key]) }))
-          .filter(op => op.checked)
+        const seleccionUsuario = leerSeleccionConfiguracion()
+        const seleccion = {}
+        EXPORT_OPTIONS.forEach(option => {
+          const existeEnArchivo = Boolean(datos[option.key])
+          if (existeEnArchivo && seleccionUsuario[option.key]) seleccion[option.key] = true
+        })
 
-        if (!opciones.length) throw new Error('El archivo no contiene secciones compatibles')
+        if (!Object.values(seleccion).some(Boolean)) {
+          throw new Error('No hay secciones marcadas que coincidan con el archivo')
+        }
 
-        crearModalSeleccion(
-          'Importar datos',
-          'Selecciona qué secciones deseas restaurar.',
-          opciones,
-          seleccion => {
-            let resumen = []
+        let resumen = []
 
-            if (seleccion.articulos && datos.articulos) {
-              const agregados = importarArticulosDesdeDatos({
-                articulos: datos.articulos.articulos || [],
-                materiasOrden: datos.articulos.materiasOrden || {},
-                carpetas: datos.articulos.carpetas || []
-              })
-              resumen.push(`${agregados} artículos`)
-            }
+        if (seleccion.articulos && datos.articulos) {
+          const agregados = importarArticulosDesdeDatos({
+            articulos: datos.articulos.articulos || [],
+            materiasOrden: datos.articulos.materiasOrden || {},
+            carpetas: datos.articulos.carpetas || []
+          })
+          resumen.push(`${agregados} artículos`)
+        }
 
-            if (seleccion.carpetas && datos.carpetas) {
-              const agregados = importarArticulosDesdeDatos({
-                articulos: datos.carpetas.articulosRelacionados || [],
-                materiasOrden: datos.carpetas.materiasOrden || {},
-                carpetas: datos.carpetas.carpetas || []
-              })
-              const resultadoDocs = mergearDocumentosImportados(
-                datos.carpetas.documentos || [],
-                datos.carpetas.documentosEnCarpetas || []
-              )
-              resumen.push(`carpetas (${agregados} artículos, ${resultadoDocs.nuevos.length} documentos)`)
-            }
+        if (seleccion.carpetas && datos.carpetas) {
+          const agregados = importarArticulosDesdeDatos({
+            articulos: datos.carpetas.articulosRelacionados || [],
+            materiasOrden: datos.carpetas.materiasOrden || {},
+            carpetas: datos.carpetas.carpetas || []
+          })
+          const resultadoDocs = mergearDocumentosImportados(
+            datos.carpetas.documentos || [],
+            datos.carpetas.documentosEnCarpetas || []
+          )
+          resumen.push(`carpetas (${agregados} artículos, ${resultadoDocs.nuevos.length} documentos)`)
+        }
 
-            if (seleccion.horario && datos.horario) {
-              Object.keys(datos.horario).forEach(key => localStorage.setItem(key, datos.horario[key]))
-              resumen.push('horario')
-            }
+        if (seleccion.horario && datos.horario) {
+          Object.keys(datos.horario).forEach(key => localStorage.setItem(key, datos.horario[key]))
+          resumen.push('horario')
+        }
 
-            if (seleccion.documentos && datos.documentos && Array.isArray(datos.documentos.documentos)) {
-              const resultadoDocs = mergearDocumentosImportados(datos.documentos.documentos, [])
-              const sidebarInicial = Array.isArray(datos.documentos.documentosSidebarIds) ? datos.documentos.documentosSidebarIds : []
-              const sidebarBase = Array.isArray(window.documentosSidebarIds) ? [...window.documentosSidebarIds, ...sidebarInicial] : sidebarInicial
-              const sidebarSet = new Set(sidebarBase)
-              window.documentosCargados.forEach(doc => {
-                if (!resultadoDocs.idsEnCarpetas.has(doc.id)) sidebarSet.add(doc.id)
-              })
-              window.documentosSidebarIds = Array.from(sidebarSet)
-              guardarJSONConRespaldo('documentosSidebarIds', window.documentosSidebarIds)
-              resumen.push(`${resultadoDocs.nuevos.length} documentos`)
-            }
+        if (seleccion.documentos && datos.documentos && Array.isArray(datos.documentos.documentos)) {
+          const resultadoDocs = mergearDocumentosImportados(datos.documentos.documentos, [])
+          const sidebarInicial = Array.isArray(datos.documentos.documentosSidebarIds) ? datos.documentos.documentosSidebarIds : []
+          const sidebarBase = Array.isArray(window.documentosSidebarIds) ? [...window.documentosSidebarIds, ...sidebarInicial] : sidebarInicial
+          const sidebarSet = new Set(sidebarBase)
+          window.documentosCargados.forEach(doc => {
+            if (!resultadoDocs.idsEnCarpetas.has(doc.id)) sidebarSet.add(doc.id)
+          })
+          window.documentosSidebarIds = Array.from(sidebarSet)
+          guardarJSONConRespaldo('documentosSidebarIds', window.documentosSidebarIds)
+          resumen.push(`${resultadoDocs.nuevos.length} documentos`)
+        }
 
-            if (seleccion.calendario && datos.calendario) {
-              Object.keys(datos.calendario).forEach(key => localStorage.setItem(key, datos.calendario[key]))
-              resumen.push('calendario')
-            }
+        if (seleccion.calendario && datos.calendario) {
+          Object.keys(datos.calendario).forEach(key => localStorage.setItem(key, datos.calendario[key]))
+          resumen.push('calendario')
+        }
 
-            if (seleccion.ramos && datos.ramos) {
-              Object.keys(datos.ramos).forEach(key => localStorage.setItem(key, datos.ramos[key]))
-              if (typeof datos.ramos.materiasOrden === 'string') {
-                try {
-                  window.materiasOrden = JSON.parse(datos.ramos.materiasOrden)
-                  guardarJSONConRespaldo('materiasOrden', window.materiasOrden)
-                } catch (_e) {}
-              }
-              resumen.push('ramos')
-            }
-
-            if (seleccion.estilo && datos.estilo) {
-              ESTILO_KEYS.forEach(key => {
-                if (typeof datos.estilo[key] === 'string') localStorage.setItem(key, datos.estilo[key])
-              })
-              if (typeof aplicarModoGuardado === 'function') aplicarModoGuardado()
-              if (typeof aplicarColorAcentoGuardado === 'function') aplicarColorAcentoGuardado()
-              if (typeof aplicarFondo === 'function') aplicarFondo(localStorage.getItem('fondoImagenApp') || '')
-              resumen.push('estilo')
-            }
-
-            if (typeof ordenarYMostrar === 'function') ordenarYMostrar()
-            mostrarNotificacion(`✓ Importación completada (${resumen.join(', ')})`, 'success')
+        if (seleccion.ramos && datos.ramos) {
+          Object.keys(datos.ramos).forEach(key => localStorage.setItem(key, datos.ramos[key]))
+          if (typeof datos.ramos.materiasOrden === 'string') {
+            try {
+              window.materiasOrden = JSON.parse(datos.ramos.materiasOrden)
+              guardarJSONConRespaldo('materiasOrden', window.materiasOrden)
+            } catch (_e) {}
           }
-        )
+          resumen.push('ramos')
+        }
+
+        if (seleccion.estilo && datos.estilo) {
+          ESTILO_KEYS.forEach(key => {
+            if (typeof datos.estilo[key] === 'string') localStorage.setItem(key, datos.estilo[key])
+          })
+          if (typeof aplicarModoGuardado === 'function') aplicarModoGuardado()
+          if (typeof aplicarColorAcentoGuardado === 'function') aplicarColorAcentoGuardado()
+          if (typeof aplicarFondo === 'function') aplicarFondo(localStorage.getItem('fondoImagenApp') || '')
+          resumen.push('estilo')
+        }
+
+        if (typeof ordenarYMostrar === 'function') ordenarYMostrar()
+        mostrarNotificacion(`✓ Importación completada (${resumen.join(', ')})`, 'success')
       } catch (error) {
         console.error('[ExportArticles] Error importando seleccionado:', error)
         mostrarNotificacion(`✗ Error: ${error.message}`, 'error')
@@ -608,6 +537,8 @@
     const btnExportarSelectivo = document.getElementById('exportSelectedDataBtn')
     const btnImportarSelectivo = document.getElementById('importSelectedDataBtn')
     const inputImportarSelectivo = document.getElementById('inputImportSelectedData')
+    const btnSelectAll = document.getElementById('backupSelectAllBtn')
+    const btnClear = document.getElementById('backupClearBtn')
 
     if (btnExportar) {
       btnExportar.addEventListener('click', exportarArticulos)
@@ -643,6 +574,22 @@
           importarSeleccionado(e.target.files[0])
           e.target.value = ''
         }
+      })
+    }
+
+    if (btnSelectAll) {
+      btnSelectAll.addEventListener('click', () => {
+        document.querySelectorAll('.backup-section-toggle').forEach(input => {
+          input.checked = true
+        })
+      })
+    }
+
+    if (btnClear) {
+      btnClear.addEventListener('click', () => {
+        document.querySelectorAll('.backup-section-toggle').forEach(input => {
+          input.checked = false
+        })
       })
     }
   }

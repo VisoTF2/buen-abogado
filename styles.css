@@ -3969,71 +3969,20 @@ body.oscuro .action-buttons .class-delete:hover { background: var(--danger-solid
   color: #dc2626;
 }
 
-.backup-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1400;
-  background: rgba(7, 10, 21, 0.52);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 18px;
-}
-
-.backup-modal {
-  width: min(820px, 100%);
-  max-height: min(84vh, 760px);
-  overflow: auto;
-  border-radius: 16px;
-  background: var(--panel-bg);
-  border: 1px solid var(--line);
-  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.3);
-  padding: 18px;
-}
-
-.backup-modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.backup-modal-header h3 {
-  margin: 0;
-}
-
-.backup-modal-close {
-  border: 1px solid var(--line);
-  background: var(--chip-bg);
-  color: var(--text);
-  border-radius: 999px;
-  width: 34px;
-  height: 34px;
-  cursor: pointer;
-  font-size: 20px;
-  line-height: 1;
-}
-
-.backup-modal-desc {
-  margin: 8px 0 10px;
-  color: var(--muted);
-  font-size: 14px;
-}
-
-.backup-modal-shortcuts {
+.backup-config-shortcuts {
   display: flex;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
-.backup-options-grid {
+.backup-config-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+  margin-bottom: 12px;
 }
 
-.backup-option-card {
+.backup-config-option {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -4044,26 +3993,23 @@ body.oscuro .action-buttons .class-delete:hover { background: var(--danger-solid
   cursor: pointer;
 }
 
-.backup-option-copy {
+.backup-config-option span {
   display: grid;
   gap: 5px;
 }
 
-.backup-option-copy small {
+.backup-config-option small {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.25;
 }
 
-.backup-modal-actions {
-  margin-top: 14px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
+.backup-config-option input[type="checkbox"] {
+  margin-top: 2px;
 }
 
 @media (max-width: 760px) {
-  .backup-options-grid {
+  .backup-config-grid {
     grid-template-columns: 1fr;
   }
 }

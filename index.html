@@ -474,7 +474,41 @@
         <section class="config-section">
           <div class="config-section-head">
             <h4>Exportar e importar por secciones</h4>
-            <p>Elige entre artículos, carpetas, documentos, horario, calendario, ramos y estilo.</p>
+            <p>Marca qué quieres incluir: artículos, carpetas, documentos, horario, calendario, ramos y estilo.</p>
+          </div>
+          <div class="backup-config-shortcuts">
+            <button class="modo config-action" type="button" id="backupSelectAllBtn">Seleccionar todo</button>
+            <button class="modo config-action" type="button" id="backupClearBtn">Limpiar selección</button>
+          </div>
+          <div class="backup-config-grid" id="backupConfigGrid">
+            <label class="backup-config-option">
+              <input type="checkbox" class="backup-section-toggle" data-key="articulos" checked>
+              <span><strong>Artículos</strong><small>Solo artículos.</small></span>
+            </label>
+            <label class="backup-config-option">
+              <input type="checkbox" class="backup-section-toggle" data-key="carpetas" checked>
+              <span><strong>Carpetas</strong><small>Incluye materias, artículos relacionados y documentos vinculados.</small></span>
+            </label>
+            <label class="backup-config-option">
+              <input type="checkbox" class="backup-section-toggle" data-key="documentos" checked>
+              <span><strong>Documentos</strong><small>Documentos fuera de carpetas (sidebar).</small></span>
+            </label>
+            <label class="backup-config-option">
+              <input type="checkbox" class="backup-section-toggle" data-key="horario" checked>
+              <span><strong>Horario + malla</strong><small>Horario semanal con malla.</small></span>
+            </label>
+            <label class="backup-config-option">
+              <input type="checkbox" class="backup-section-toggle" data-key="calendario" checked>
+              <span><strong>Calendario</strong><small>Eventos del calendario mensual.</small></span>
+            </label>
+            <label class="backup-config-option">
+              <input type="checkbox" class="backup-section-toggle" data-key="ramos" checked>
+              <span><strong>Ramos</strong><small>Orden de materias y calculadora de notas.</small></span>
+            </label>
+            <label class="backup-config-option">
+              <input type="checkbox" class="backup-section-toggle" data-key="estilo" checked>
+              <span><strong>Estilo</strong><small>Fondo, colores y modo oscuro.</small></span>
+            </label>
           </div>
           <div class="config-actions">
             <button class="modo config-action" type="button" id="exportSelectedDataBtn">Exportar selección</button>
