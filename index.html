@@ -466,31 +466,14 @@
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="persistent-state.js"></script>
 <script src="storage-shim.js"></script>
-<script>
-  ;(function loadMainScriptsWhenStateReady() {
-    const scripts = [
-      'personalizacion.js',
-      'documentos.js',
-      'busqueda.js',
-      'schedule.js',
-      'app.js',
-      'calendar.js',
-      'grade-calculator.js',
-      'media.js',
-      'backup-transfer.js'
-    ]
-
-    function loadScriptsSequentially(items, index = 0) {
-      if (index >= items.length) return
-      const script = document.createElement('script')
-      script.src = items[index]
-      script.onload = () => loadScriptsSequentially(items, index + 1)
-      document.body.appendChild(script)
-    }
-
-    const ready = window.persistentState?.ready || Promise.resolve()
-    ready.finally(() => loadScriptsSequentially(scripts))
-  })()
-</script>
+<script src="backup-transfer.js"></script>
+<script src="personalizacion.js"></script>
+<script src="documentos.js"></script>
+<script src="busqueda.js"></script>
+<script src="schedule.js"></script>
+<script src="app.js"></script>
+<script src="calendar.js"></script>
+<script src="grade-calculator.js"></script>
+<script src="media.js"></script>
 </body>
 </html>
