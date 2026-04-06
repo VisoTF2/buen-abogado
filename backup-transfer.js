@@ -66,7 +66,7 @@
   }
 
   function buildFullState(entries) {
-    const fullState = {}
+    const fullState = window.persistentState?.exportAll?.() || {}
 
     try {
       if (typeof window.__backupExportAppState === 'function') {
@@ -194,6 +194,8 @@
           // Si no cabe la copia adicional, mantenemos al menos la clave principal.
         }
       }
+
+      window.persistentState?.set?.(key, fullState[key])
     })
   }
 
@@ -295,6 +297,7 @@
           keys.push(key)
         }
         keys.forEach(key => localStorage.removeItem(key))
+        window.persistentState?.clear?.()
         clearMessage()
         setTimeout(() => window.location.reload(), 200)
       } catch (error) {
