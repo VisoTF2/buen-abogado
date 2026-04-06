@@ -120,9 +120,13 @@
     keysToDelete.forEach(key => localStorage.removeItem(key))
 
     const skippedByQuota = []
+    const criticalState = buildPreferredCriticalState(snapshot)
+    applyFullState(criticalState, skippedByQuota)
+
     const entries = Object.entries(snapshot.entries || {})
       .filter(([key]) => typeof key === 'string' && !key.startsWith(RESERVED_PREFIX))
       .filter(([key]) => !BACKUP_COPY_PATTERN.test(key))
+      .filter(([key]) => !CRITICAL_STATE_KEYS.includes(key))
       .sort(([, valueA], [, valueB]) => String(valueA ?? '').length - String(valueB ?? '').length)
 
     entries.forEach(([key, value]) => {
@@ -141,11 +145,28 @@
       }
     })
 
-    applyFullState(snapshot.fullState, skippedByQuota)
-
     return {
       skippedByQuota
     }
+  }
+
+  function buildPreferredCriticalState(snapshot) {
+    const base = {}
+
+    if (snapshot.fullState && typeof snapshot.fullState === 'object') {
+      CRITICAL_STATE_KEYS.forEach(key => {
+        if (key in snapshot.fullState) base[key] = snapshot.fullState[key]
+      })
+    }
+
+    const entries = snapshot.entries || {}
+    CRITICAL_STATE_KEYS.forEach(key => {
+      if (base[key] !== undefined) return
+      const parsed = intentarParseJSON(entries[key])
+      if (parsed.ok) base[key] = parsed.value
+    })
+
+    return base
   }
 
   function applyFullState(fullState, skippedByQuota) {
