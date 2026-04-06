@@ -471,6 +471,89 @@
           </div>
         </section>
 
+        <section class="config-section">
+          <div class="config-section-head">
+            <h4>Respaldos por sección</h4>
+            <p>Exporta o importa cada bloque por separado, con botones como el sistema de artículos.</p>
+          </div>
+          <label class="config-option" for="articlesIncludeFoldersToggle">
+            <span>Incluir carpetas al exportar/importar artículos</span>
+            <input type="checkbox" id="articlesIncludeFoldersToggle" checked>
+          </label>
+          <div class="backup-rows">
+            <div class="backup-row">
+              <div>
+                <strong>Carpetas</strong>
+                <small>Respalda solo carpetas o carpetas con su contenido.</small>
+                <label class="config-option backup-inline-option" for="foldersIncludeContentToggle">
+                  <span>Incluir artículos/documentos de carpeta</span>
+                  <input type="checkbox" id="foldersIncludeContentToggle" checked>
+                </label>
+              </div>
+              <div class="config-actions">
+                <button class="modo config-action" type="button" id="exportFoldersBtn">Exportar</button>
+                <button class="modo config-action" type="button" id="importFoldersBtn">Importar</button>
+                <input type="file" id="inputImportFolders" accept=".json" style="display:none;">
+              </div>
+            </div>
+            <div class="backup-row">
+              <div>
+                <strong>Documentos</strong>
+                <small>Respaldo de documentos fuera de carpeta o incluyendo los de carpeta.</small>
+                <label class="config-option backup-inline-option" for="docsIncludeFoldersToggle">
+                  <span>Incluir documentos dentro de carpetas</span>
+                  <input type="checkbox" id="docsIncludeFoldersToggle">
+                </label>
+              </div>
+              <div class="config-actions">
+                <button class="modo config-action" type="button" id="exportDocsBtn">Exportar</button>
+                <button class="modo config-action" type="button" id="importDocsBtn">Importar</button>
+                <input type="file" id="inputImportDocs" accept=".json" style="display:none;">
+              </div>
+            </div>
+            <div class="backup-row">
+              <div><strong>Horario</strong><small>Respaldo del horario (sin malla).</small></div>
+              <div class="config-actions">
+                <button class="modo config-action" type="button" id="exportScheduleBtn">Exportar</button>
+                <button class="modo config-action" type="button" id="importScheduleBtn">Importar</button>
+                <input type="file" id="inputImportSchedule" accept=".json" style="display:none;">
+              </div>
+            </div>
+            <div class="backup-row">
+              <div><strong>Malla</strong><small>Respaldo separado de la malla.</small></div>
+              <div class="config-actions">
+                <button class="modo config-action" type="button" id="exportMallaBtn">Exportar</button>
+                <button class="modo config-action" type="button" id="importMallaBtn">Importar</button>
+                <input type="file" id="inputImportMalla" accept=".json" style="display:none;">
+              </div>
+            </div>
+            <div class="backup-row">
+              <div><strong>Calendario</strong><small>Respaldo de eventos del calendario.</small></div>
+              <div class="config-actions">
+                <button class="modo config-action" type="button" id="exportCalendarBtn">Exportar</button>
+                <button class="modo config-action" type="button" id="importCalendarBtn">Importar</button>
+                <input type="file" id="inputImportCalendar" accept=".json" style="display:none;">
+              </div>
+            </div>
+            <div class="backup-row">
+              <div><strong>Ramos</strong><small>Orden de materias + calculadora de notas.</small></div>
+              <div class="config-actions">
+                <button class="modo config-action" type="button" id="exportRamosBtn">Exportar</button>
+                <button class="modo config-action" type="button" id="importRamosBtn">Importar</button>
+                <input type="file" id="inputImportRamos" accept=".json" style="display:none;">
+              </div>
+            </div>
+            <div class="backup-row">
+              <div><strong>Estilo</strong><small>Fondo, colores y modo oscuro.</small></div>
+              <div class="config-actions">
+                <button class="modo config-action" type="button" id="exportStyleBtn">Exportar</button>
+                <button class="modo config-action" type="button" id="importStyleBtn">Importar</button>
+                <input type="file" id="inputImportStyle" accept=".json" style="display:none;">
+              </div>
+            </div>
+          </div>
+        </section>
+
 
       </div>
     </div>
