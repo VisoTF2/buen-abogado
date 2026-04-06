@@ -67,7 +67,6 @@
 
     } catch (error) {
       console.error('[MemoryBackup] Error descargando respaldo:', error)
-      alert('Error al descargar respaldo: ' + error.message)
     }
   }
 
@@ -77,7 +76,6 @@
    */
   window.cargarRespaldo = function cargarRespaldo(archivo) {
     if (!archivo) {
-      alert('Selecciona un archivo de respaldo')
       return
     }
 
@@ -147,13 +145,11 @@
 
       } catch (error) {
         console.error('[MemoryBackup] Error cargando respaldo:', error)
-        alert('Error al cargar respaldo: ' + error.message)
       }
     }
 
     lector.onerror = function() {
       console.error('[MemoryBackup] Error leyendo archivo')
-      alert('Error al leer el archivo de respaldo')
     }
 
     lector.readAsText(archivo)
@@ -164,10 +160,6 @@
    * Limpia TODO y vuelve a estado inicial
    */
   window.restaurarApp = function restaurarApp() {
-    if (!confirm('¿SEGURO? Esto borrará TODO.\n\nNo se puede deshacer.')) {
-      return
-    }
-
     try {
       console.log('[MemoryBackup] Restaurando app a estado inicial...')
 
@@ -197,7 +189,6 @@
 
     } catch (error) {
       console.error('[MemoryBackup] Error restaurando:', error)
-      alert('Error al restaurar: ' + error.message)
     }
   }
 
