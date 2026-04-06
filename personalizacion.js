@@ -6,6 +6,7 @@ const BANNER_FILL_ENABLED_KEY = "bannerColorFondoActivo"
 const bannerFillToggle = document.getElementById("bannerFillToggle")
 const fondoInput = document.getElementById("fondoInput")
 const FONDO_STORAGE_KEY = "fondoImagenApp"
+const persistedState = window.persistentState
 const accentColorInput = document.getElementById("accentColorInput")
 const accentApplyDarkToggle = document.getElementById("accentApplyDarkToggle")
 const ACCENT_COLOR_STORAGE_KEY = "colorAcentoApp"
@@ -209,6 +210,7 @@ function aplicarFondo(src) {
 function restablecerFondo() {
   aplicarFondo("")
   localStorage.removeItem(FONDO_STORAGE_KEY)
+  persistedState?.remove?.(FONDO_STORAGE_KEY)
   if (fondoInput) fondoInput.value = ""
 }
 
@@ -222,6 +224,7 @@ fondoInput?.addEventListener("change", e => {
     if (typeof dataUrl === "string") {
       aplicarFondo(dataUrl)
       localStorage.setItem(FONDO_STORAGE_KEY, dataUrl)
+      persistedState?.set?.(FONDO_STORAGE_KEY, dataUrl)
     }
   }
   lector.readAsDataURL(archivo)
@@ -813,7 +816,11 @@ if (!normalizarHexColor(accentColorGuardado) && accentColorGuardado) {
 aplicarColorAcentoGuardado()
 aplicarBanner(localStorage.getItem(BANNER_STORAGE_KEY) || "")
 aplicarFondoBannerActivo(localStorage.getItem(BANNER_FILL_ENABLED_KEY) !== "false")
-aplicarFondo(localStorage.getItem(FONDO_STORAGE_KEY) || "")
+const storedFondo = persistedState?.getCached?.(FONDO_STORAGE_KEY) || localStorage.getItem(FONDO_STORAGE_KEY) || ""
+if (storedFondo && !localStorage.getItem(FONDO_STORAGE_KEY)) {
+  localStorage.setItem(FONDO_STORAGE_KEY, storedFondo)
+}
+aplicarFondo(storedFondo)
 const storedDisplayMalla = localStorage.getItem(MALLA_STORAGE_KEY) || ""
 const storedBaseMalla = localStorage.getItem(MALLA_BASE_KEY) || storedDisplayMalla
 if (storedBaseMalla && !localStorage.getItem(MALLA_BASE_KEY)) {

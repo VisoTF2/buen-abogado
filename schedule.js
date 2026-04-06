@@ -12,6 +12,7 @@
   const STORAGE_KEY = 'horarioClases'
   const TITLE_STORAGE_KEY = 'horarioTitulo'
   const ACTIVE_DAYS_KEY = 'horarioDiasActivos'
+  const persistedState = window.persistentState
 
   function $(s, root=document) { return root.querySelector(s) }
   function $all(s, root=document) { return Array.from(root.querySelectorAll(s)) }
@@ -42,6 +43,8 @@
 
   function cargarHorario() {
     try {
+      const persisted = persistedState?.getCached?.(STORAGE_KEY)
+      if (persisted && typeof persisted === 'object') return normalizarHorario(persisted)
       const raw = localStorage.getItem(STORAGE_KEY)
       if (!raw) return createEmptySchedule()
       return normalizarHorario(JSON.parse(raw))
@@ -50,10 +53,18 @@
     }
   }
 
-  function guardarHorario(h) { localStorage.setItem(STORAGE_KEY, JSON.stringify(h)) }
+  function guardarHorario(h) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(h))
+    persistedState?.set?.(STORAGE_KEY, h)
+  }
 
   function cargarDiasActivos() {
     try {
+      const persisted = persistedState?.getCached?.(ACTIVE_DAYS_KEY)
+      if (Array.isArray(persisted)) {
+        const validPersisted = persisted.filter(dayId => DAY_DEFS.some(day => day.id === dayId))
+        return validPersisted.length ? validPersisted : []
+      }
       const raw = localStorage.getItem(ACTIVE_DAYS_KEY)
       if (!raw) return [...DEFAULT_ACTIVE_DAYS]
       const parsed = JSON.parse(raw)
@@ -67,6 +78,7 @@
 
   function guardarDiasActivos(days) {
     localStorage.setItem(ACTIVE_DAYS_KEY, JSON.stringify(days))
+    persistedState?.set?.(ACTIVE_DAYS_KEY, days)
   }
 
   function obtenerDiasActivosOrdenados() {
@@ -74,12 +86,15 @@
   }
 
   function cargarTituloHorario() {
+    const persisted = persistedState?.getCached?.(TITLE_STORAGE_KEY)
+    if (typeof persisted === 'string' && persisted.trim()) return persisted
     const raw = localStorage.getItem(TITLE_STORAGE_KEY)
     return raw ? raw : 'Horario semanal'
   }
 
   function guardarTituloHorario(texto) {
     localStorage.setItem(TITLE_STORAGE_KEY, texto)
+    persistedState?.set?.(TITLE_STORAGE_KEY, texto)
   }
 
   function escapeHtml(s){
