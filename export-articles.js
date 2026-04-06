@@ -10,10 +10,21 @@
   const HORARIO_KEYS = ['horarioClases', 'horarioTitulo', 'horarioDiasActivos']
   const HORARIO_MALLA_KEYS = ['mallaImagenHorario', 'mallaImagenBaseHorario', 'mallaOverlayHorario', 'mallaActivaHorario', 'mallaSizeHorario']
   const ESTILO_KEYS = ['modoOscuroActivo', 'fondoImagenApp', 'colorAcentoApp', 'colorAcentoModoOscuro']
+  const CALENDARIO_KEYS = ['calendarEvents', 'calendarEvents__backup']
+  const RAMOS_KEYS = ['materiasOrden', 'gradeCalculatorSubjectsV2']
   const DOCUMENTOS_STORAGE_KEY = 'documentosSubidos'
   const DOCUMENTOS_CHUNK_PREFIX = `${DOCUMENTOS_STORAGE_KEY}__chunk__`
   const DOCUMENTOS_CHUNK_COUNT_KEY = `${DOCUMENTOS_STORAGE_KEY}__chunks_count`
   const DOCUMENTOS_CHUNK_SIZE = 350000
+  const EXPORT_OPTIONS = [
+    { key: 'articulos', label: 'Artículos', description: 'Solo los artículos. Sin carpetas ni documentos.' },
+    { key: 'carpetas', label: 'Carpetas', description: 'Carpetas con sus materias, artículos relacionados y documentos vinculados.' },
+    { key: 'documentos', label: 'Documentos', description: 'Documentos fuera de carpetas (sidebar principal).' },
+    { key: 'horario', label: 'Horario + malla', description: 'Horario semanal con título, días activos y malla.' },
+    { key: 'calendario', label: 'Calendario', description: 'Eventos del calendario mensual.' },
+    { key: 'ramos', label: 'Ramos', description: 'Orden de materias y ramos de calculadora de notas.' },
+    { key: 'estilo', label: 'Estilo', description: 'Modo oscuro, fondo y colores de acento.' }
+  ]
 
   /**
    * Mostrar notificación temporal
@@ -68,64 +79,60 @@
 
   function crearModalSeleccion(titulo, descripcion, opciones, onConfirm) {
     const backdrop = document.createElement('div')
-    backdrop.style.cssText = `
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.45);
-      z-index: 9998;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
+    backdrop.className = 'backup-modal-backdrop'
+    backdrop.innerHTML = `
+      <div class="backup-modal" role="dialog" aria-modal="true" aria-label="${titulo}">
+        <div class="backup-modal-header">
+          <h3>${titulo}</h3>
+          <button type="button" class="backup-modal-close" data-action="close" aria-label="Cerrar">×</button>
+        </div>
+        <p class="backup-modal-desc">${descripcion}</p>
+        <div class="backup-modal-shortcuts">
+          <button type="button" class="modo config-action" data-action="all">Seleccionar todo</button>
+          <button type="button" class="modo config-action" data-action="none">Limpiar</button>
+        </div>
+        <div class="backup-options-grid"></div>
+        <div class="backup-modal-actions">
+          <button type="button" class="modo config-action" data-action="cancel">Cancelar</button>
+          <button type="button" class="modo config-action" data-action="confirm">Continuar</button>
+        </div>
+      </div>
     `
 
-    const modal = document.createElement('div')
-    modal.style.cssText = `
-      width: min(460px, 100%);
-      background: var(--surface, #fff);
-      border-radius: 12px;
-      box-shadow: 0 14px 32px rgba(0,0,0,0.25);
-      padding: 18px;
-      color: inherit;
-    `
-
-    const title = document.createElement('h3')
-    title.textContent = titulo
-    title.style.margin = '0 0 8px'
-    modal.appendChild(title)
-
-    const text = document.createElement('p')
-    text.textContent = descripcion
-    text.style.cssText = 'margin: 0 0 14px; opacity: 0.85; font-size: 14px;'
-    modal.appendChild(text)
-
-    const form = document.createElement('div')
-    form.style.cssText = 'display: grid; gap: 10px; margin-bottom: 16px;'
-
+    const optionsGrid = backdrop.querySelector('.backup-options-grid')
     opciones.forEach(op => {
-      const row = document.createElement('label')
-      row.style.cssText = 'display: flex; align-items: center; gap: 8px;'
-      row.innerHTML = `<input type="checkbox" data-key="${op.key}" ${op.checked ? 'checked' : ''}> <span>${op.label}</span>`
-      form.appendChild(row)
+      const card = document.createElement('label')
+      card.className = 'backup-option-card'
+      card.innerHTML = `
+        <input type="checkbox" data-key="${op.key}" ${op.checked ? 'checked' : ''}>
+        <span class="backup-option-copy">
+          <strong>${op.label}</strong>
+          <small>${op.description || ''}</small>
+        </span>
+      `
+      optionsGrid.appendChild(card)
     })
-    modal.appendChild(form)
-
-    const actions = document.createElement('div')
-    actions.style.cssText = 'display: flex; justify-content: flex-end; gap: 8px;'
-    actions.innerHTML = `
-      <button type="button" data-action="cancel" class="modo config-action">Cancelar</button>
-      <button type="button" data-action="confirm" class="modo config-action">Continuar</button>
-    `
-    modal.appendChild(actions)
 
     const close = () => {
       if (backdrop.parentElement) backdrop.parentElement.removeChild(backdrop)
     }
 
-    actions.querySelector('[data-action="cancel"]').addEventListener('click', close)
-    actions.querySelector('[data-action="confirm"]').addEventListener('click', () => {
+    backdrop.querySelector('[data-action="close"]').addEventListener('click', close)
+    backdrop.querySelector('[data-action="cancel"]').addEventListener('click', close)
+    backdrop.querySelector('[data-action="all"]').addEventListener('click', () => {
+      optionsGrid.querySelectorAll('input[type="checkbox"]').forEach(input => {
+        input.checked = true
+      })
+    })
+    backdrop.querySelector('[data-action="none"]').addEventListener('click', () => {
+      optionsGrid.querySelectorAll('input[type="checkbox"]').forEach(input => {
+        input.checked = false
+      })
+    })
+
+    backdrop.querySelector('[data-action="confirm"]').addEventListener('click', () => {
       const seleccion = {}
-      form.querySelectorAll('input[type="checkbox"]').forEach(input => {
+      optionsGrid.querySelectorAll('input[type="checkbox"]').forEach(input => {
         seleccion[input.dataset.key] = input.checked
       })
       close()
@@ -136,7 +143,6 @@
       if (e.target === backdrop) close()
     })
 
-    backdrop.appendChild(modal)
     document.body.appendChild(backdrop)
   }
 
@@ -236,13 +242,125 @@
     return agregados
   }
 
+  function obtenerArticulosPorMaterias(materias = []) {
+    if (!Array.isArray(materias) || !Array.isArray(window.articulos)) return []
+    const materiaSet = new Set(materias.map(m => `${m.normativa}::${m.materia}`))
+    return window.articulos.filter(a => materiaSet.has(`${a.normativa}::${a.materia}`))
+  }
+
+  function construirDatosExportablesPorSeleccion(seleccion) {
+    const datos = {}
+
+    if (seleccion.articulos) {
+      datos.articulos = { articulos: window.articulos || [] }
+    }
+
+    if (seleccion.carpetas) {
+      const carpetas = Array.isArray(window.carpetas) ? window.carpetas : []
+      const articulosCarpetas = carpetas.flatMap(carpeta => obtenerArticulosPorMaterias(carpeta.materias || []))
+      const idsDocumentosCarpeta = new Set(carpetas.flatMap(carpeta => Array.isArray(carpeta.documentos) ? carpeta.documentos : []))
+      const documentos = (window.documentosCargados || []).filter(doc => idsDocumentosCarpeta.has(doc.id))
+      datos.carpetas = {
+        carpetas,
+        articulosRelacionados: articulosCarpetas,
+        documentos,
+        documentosEnCarpetas: carpetas
+          .filter(carpeta => Array.isArray(carpeta.documentos) && carpeta.documentos.length)
+          .map(carpeta => ({ carpetaId: carpeta.id, documentos: carpeta.documentos })),
+        materiasOrden: window.materiasOrden || {}
+      }
+    }
+
+    if (seleccion.documentos) {
+      const idsEnCarpetas = new Set(
+        (window.carpetas || []).flatMap(carpeta => Array.isArray(carpeta.documentos) ? carpeta.documentos : [])
+      )
+      datos.documentos = {
+        documentos: (window.documentosCargados || []).filter(doc => !idsEnCarpetas.has(doc.id)),
+        documentosSidebarIds: Array.isArray(window.documentosSidebarIds) ? window.documentosSidebarIds : []
+      }
+    }
+
+    if (seleccion.horario) {
+      datos.horario = {}
+      HORARIO_KEYS.forEach(key => {
+        const value = localStorage.getItem(key)
+        if (value !== null) datos.horario[key] = value
+      })
+      HORARIO_MALLA_KEYS.forEach(key => {
+        const value = localStorage.getItem(key)
+        if (value !== null) datos.horario[key] = value
+      })
+    }
+
+    if (seleccion.calendario) {
+      datos.calendario = {}
+      CALENDARIO_KEYS.forEach(key => {
+        const value = localStorage.getItem(key)
+        if (value !== null) datos.calendario[key] = value
+      })
+    }
+
+    if (seleccion.ramos) {
+      datos.ramos = {}
+      RAMOS_KEYS.forEach(key => {
+        const value = localStorage.getItem(key)
+        if (value !== null) datos.ramos[key] = value
+      })
+    }
+
+    if (seleccion.estilo) {
+      datos.estilo = {}
+      ESTILO_KEYS.forEach(key => {
+        const value = localStorage.getItem(key)
+        if (value !== null) datos.estilo[key] = value
+      })
+    }
+
+    return datos
+  }
+
+  function mergearDocumentosImportados(importados = [], documentosEnCarpetas = []) {
+    const actuales = Array.isArray(window.documentosCargados) ? window.documentosCargados : []
+    const idsActuales = new Set(actuales.map(doc => doc.id))
+    const normalizados = importados.map(normalizarDocumento).filter(Boolean)
+    const nuevos = normalizados.filter(doc => !idsActuales.has(doc.id))
+    window.documentosCargados = [...actuales, ...nuevos]
+    escribirDocumentosStorageRawCompat(JSON.stringify(window.documentosCargados))
+    window.persistentState?.set?.(DOCUMENTOS_STORAGE_KEY, window.documentosCargados)
+
+    const idsEnCarpetas = new Set()
+    if (Array.isArray(documentosEnCarpetas) && Array.isArray(window.carpetas)) {
+      const docsPorId = new Map(window.documentosCargados.map(doc => [doc.id, doc]))
+      window.carpetas = window.carpetas.map(carpeta => {
+        const regla = documentosEnCarpetas.find(c => c.carpetaId === carpeta.id)
+        if (!regla || !Array.isArray(regla.documentos)) return carpeta
+        const existentes = Array.isArray(carpeta.documentos) ? carpeta.documentos : []
+        const merged = Array.from(new Set([...existentes, ...regla.documentos]))
+        regla.documentos.forEach(id => idsEnCarpetas.add(id))
+        const documentosData = { ...(carpeta.documentosData || {}) }
+        regla.documentos.forEach(id => {
+          const base = docsPorId.get(id)
+          if (!base) return
+          documentosData[id] = {
+            id: base.id,
+            nombre: base.nombre || 'Documento',
+            extension: base.extension || '',
+            url: base.url || '',
+            texto: base.texto || '',
+            mensaje: base.mensaje || ''
+          }
+        })
+        return { ...carpeta, documentos: merged, documentosData }
+      })
+      guardarJSONConRespaldo('carpetasMaterias', window.carpetas)
+    }
+
+    return { nuevos, idsEnCarpetas }
+  }
+
   function exportarSeleccionado() {
-    const opciones = [
-      { key: 'articulos', label: 'Artículos y carpetas', checked: true },
-      { key: 'horario', label: 'Horario (con malla)', checked: true },
-      { key: 'documentos', label: 'Documentos', checked: true },
-      { key: 'estilo', label: 'Estilo (fondo y colores)', checked: true }
-    ]
+    const opciones = EXPORT_OPTIONS.map(option => ({ ...option, checked: true }))
 
     crearModalSeleccion(
       'Exportar datos',
@@ -256,49 +374,10 @@
         }
 
         const backup = {
-          version: '1.0',
+          version: '2.0',
           tipo: 'backup-selectivo',
           timestamp: new Date().toISOString(),
-          datos: {}
-        }
-
-        if (seleccion.articulos) {
-          backup.datos.articulos = window.articulos || []
-          backup.datos.materiasOrden = window.materiasOrden || {}
-          backup.datos.carpetas = window.carpetas || []
-        }
-
-        if (seleccion.horario) {
-          backup.datos.horario = {}
-          HORARIO_KEYS.forEach(key => {
-            const value = localStorage.getItem(key)
-            if (value !== null) backup.datos.horario[key] = value
-          })
-          HORARIO_MALLA_KEYS.forEach(key => {
-            const value = localStorage.getItem(key)
-            if (value !== null) backup.datos.horario[key] = value
-          })
-        }
-
-        if (seleccion.documentos) {
-          backup.datos.documentos = Array.isArray(window.__backupExportDocumentosState?.())
-            ? window.__backupExportDocumentosState()
-            : (window.documentosCargados || [])
-          backup.datos.documentosSidebarIds = Array.isArray(window.documentosSidebarIds) ? window.documentosSidebarIds : []
-          backup.datos.documentosEnCarpetas = (window.carpetas || [])
-            .filter(carpeta => Array.isArray(carpeta.documentos) && carpeta.documentos.length)
-            .map(carpeta => ({
-              carpetaId: carpeta.id,
-              documentos: carpeta.documentos
-            }))
-        }
-
-        if (seleccion.estilo) {
-          backup.datos.estilo = {}
-          ESTILO_KEYS.forEach(key => {
-            const value = localStorage.getItem(key)
-            if (value !== null) backup.datos.estilo[key] = value
-          })
+          datos: construirDatosExportablesPorSeleccion(seleccion)
         }
 
         const jsonStr = JSON.stringify(backup, null, 2)
@@ -327,17 +406,16 @@
       try {
         const datosArchivo = JSON.parse(evento.target.result)
         const esArticuloLegacy = Array.isArray(datosArchivo.articulos)
-        const datos = esArticuloLegacy ? { articulos: datosArchivo.articulos, materiasOrden: datosArchivo.materiasOrden, carpetas: datosArchivo.carpetas } : (datosArchivo.datos || {})
+        const datos = esArticuloLegacy
+          ? { articulos: { articulos: datosArchivo.articulos, materiasOrden: datosArchivo.materiasOrden, carpetas: datosArchivo.carpetas } }
+          : (datosArchivo.datos || {})
         if (!datos || typeof datos !== 'object') {
           throw new Error('Archivo no válido')
         }
 
-        const opciones = [
-          { key: 'articulos', label: 'Artículos y carpetas', checked: Boolean(datos.articulos) },
-          { key: 'horario', label: 'Horario (con malla)', checked: Boolean(datos.horario) },
-          { key: 'documentos', label: 'Documentos', checked: Boolean(datos.documentos) },
-          { key: 'estilo', label: 'Estilo (fondo y colores)', checked: Boolean(datos.estilo) }
-        ].filter(op => op.checked)
+        const opciones = EXPORT_OPTIONS
+          .map(option => ({ ...option, checked: Boolean(datos[option.key]) }))
+          .filter(op => op.checked)
 
         if (!opciones.length) throw new Error('El archivo no contiene secciones compatibles')
 
@@ -350,11 +428,24 @@
 
             if (seleccion.articulos && datos.articulos) {
               const agregados = importarArticulosDesdeDatos({
-                articulos: datos.articulos,
-                materiasOrden: datos.materiasOrden || {},
-                carpetas: datos.carpetas || []
+                articulos: datos.articulos.articulos || [],
+                materiasOrden: datos.articulos.materiasOrden || {},
+                carpetas: datos.articulos.carpetas || []
               })
               resumen.push(`${agregados} artículos`)
+            }
+
+            if (seleccion.carpetas && datos.carpetas) {
+              const agregados = importarArticulosDesdeDatos({
+                articulos: datos.carpetas.articulosRelacionados || [],
+                materiasOrden: datos.carpetas.materiasOrden || {},
+                carpetas: datos.carpetas.carpetas || []
+              })
+              const resultadoDocs = mergearDocumentosImportados(
+                datos.carpetas.documentos || [],
+                datos.carpetas.documentosEnCarpetas || []
+              )
+              resumen.push(`carpetas (${agregados} artículos, ${resultadoDocs.nuevos.length} documentos)`)
             }
 
             if (seleccion.horario && datos.horario) {
@@ -362,51 +453,33 @@
               resumen.push('horario')
             }
 
-            if (seleccion.documentos && Array.isArray(datos.documentos)) {
-              const actuales = Array.isArray(window.documentosCargados) ? window.documentosCargados : []
-              const idsActuales = new Set(actuales.map(doc => doc.id))
-              const importados = datos.documentos.map(normalizarDocumento).filter(Boolean)
-              const nuevos = importados.filter(doc => !idsActuales.has(doc.id))
-              window.documentosCargados = [...actuales, ...nuevos]
-              escribirDocumentosStorageRawCompat(JSON.stringify(window.documentosCargados))
-              window.persistentState?.set?.(DOCUMENTOS_STORAGE_KEY, window.documentosCargados)
-
-              const idsEnCarpetas = new Set()
-              if (Array.isArray(datos.documentosEnCarpetas) && Array.isArray(window.carpetas)) {
-                const docsPorId = new Map(window.documentosCargados.map(doc => [doc.id, doc]))
-                window.carpetas = window.carpetas.map(carpeta => {
-                  const regla = datos.documentosEnCarpetas.find(c => c.carpetaId === carpeta.id)
-                  if (!regla || !Array.isArray(regla.documentos)) return carpeta
-                  const existentes = Array.isArray(carpeta.documentos) ? carpeta.documentos : []
-                  const merged = Array.from(new Set([...existentes, ...regla.documentos]))
-                  regla.documentos.forEach(id => idsEnCarpetas.add(id))
-                  const documentosData = { ...(carpeta.documentosData || {}) }
-                  regla.documentos.forEach(id => {
-                    const base = docsPorId.get(id)
-                    if (base) {
-                      documentosData[id] = {
-                        id: base.id,
-                        nombre: base.nombre || 'Documento',
-                        extension: base.extension || '',
-                        url: base.url || '',
-                        texto: base.texto || '',
-                        mensaje: base.mensaje || ''
-                      }
-                    }
-                  })
-                  return { ...carpeta, documentos: merged, documentosData }
-                })
-                guardarJSONConRespaldo('carpetasMaterias', window.carpetas)
-              }
-
-              const sidebarBase = Array.isArray(window.documentosSidebarIds) ? window.documentosSidebarIds : []
+            if (seleccion.documentos && datos.documentos && Array.isArray(datos.documentos.documentos)) {
+              const resultadoDocs = mergearDocumentosImportados(datos.documentos.documentos, [])
+              const sidebarInicial = Array.isArray(datos.documentos.documentosSidebarIds) ? datos.documentos.documentosSidebarIds : []
+              const sidebarBase = Array.isArray(window.documentosSidebarIds) ? [...window.documentosSidebarIds, ...sidebarInicial] : sidebarInicial
               const sidebarSet = new Set(sidebarBase)
               window.documentosCargados.forEach(doc => {
-                if (!idsEnCarpetas.has(doc.id)) sidebarSet.add(doc.id)
+                if (!resultadoDocs.idsEnCarpetas.has(doc.id)) sidebarSet.add(doc.id)
               })
               window.documentosSidebarIds = Array.from(sidebarSet)
               guardarJSONConRespaldo('documentosSidebarIds', window.documentosSidebarIds)
-              resumen.push(`${nuevos.length} documentos`)
+              resumen.push(`${resultadoDocs.nuevos.length} documentos`)
+            }
+
+            if (seleccion.calendario && datos.calendario) {
+              Object.keys(datos.calendario).forEach(key => localStorage.setItem(key, datos.calendario[key]))
+              resumen.push('calendario')
+            }
+
+            if (seleccion.ramos && datos.ramos) {
+              Object.keys(datos.ramos).forEach(key => localStorage.setItem(key, datos.ramos[key]))
+              if (typeof datos.ramos.materiasOrden === 'string') {
+                try {
+                  window.materiasOrden = JSON.parse(datos.ramos.materiasOrden)
+                  guardarJSONConRespaldo('materiasOrden', window.materiasOrden)
+                } catch (_e) {}
+              }
+              resumen.push('ramos')
             }
 
             if (seleccion.estilo && datos.estilo) {
