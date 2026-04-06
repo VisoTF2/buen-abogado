@@ -2,12 +2,15 @@
   const RESERVED_PREFIX = '__backup_tool_'
   const CHUNKED_MARKER_PREFIX = '__chunked__:'
   const CHUNK_SIZE = 350000
+  const CHUNK_INDEX_PATTERN = /__chunk__\d+$/
+  const CHUNK_COUNT_PATTERN = /__chunks_count$/
 
   function getAppSnapshot() {
     const entries = {}
     for (let index = 0; index < localStorage.length; index += 1) {
       const key = localStorage.key(index)
       if (!key || key.startsWith(RESERVED_PREFIX)) continue
+      if (CHUNK_INDEX_PATTERN.test(key) || CHUNK_COUNT_PATTERN.test(key)) continue
       entries[key] = localStorage.getItem(key)
     }
 
