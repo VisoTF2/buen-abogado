@@ -23,14 +23,15 @@
       }
 
       const backup = {
-        version: '2.0',
+        version: '3.0',
         timestamp: new Date().toISOString(),
         cantidad: window.articulos.length,
         articulos: window.articulos,
-        materiasOrden: window.materiasOrden || {}
+        materiasOrden: window.materiasOrden || {},
+        carpetas: window.carpetas || []
       }
 
-      console.log('[ExportArticles] Exportando', backup.cantidad, 'artículos con orden...')
+      console.log('[ExportArticles] Exportando', backup.cantidad, 'artículos con carpetas y orden...')
 
       const jsonStr = JSON.stringify(backup, null, 2)
       const blob = new Blob([jsonStr], { type: 'application/json; charset=utf-8' })
@@ -113,11 +114,39 @@
           console.log('[ExportArticles] ✓ Órdenes mergeados')
         }
 
+        // IMPORTANTE: Mergear carpetas
+        if (datos.carpetas && Array.isArray(datos.carpetas)) {
+          datos.carpetas.forEach(carpetaImportada => {
+            // Buscar si ya existe carpeta con el mismo nombre/normativa
+            const existeIndex = window.carpetas.findIndex(c => 
+              c.nombre === carpetaImportada.nombre && c.normativa === carpetaImportada.normativa
+            )
+            
+            if (existeIndex === -1) {
+              // No existe, agregar nueva
+              window.carpetas.push(carpetaImportada)
+            } else {
+              // Existe, mergear materias
+              const existente = window.carpetas[existeIndex]
+              if (carpetaImportada.materias && Array.isArray(carpetaImportada.materias)) {
+                existente.materias = existente.materias || []
+                carpetaImportada.materias.forEach(mat => {
+                  if (!existente.materias.some(m => m.normativa === mat.normativa && m.materia === mat.materia)) {
+                    existente.materias.push(mat)
+                  }
+                })
+              }
+            }
+          })
+          console.log('[ExportArticles] ✓ Carpetas mergeadas')
+        }
+
         console.log('[ExportArticles] ✓ Agregados:', agregados, 'Duplicados:', duplicados)
 
         // Guardar todo
         guardarJSONConRespaldo('articulosGuardados', window.articulos)
         guardarJSONConRespaldo('materiasOrden', window.materiasOrden)
+        guardarJSONConRespaldo('carpetasMaterias', window.carpetas)
 
         // Redibujar la lista
         if (typeof ordenarYMostrar === 'function') {
