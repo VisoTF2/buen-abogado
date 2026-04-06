@@ -10,6 +10,63 @@
   const UPLOAD_INPUT_ID = 'inputCargarRespaldoSimple'
 
   /**
+   * Fuerza el guardado de TODOS los datos globales a localStorage
+   * (por si alguno no se guardó automáticamente)
+   */
+  function forzarGuardadoGlobal() {
+    console.log('[SimpleBackup] Forzando guardado global...')
+    
+    // Articulos
+    if (window.articulos && Array.isArray(window.articulos)) {
+      const serializado = JSON.stringify(window.articulos)
+      localStorage.setItem('articulosGuardados', serializado)
+      console.log('[SimpleBackup] ✓ articulosGuardados forzado:', window.articulos.length, 'items')
+    }
+    
+    // Carpetas
+    if (window.carpetas && Array.isArray(window.carpetas)) {
+      const serializado = JSON.stringify(window.carpetas)
+      localStorage.setItem('carpetasMaterias', serializado)
+      console.log('[SimpleBackup] ✓ carpetasMaterias forzado:', window.carpetas.length, 'items')
+    }
+    
+    // Materias orden
+    if (window.materiasOrden && typeof window.materiasOrden === 'object') {
+      const serializado = JSON.stringify(window.materiasOrden)
+      localStorage.setItem('materiasOrden', serializado)
+      console.log('[SimpleBackup] ✓ materiasOrden forzado')
+    }
+    
+    // Documentos sidebar IDs
+    if (window.documentosSidebarIds && Array.isArray(window.documentosSidebarIds)) {
+      const serializado = JSON.stringify(window.documentosSidebarIds)
+      localStorage.setItem('documentosSidebarIds', serializado)
+      console.log('[SimpleBackup] ✓ documentosSidebarIds forzado')
+    }
+    
+    // Documentos cargados
+    if (window.documentosCargados && Array.isArray(window.documentosCargados)) {
+      const serializado = JSON.stringify(window.documentosCargados)
+      localStorage.setItem('documentosSubidos', serializado)
+      console.log('[SimpleBackup] ✓ documentosSubidos forzado:', window.documentosCargados.length, 'items')
+    }
+    
+    // Fondo imagen
+    if (window.fondoImagenApp && typeof window.fondoImagenApp === 'string') {
+      localStorage.setItem('fondoImagenApp', window.fondoImagenApp)
+      console.log('[SimpleBackup] ✓ fondoImagenApp forzado')
+    }
+    
+    // Tema oscuro
+    if (typeof window.temaOscuro === 'boolean') {
+      localStorage.setItem('modoOscuroActivo', window.temaOscuro ? 'true' : 'false')
+      console.log('[SimpleBackup] ✓ modoOscuroActivo forzado')
+    }
+    
+    console.log('[SimpleBackup] ✓✓✓ Guardado global completado')
+  }
+
+  /**
    * Lee TODO lo que hay en localStorage y lo empaqueta
    */
   function recopilarDatos() {
@@ -77,6 +134,10 @@
    */
   function descargarRespaldo() {
     try {
+      // PRIMERO: Forzar que TODO se guarde a localStorage
+      forzarGuardadoGlobal()
+      
+      // SEGUNDO: Recopilar datos
       const datos = recopilarDatos()
       
       console.log('[SimpleBackup] Datos a descargar:', Object.keys(datos.localStorage).length, 'keys')
@@ -127,13 +188,13 @@
           throw new Error('El archivo no parece ser un respaldo válido de Buen Abogado')
         }
 
-        // LIMPIAR persistentState PRIMERO
+        // PASO 1: Limpiar persistentState
         if (window.persistentState && typeof window.persistentState.clear === 'function') {
           window.persistentState.clear()
           console.log('[SimpleBackup] persistentState limpiado')
         }
 
-        // LIMPIAR localStorage segundo
+        // PASO 2: Limpiar localStorage
         const keysToDelete = []
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i)
@@ -146,7 +207,7 @@
           console.log('[SimpleBackup] Borrado de localStorage:', key)
         })
 
-        // RESTAURAR todas las claves del respaldo en localStorage
+        // PASO 3: Restaurar TODAS las claves del respaldo a localStorage
         if (datos.localStorage && typeof datos.localStorage === 'object') {
           Object.entries(datos.localStorage).forEach(([key, value]) => {
             try {
@@ -158,9 +219,23 @@
           })
         }
 
-        console.log('[SimpleBackup] ✓✓✓ RESPALDO CARGADO COMPLETAMENTE')
+        // PASO 4: También guardar en persistentState para compatibilidad
+        if (datos.localStorage && typeof datos.localStorage === 'object' && window.persistentState) {
+          Object.entries(datos.localStorage).forEach(([key, value]) => {
+            try {
+              const parsed = JSON.parse(value)
+              window.persistentState.set(key, parsed)
+              console.log('[SimpleBackup] Guardado en persistentState:', key)
+            } catch (e) {
+              // Si no es JSON válido, ignorar
+              console.log('[SimpleBackup] No se guardó en persistentState (no-JSON):', key)
+            }
+          })
+        }
+
+        console.log('[SimpleBackup] ✓✓✓ RESPALDO COMPLETAMENTE CARGADO')
         
-        // Recargar para que se reconstruya TODO desde localStorage (sin caché vieja)
+        // PASO 5: Recargar para que todo se reconstruya
         setTimeout(() => {
           window.location.reload()
         }, 500)
