@@ -155,6 +155,19 @@ function prepararRecepcionDocumentoDesdeCarpetas() {
 
 function cargarDocumentosGuardados() {
   try {
+    const persistidos = window.persistentState?.getCached?.(DOCUMENTOS_STORAGE_KEY)
+    if (Array.isArray(persistidos)) {
+      return persistidos.map(doc => ({
+        id: doc.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        nombre: doc.nombre || "Documento",
+        extension: doc.extension || "",
+        url: doc.url || doc.dataUrl || "",
+        texto: doc.texto || "",
+        mensaje: doc.mensaje || "",
+        archived: Boolean(doc.archived)
+      }))
+    }
+
     const guardados = JSON.parse(leerDocumentosStorageRaw() || "[]")
     if (!Array.isArray(guardados)) return []
 
@@ -176,6 +189,7 @@ function cargarDocumentosGuardados() {
 function guardarDocumentos() {
   const serializado = JSON.stringify(documentosCargados)
   escribirDocumentosStorageRaw(serializado)
+  window.persistentState?.set?.(DOCUMENTOS_STORAGE_KEY, documentosCargados)
 }
 
 function leerDocumentosStorageRaw() {

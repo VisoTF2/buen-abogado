@@ -1,5 +1,7 @@
 function cargarJSONConRespaldo(key, fallback) {
   const respaldoKey = `${key}__backup`
+  const persistido = window.persistentState?.getCached?.(key)
+  if (persistido !== undefined) return persistido
   const guardarRespaldoSilencioso = valor => {
     try {
       localStorage.setItem(respaldoKey, valor)
@@ -19,12 +21,14 @@ function cargarJSONConRespaldo(key, fallback) {
   const valorPrincipal = intentarParse(localStorage.getItem(key))
   if (valorPrincipal !== null) {
     guardarRespaldoSilencioso(JSON.stringify(valorPrincipal))
+    window.persistentState?.set?.(key, valorPrincipal)
     return valorPrincipal
   }
 
   const valorRespaldo = intentarParse(localStorage.getItem(respaldoKey))
   if (valorRespaldo !== null) {
     localStorage.setItem(key, JSON.stringify(valorRespaldo))
+    window.persistentState?.set?.(key, valorRespaldo)
     return valorRespaldo
   }
 
@@ -34,6 +38,7 @@ function cargarJSONConRespaldo(key, fallback) {
 function guardarJSONConRespaldo(key, valor) {
   const serializado = JSON.stringify(valor)
   localStorage.setItem(key, serializado)
+  window.persistentState?.set?.(key, valor)
   try {
     localStorage.setItem(`${key}__backup`, serializado)
   } catch (_error) {
