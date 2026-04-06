@@ -2,271 +2,85 @@
   const RESERVED_PREFIX = '__backup_tool_'
   const CHUNKED_MARKER_PREFIX = '__chunked__:'
   const CHUNK_SIZE = 350000
-  const CHUNK_INDEX_PATTERN = /__chunk__\d+$/
-  const CHUNK_COUNT_PATTERN = /__chunks_count$/
-  const BACKUP_COPY_PATTERN = /__backup$/
-  const CRITICAL_STATE_KEYS = [
-    'articulosGuardados',
-    'carpetasMaterias',
-    'documentosSubidos',
-    'materiasOrden',
-    'documentosSidebarIds',
-    'horarioClases',
-    'horarioDiasActivos',
-    'horarioTitulo',
-    'fondoImagenApp'
-  ]
-  const RAW_CRITICAL_KEYS = new Set(['horarioTitulo', 'fondoImagenApp'])
-  const CRITICAL_WITH_BACKUP_COPY = new Set(['articulosGuardados', 'carpetasMaterias', 'materiasOrden'])
 
   function getAppSnapshot() {
-    const rawEntries = {}
+    const localStorageState = {}
     for (let index = 0; index < localStorage.length; index += 1) {
       const key = localStorage.key(index)
       if (!key || key.startsWith(RESERVED_PREFIX)) continue
-      rawEntries[key] = localStorage.getItem(key)
+      const value = localStorage.getItem(key)
+      if (typeof value !== 'string') continue
+      localStorageState[key] = value
     }
 
-    const entries = {}
-    const keys = Object.keys(rawEntries)
-
-    keys.forEach(key => {
-      if (BACKUP_COPY_PATTERN.test(key)) return
-      if (CHUNK_INDEX_PATTERN.test(key) || CHUNK_COUNT_PATTERN.test(key)) return
-
-      const backupKey = `${key}__backup`
-      const principal = rehidratarValorChunkeado(rawEntries, key)
-      const respaldo = rehidratarValorChunkeado(rawEntries, backupKey)
-      entries[key] = elegirValorExportable(principal, respaldo)
-    })
-
-    keys.forEach(key => {
-      if (CHUNK_INDEX_PATTERN.test(key) || CHUNK_COUNT_PATTERN.test(key)) return
-      if (!BACKUP_COPY_PATTERN.test(key)) return
-      const baseKey = key.replace(BACKUP_COPY_PATTERN, '')
-      if (Object.prototype.hasOwnProperty.call(entries, baseKey)) return
-      entries[baseKey] = rehidratarValorChunkeado(rawEntries, key)
-    })
+    const persistentState =
+      window.persistentState?.exportAll && typeof window.persistentState.exportAll === 'function'
+        ? window.persistentState.exportAll()
+        : {}
 
     return {
       app: 'Buen abogado',
-      schemaVersion: 1,
+      schemaVersion: 2,
       exportedAt: new Date().toISOString(),
-      entries,
-      fullState: buildFullState(entries)
+      localStorage: localStorageState,
+      persistentState
     }
   }
 
-  function rehidratarValorChunkeado(rawEntries, key) {
-    if (!key || !Object.prototype.hasOwnProperty.call(rawEntries, key)) return null
-    const principal = rawEntries[key]
-    if (typeof principal !== 'string' || !principal.startsWith(CHUNKED_MARKER_PREFIX)) {
-      return principal
-    }
-
-    const reconstruido = reconstruirDesdeChunks(rawEntries, key)
-    return reconstruido ?? principal
-  }
-
-  function reconstruirDesdeChunks(rawEntries, key) {
-    const chunkCountKey = `${key}__chunks_count`
-    const chunkPrefix = `${key}__chunk__`
-    const chunksCount = parseInt(rawEntries[chunkCountKey] || '0', 10)
-
-    if (!Number.isFinite(chunksCount) || chunksCount <= 0) return null
-
-    let combinado = ''
-    for (let index = 0; index < chunksCount; index += 1) {
-      const parte = rawEntries[`${chunkPrefix}${index}`]
-      if (typeof parte !== 'string') return null
-      combinado += parte
-    }
-
-    return combinado
-  }
-
-  function elegirValorExportable(principal, respaldo) {
-    const principalParseado = intentarParseJSON(principal)
-    if (principalParseado.ok) return principal
-
-    const respaldoParseado = intentarParseJSON(respaldo)
-    if (respaldoParseado.ok) return respaldo
-
-    return principal ?? respaldo ?? null
-  }
-
-  function intentarParseJSON(valor) {
-    if (typeof valor !== 'string') return { ok: false }
-    try {
-      const value = JSON.parse(valor)
-      return { ok: true, value }
-    } catch (_error) {
-      return { ok: false }
-    }
-  }
-
-  function buildFullState(entries) {
-    const fullState = window.persistentState?.exportAll?.() || {}
-
-    try {
-      if (typeof window.__backupExportAppState === 'function') {
-        Object.assign(fullState, window.__backupExportAppState())
-      }
-      if (typeof window.__backupExportDocumentosState === 'function') {
-        fullState.documentosSubidos = window.__backupExportDocumentosState()
-      }
-    } catch (_error) {}
-
-    CRITICAL_STATE_KEYS.forEach(key => {
-      if (fullState[key] !== undefined) return
-      const parsed = intentarParseJSON(entries[key])
-      if (parsed.ok) {
-        fullState[key] = parsed.value
-      } else if (RAW_CRITICAL_KEYS.has(key) && typeof entries[key] === 'string') {
-        fullState[key] = entries[key]
-      }
-    })
-
-    return fullState
-  }
-
-  function downloadBackupFile() {
-    const snapshot = getAppSnapshot()
-    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    const dateTag = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
-
-    a.href = url
-    a.download = `buen-abogado-respaldo-${dateTag}.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
-  }
-
-  async function applySnapshot(snapshot) {
+  function normalizeSnapshot(snapshot) {
     if (!snapshot || typeof snapshot !== 'object') {
       throw new Error('El archivo de respaldo no tiene un formato válido.')
     }
-    if (typeof snapshot.entries !== 'object' && typeof snapshot.fullState !== 'object') {
+
+    // Nuevo formato (v2)
+    if (snapshot.localStorage && typeof snapshot.localStorage === 'object') {
+      return {
+        localStorage: snapshot.localStorage,
+        persistentState:
+          snapshot.persistentState && typeof snapshot.persistentState === 'object'
+            ? snapshot.persistentState
+            : {}
+      }
+    }
+
+    // Compatibilidad con respaldos antiguos
+    const legacyEntries = snapshot.entries && typeof snapshot.entries === 'object' ? snapshot.entries : {}
+    const legacyFullState = snapshot.fullState && typeof snapshot.fullState === 'object' ? snapshot.fullState : {}
+
+    if (!Object.keys(legacyEntries).length && !Object.keys(legacyFullState).length) {
       throw new Error('El archivo de respaldo no contiene datos utilizables.')
     }
 
-    const keysToDelete = []
-    for (let index = 0; index < localStorage.length; index += 1) {
-      const key = localStorage.key(index)
-      if (!key || key.startsWith(RESERVED_PREFIX)) continue
-      keysToDelete.push(key)
-    }
+    const localStorageState = {}
+    Object.entries(legacyEntries).forEach(([key, value]) => {
+      if (typeof key !== 'string' || key.startsWith(RESERVED_PREFIX)) return
 
-    keysToDelete.forEach(key => localStorage.removeItem(key))
-    await window.persistentState?.clear?.()
-
-    const skippedByQuota = []
-    const criticalState = buildPreferredCriticalState(snapshot)
-    applyFullState(criticalState, skippedByQuota)
-
-    const entries = Object.entries(snapshot.entries || {})
-      .filter(([key]) => typeof key === 'string' && !key.startsWith(RESERVED_PREFIX))
-      .filter(([key]) => !BACKUP_COPY_PATTERN.test(key))
-      .filter(([key]) => !CRITICAL_STATE_KEYS.includes(key))
-      .sort(([, valueA], [, valueB]) => String(valueA ?? '').length - String(valueB ?? '').length)
-
-    entries.forEach(([key, value]) => {
-      const safeValue = typeof value === 'string' ? value : JSON.stringify(value)
-      let stored = false
-
-      try {
-        localStorage.setItem(key, safeValue)
-        stored = true
-      } catch (error) {
-        if (isQuotaExceededError(error)) {
-          const storedAsChunks = tryStoreChunkedValue(key, safeValue)
-          if (storedAsChunks) {
-            stored = true
-          } else {
-            skippedByQuota.push(key)
-          }
-        } else {
-          throw error
-        }
+      if (typeof value === 'string') {
+        localStorageState[key] = value
+        return
       }
 
-      if (!stored) return
-      syncPersistentStateValue(key, safeValue)
+      try {
+        localStorageState[key] = JSON.stringify(value)
+      } catch (_error) {
+        // Ignora valores no serializables.
+      }
+    })
+
+    // Si el respaldo viejo tenía datos más completos en fullState, priorizamos esa serialización.
+    Object.entries(legacyFullState).forEach(([key, value]) => {
+      if (typeof key !== 'string' || key.startsWith(RESERVED_PREFIX)) return
+      try {
+        localStorageState[key] = typeof value === 'string' ? value : JSON.stringify(value)
+      } catch (_error) {
+        // Ignora valores no serializables.
+      }
     })
 
     return {
-      skippedByQuota
+      localStorage: localStorageState,
+      persistentState: legacyFullState
     }
-  }
-
-  function syncPersistentStateValue(key, serializedValue) {
-    if (!window.persistentState?.set) return
-    const parsed = intentarParseJSON(serializedValue)
-    if (!parsed.ok) return
-    window.persistentState.set(key, parsed.value)
-  }
-
-  function buildPreferredCriticalState(snapshot) {
-    const base = {}
-
-    if (snapshot.fullState && typeof snapshot.fullState === 'object') {
-      CRITICAL_STATE_KEYS.forEach(key => {
-        if (key in snapshot.fullState) base[key] = snapshot.fullState[key]
-      })
-    }
-
-    const entries = snapshot.entries || {}
-    CRITICAL_STATE_KEYS.forEach(key => {
-      if (base[key] !== undefined) return
-      const parsed = intentarParseJSON(entries[key])
-      if (parsed.ok) {
-        base[key] = parsed.value
-      } else if (RAW_CRITICAL_KEYS.has(key) && typeof entries[key] === 'string') {
-        base[key] = entries[key]
-      }
-    })
-
-    return base
-  }
-
-  function applyFullState(fullState, skippedByQuota) {
-    if (!fullState || typeof fullState !== 'object') return
-
-    CRITICAL_STATE_KEYS.forEach(key => {
-      if (!(key in fullState)) return
-      const serialized = typeof fullState[key] === 'string' ? fullState[key] : JSON.stringify(fullState[key])
-      let stored = false
-
-      try {
-        localStorage.setItem(key, serialized)
-        stored = true
-      } catch (error) {
-        if (isQuotaExceededError(error)) {
-          const storedAsChunks = tryStoreChunkedValue(key, serialized)
-          if (storedAsChunks) {
-            stored = true
-          } else {
-            skippedByQuota.push(key)
-          }
-        } else {
-          throw error
-        }
-      }
-
-      if (stored && CRITICAL_WITH_BACKUP_COPY.has(key)) {
-        try {
-          localStorage.setItem(`${key}__backup`, serialized)
-        } catch (_error) {
-          // Si no cabe la copia adicional, mantenemos al menos la clave principal.
-        }
-      }
-
-      window.persistentState?.set?.(key, fullState[key])
-    })
   }
 
   function isQuotaExceededError(error) {
@@ -283,10 +97,10 @@
     localStorage.removeItem(key)
     localStorage.removeItem(chunkCountKey)
 
-    let index = 0
-    while (localStorage.getItem(`${chunkPrefix}${index}`) !== null) {
-      localStorage.removeItem(`${chunkPrefix}${index}`)
-      index += 1
+    let cleanupIndex = 0
+    while (localStorage.getItem(`${chunkPrefix}${cleanupIndex}`) !== null) {
+      localStorage.removeItem(`${chunkPrefix}${cleanupIndex}`)
+      cleanupIndex += 1
     }
 
     try {
@@ -307,6 +121,64 @@
       localStorage.removeItem(key)
       return false
     }
+  }
+
+  async function applySnapshot(snapshot) {
+    const normalized = normalizeSnapshot(snapshot)
+    const keysToDelete = []
+
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index)
+      if (!key || key.startsWith(RESERVED_PREFIX)) continue
+      keysToDelete.push(key)
+    }
+
+    keysToDelete.forEach(key => localStorage.removeItem(key))
+    await window.persistentState?.clear?.()
+
+    const skippedLocalStorage = []
+    const localStorageEntries = Object.entries(normalized.localStorage || {})
+      .filter(([key, value]) => typeof key === 'string' && !key.startsWith(RESERVED_PREFIX) && typeof value === 'string')
+      .sort(([, a], [, b]) => a.length - b.length)
+
+    localStorageEntries.forEach(([key, value]) => {
+      try {
+        localStorage.setItem(key, value)
+      } catch (error) {
+        if (isQuotaExceededError(error) && tryStoreChunkedValue(key, value)) return
+        skippedLocalStorage.push(key)
+      }
+    })
+
+    const skippedPersistent = []
+    const persistentEntries = Object.entries(normalized.persistentState || {})
+      .filter(([key]) => typeof key === 'string' && !key.startsWith(RESERVED_PREFIX))
+
+    for (const [key, value] of persistentEntries) {
+      try {
+        await window.persistentState?.set?.(key, value)
+      } catch (_error) {
+        skippedPersistent.push(key)
+      }
+    }
+
+    return { skippedLocalStorage, skippedPersistent }
+  }
+
+  function downloadBackupFile() {
+    const snapshot = getAppSnapshot()
+    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    const dateTag = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
+
+    a.href = url
+    a.download = `buen-abogado-respaldo-${dateTag}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
   function addBackupUi() {
@@ -358,7 +230,7 @@
       fileInput.click()
     })
 
-    document.getElementById('backupResetBtn').addEventListener('click', () => {
+    document.getElementById('backupResetBtn').addEventListener('click', async () => {
       try {
         const keys = []
         for (let index = 0; index < localStorage.length; index += 1) {
@@ -367,7 +239,7 @@
           keys.push(key)
         }
         keys.forEach(key => localStorage.removeItem(key))
-        window.persistentState?.clear?.()
+        await window.persistentState?.clear?.()
         clearMessage()
         setTimeout(() => window.location.reload(), 200)
       } catch (error) {
@@ -383,13 +255,25 @@
         const text = await file.text()
         const snapshot = JSON.parse(text)
         const result = await applySnapshot(snapshot)
-        if (result.skippedByQuota.length > 0) {
-          setErrorMessage(
-            `Respaldo cargado parcialmente: no hubo espacio para ${result.skippedByQuota.length} elemento(s) (${result.skippedByQuota.join(', ')}).`
-          )
+        const skippedTotal = result.skippedLocalStorage.length + result.skippedPersistent.length
+
+        if (skippedTotal > 0) {
+          const detalles = [
+            result.skippedLocalStorage.length
+              ? `LocalStorage: ${result.skippedLocalStorage.join(', ')}`
+              : null,
+            result.skippedPersistent.length
+              ? `Persistente: ${result.skippedPersistent.join(', ')}`
+              : null
+          ]
+            .filter(Boolean)
+            .join(' | ')
+
+          setErrorMessage(`Respaldo cargado parcialmente: faltaron ${skippedTotal} clave(s). ${detalles}`)
         } else {
           clearMessage()
         }
+
         setTimeout(() => window.location.reload(), 500)
       } catch (error) {
         setErrorMessage(`No se pudo cargar el respaldo: ${error.message}`)
