@@ -1,4 +1,8 @@
 const DOCUMENTOS_STORAGE_KEY = "documentosSubidos"
+const DOCUMENTOS_CHUNK_PREFIX = `${DOCUMENTOS_STORAGE_KEY}__chunk__`
+const DOCUMENTOS_CHUNK_COUNT_KEY = `${DOCUMENTOS_STORAGE_KEY}__chunks_count`
+const CHUNKED_MARKER_PREFIX = "__chunked__:"
+const DOCUMENTOS_CHUNK_SIZE = 350000
 const documentoInput = document.getElementById("documentoInput")
 const documentoReemplazoInput = document.createElement("input")
 documentoReemplazoInput.type = "file"
@@ -148,7 +152,7 @@ function prepararRecepcionDocumentoDesdeCarpetas() {
 
 function cargarDocumentosGuardados() {
   try {
-    const guardados = JSON.parse(localStorage.getItem(DOCUMENTOS_STORAGE_KEY) || "[]")
+    const guardados = JSON.parse(leerDocumentosStorageRaw() || "[]")
     if (!Array.isArray(guardados)) return []
 
     return guardados.map(doc => ({
@@ -167,7 +171,77 @@ function cargarDocumentosGuardados() {
 }
 
 function guardarDocumentos() {
-  localStorage.setItem(DOCUMENTOS_STORAGE_KEY, JSON.stringify(documentosCargados))
+  const serializado = JSON.stringify(documentosCargados)
+  escribirDocumentosStorageRaw(serializado)
+}
+
+function leerDocumentosStorageRaw() {
+  const raw = localStorage.getItem(DOCUMENTOS_STORAGE_KEY)
+  const marcadoComoChunks = typeof raw === "string" && raw.startsWith(CHUNKED_MARKER_PREFIX)
+
+  if (raw && !marcadoComoChunks) return raw
+
+  const chunksCount = parseInt(localStorage.getItem(DOCUMENTOS_CHUNK_COUNT_KEY) || "0", 10)
+  if (!Number.isFinite(chunksCount) || chunksCount <= 0) {
+    return marcadoComoChunks ? "[]" : raw || "[]"
+  }
+
+  let combinado = ""
+  for (let index = 0; index < chunksCount; index += 1) {
+    const parte = localStorage.getItem(`${DOCUMENTOS_CHUNK_PREFIX}${index}`)
+    if (typeof parte !== "string") return "[]"
+    combinado += parte
+  }
+
+  return combinado || "[]"
+}
+
+function limpiarChunksDocumentos() {
+  const chunksCount = parseInt(localStorage.getItem(DOCUMENTOS_CHUNK_COUNT_KEY) || "0", 10)
+  if (Number.isFinite(chunksCount) && chunksCount > 0) {
+    for (let index = 0; index < chunksCount; index += 1) {
+      localStorage.removeItem(`${DOCUMENTOS_CHUNK_PREFIX}${index}`)
+    }
+  }
+
+  let index = 0
+  while (localStorage.getItem(`${DOCUMENTOS_CHUNK_PREFIX}${index}`) !== null) {
+    localStorage.removeItem(`${DOCUMENTOS_CHUNK_PREFIX}${index}`)
+    index += 1
+  }
+
+  localStorage.removeItem(DOCUMENTOS_CHUNK_COUNT_KEY)
+}
+
+function escribirDocumentosStorageRaw(valor) {
+  limpiarChunksDocumentos()
+
+  try {
+    localStorage.setItem(DOCUMENTOS_STORAGE_KEY, valor)
+    return
+  } catch (error) {
+    if (error?.name !== "QuotaExceededError" && error?.code !== 22 && error?.code !== 1014) {
+      throw error
+    }
+  }
+
+  localStorage.removeItem(DOCUMENTOS_STORAGE_KEY)
+
+  const totalChunks = Math.ceil(valor.length / DOCUMENTOS_CHUNK_SIZE)
+  if (totalChunks <= 0) {
+    localStorage.setItem(DOCUMENTOS_STORAGE_KEY, "[]")
+    return
+  }
+
+  for (let index = 0; index < totalChunks; index += 1) {
+    const inicio = index * DOCUMENTOS_CHUNK_SIZE
+    const fin = inicio + DOCUMENTOS_CHUNK_SIZE
+    const parte = valor.slice(inicio, fin)
+    localStorage.setItem(`${DOCUMENTOS_CHUNK_PREFIX}${index}`, parte)
+  }
+
+  localStorage.setItem(DOCUMENTOS_CHUNK_COUNT_KEY, String(totalChunks))
+  localStorage.setItem(DOCUMENTOS_STORAGE_KEY, `${CHUNKED_MARKER_PREFIX}${totalChunks}`)
 }
 
 function estaDocumentoVinculado(id) {
