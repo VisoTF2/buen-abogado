@@ -458,6 +458,18 @@
             <button class="modo banner-reset config-action" type="button" onclick="restablecerMalla()">Quitar malla</button>
           </div>
         </section>
+
+        <section class="config-section">
+          <div class="config-section-head">
+            <h4>Respaldo de la aplicación</h4>
+            <p>Respalda o restaura todos tus datos: artículos, carpetas y documentos.</p>
+          </div>
+          <div class="config-actions">
+            <button class="modo config-action" type="button" id="backupDownloadBtn">Descargar respaldo</button>
+            <button class="modo config-action" type="button" id="backupUploadBtn">Cargar respaldo</button>
+            <button class="modo config-action" type="button" id="backupResetBtn">Restaurar app</button>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -466,12 +478,12 @@
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <script src="persistent-state.js"></script>
 <script src="storage-shim.js"></script>
-<script src="backup-transfer.js"></script>
 <script src="personalizacion.js"></script>
 <script src="documentos.js"></script>
 <script src="busqueda.js"></script>
 <script src="schedule.js"></script>
 <script src="app.js"></script>
+<script src="simple-backup.js"></script>
 <script src="calendar.js"></script>
 <script src="grade-calculator.js"></script>
 <script src="media.js"></script>
