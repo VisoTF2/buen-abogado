@@ -2,6 +2,15 @@
   const RESERVED_PREFIX = '__backup_tool_'
   const CHUNKED_MARKER_PREFIX = '__chunked__:'
   const CHUNK_SIZE = 350000
+  const WITH_BACKUP_COPY = new Set(['articulosGuardados', 'carpetasMaterias', 'materiasOrden'])
+  const RUNTIME_PRIORITY_KEYS = [
+    'articulosGuardados',
+    'carpetasMaterias',
+    'materiasOrden',
+    'documentosSubidos',
+    'documentosSidebarIds',
+    'fondoImagenApp'
+  ]
 
   function getAppSnapshot() {
     const localStorageState = {}
@@ -18,13 +27,65 @@
         ? window.persistentState.exportAll()
         : {}
 
+    const runtimeState = collectRuntimeState()
+    RUNTIME_PRIORITY_KEYS.forEach(key => {
+      if (!(key in runtimeState)) return
+      const value = runtimeState[key]
+      persistentState[key] = value
+      try {
+        const serialized = typeof value === 'string' ? value : JSON.stringify(value)
+        localStorageState[key] = serialized
+        if (WITH_BACKUP_COPY.has(key)) {
+          localStorageState[`${key}__backup`] = serialized
+        }
+      } catch (_error) {
+        // Ignora estados no serializables.
+      }
+    })
+
     return {
       app: 'Buen abogado',
       schemaVersion: 2,
       exportedAt: new Date().toISOString(),
       localStorage: localStorageState,
-      persistentState
+      persistentState,
+      runtimeState
     }
+  }
+
+  function collectRuntimeState() {
+    const state = {}
+
+    try {
+      if (typeof window.__backupExportAppState === 'function') {
+        Object.assign(state, window.__backupExportAppState() || {})
+      }
+    } catch (_error) {}
+
+    try {
+      if (typeof window.__backupExportDocumentosState === 'function') {
+        state.documentosSubidos = window.__backupExportDocumentosState() || []
+      }
+    } catch (_error) {}
+
+    RUNTIME_PRIORITY_KEYS.forEach(key => {
+      if (key in state) return
+      const cached = window.persistentState?.getCached?.(key)
+      if (cached !== undefined) {
+        state[key] = cached
+        return
+      }
+
+      const raw = localStorage.getItem(key)
+      if (typeof raw !== 'string') return
+      try {
+        state[key] = JSON.parse(raw)
+      } catch (_error) {
+        state[key] = raw
+      }
+    })
+
+    return state
   }
 
   function normalizeSnapshot(snapshot) {
@@ -39,7 +100,8 @@
         persistentState:
           snapshot.persistentState && typeof snapshot.persistentState === 'object'
             ? snapshot.persistentState
-            : {}
+            : {},
+        runtimeState: snapshot.runtimeState && typeof snapshot.runtimeState === 'object' ? snapshot.runtimeState : {}
       }
     }
 
@@ -79,7 +141,8 @@
 
     return {
       localStorage: localStorageState,
-      persistentState: legacyFullState
+      persistentState: legacyFullState,
+      runtimeState: legacyFullState
     }
   }
 
@@ -162,7 +225,42 @@
       }
     }
 
+    await applyRuntimeStateFallback(normalized.runtimeState, skippedLocalStorage, skippedPersistent)
+
     return { skippedLocalStorage, skippedPersistent }
+  }
+
+  async function applyRuntimeStateFallback(runtimeState, skippedLocalStorage, skippedPersistent) {
+    if (!runtimeState || typeof runtimeState !== 'object') return
+
+    for (const key of RUNTIME_PRIORITY_KEYS) {
+      if (!(key in runtimeState)) continue
+      const value = runtimeState[key]
+      let serialized = null
+      try {
+        serialized = typeof value === 'string' ? value : JSON.stringify(value)
+      } catch (_error) {
+        if (!skippedLocalStorage.includes(key)) skippedLocalStorage.push(key)
+        continue
+      }
+
+      if (window.persistentState?.set) {
+        await window.persistentState.set(key, value).catch(() => {
+          if (!skippedPersistent.includes(key)) skippedPersistent.push(key)
+        })
+      }
+
+      try {
+        localStorage.setItem(key, serialized)
+        if (WITH_BACKUP_COPY.has(key)) {
+          localStorage.setItem(`${key}__backup`, serialized)
+        }
+      } catch (error) {
+        if (!isQuotaExceededError(error) || !tryStoreChunkedValue(key, serialized)) {
+          if (!skippedLocalStorage.includes(key)) skippedLocalStorage.push(key)
+        }
+      }
+    }
   }
 
   function downloadBackupFile() {
