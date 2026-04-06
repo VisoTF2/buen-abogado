@@ -229,32 +229,64 @@
 
   async function applySnapshot(snapshot) {
     const normalized = normalizeSnapshot(snapshot)
+    
+    // Primero, limpiar TODO localStorage (excepto prefijo reservado)
     const keysToDelete = []
-
     for (let index = 0; index < localStorage.length; index += 1) {
       const key = localStorage.key(index)
       if (!key || key.startsWith(RESERVED_PREFIX)) continue
       keysToDelete.push(key)
     }
-
     keysToDelete.forEach(key => localStorage.removeItem(key))
+    
+    // Limpiar persistentState para forzar que se cargue desde localStorage
     await window.persistentState?.clear?.()
 
+    // Ahora guardar TODOS los datos del respaldo en localStorage
     const skippedLocalStorage = []
-    const localStorageEntries = Object.entries(normalized.localStorage || {})
-      .filter(([key, value]) => typeof key === 'string' && !key.startsWith(RESERVED_PREFIX) && typeof value === 'string')
-      .sort(([, a], [, b]) => a.length - b.length)
+    const entriesToSave = new Map()
+    
+    // Agregar datos en este orden de prioridad:
+    // 1. localStorage (tiene prioridad)
+    Object.entries(normalized.localStorage || {}).forEach(([key, value]) => {
+      if (typeof key === 'string' && !key.startsWith(RESERVED_PREFIX)) {
+        entriesToSave.set(key, value)
+      }
+    })
+    
+    // 2. runtimeState (datos del runtime)
+    Object.entries(normalized.runtimeState || {}).forEach(([key, value]) => {
+      if (typeof key === 'string' && !key.startsWith(RESERVED_PREFIX) && !entriesToSave.has(key)) {
+        entriesToSave.set(key, value)
+      }
+    })
+    
+    // 3. persistentState (fallback)
+    Object.entries(normalized.persistentState || {}).forEach(([key, value]) => {
+      if (typeof key === 'string' && !key.startsWith(RESERVED_PREFIX) && !entriesToSave.has(key)) {
+        entriesToSave.set(key, value)
+      }
+    })
 
-    localStorageEntries.forEach(([key, value]) => {
+    // Guardar en localStorage
+    entriesToSave.forEach((value, key) => {
       try {
-        localStorage.setItem(key, value)
+        const serialized = typeof value === 'string' ? value : JSON.stringify(value)
+        localStorage.setItem(key, serialized)
+        
         // Si es una clave con backup, asegurar que también se guarde la copia
         if (WITH_BACKUP_COPY.has(key)) {
-          localStorage.setItem(`${key}__backup`, value)
+          localStorage.setItem(`${key}__backup`, serialized)
         }
       } catch (error) {
-        if (isQuotaExceededError(error) && tryStoreChunkedValue(key, value)) return
-        skippedLocalStorage.push(key)
+        if (isQuotaExceededError(error)) {
+          const serialized = typeof value === 'string' ? value : JSON.stringify(value)
+          if (!tryStoreChunkedValue(key, serialized)) {
+            skippedLocalStorage.push(key)
+          }
+        } else {
+          skippedLocalStorage.push(key)
+        }
       }
     })
 
@@ -380,7 +412,15 @@
           setSuccessMessage('Respaldo cargado correctamente. La aplicación se recargará en breve...')
         }
 
-        setTimeout(() => window.location.reload(), 1000)
+        // Espera más tiempo para asegurar que todo esté guardado
+        setTimeout(() => {
+          try {
+            window.location.reload()
+          } catch (_e) {
+            // Fallback si reload falla
+            location.href = location.href
+          }
+        }, 2000)
       } catch (error) {
         setErrorMessage(`No se pudo cargar el respaldo: ${error.message}`)
       }

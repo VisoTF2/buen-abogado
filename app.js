@@ -1,14 +1,6 @@
 function cargarJSONConRespaldo(key, fallback) {
   const respaldoKey = `${key}__backup`
-  const persistido = window.persistentState?.getCached?.(key)
-  if (persistido !== undefined) return persistido
-  const guardarRespaldoSilencioso = valor => {
-    try {
-      localStorage.setItem(respaldoKey, valor)
-    } catch (_error) {
-      // Si no hay espacio para duplicar respaldo, conservamos al menos el valor principal.
-    }
-  }
+  
   const intentarParse = valor => {
     if (!valor) return null
     try {
@@ -18,18 +10,45 @@ function cargarJSONConRespaldo(key, fallback) {
     }
   }
 
+  // Primero intenta desde localStorage (prioridad)
   const valorPrincipal = intentarParse(localStorage.getItem(key))
   if (valorPrincipal !== null) {
-    guardarRespaldoSilencioso(JSON.stringify(valorPrincipal))
-    window.persistentState?.set?.(key, valorPrincipal)
+    // Guarda el respaldo de seguridad silenciosamente
+    try {
+      localStorage.setItem(respaldoKey, JSON.stringify(valorPrincipal))
+    } catch (_error) {
+      // Si no hay espacio, ignora
+    }
+    // Intenta sincronizar con persistentState si está disponible
+    if (window.persistentState?.set) {
+      window.persistentState.set(key, valorPrincipal).catch(() => {})
+    }
     return valorPrincipal
   }
 
+  // Si no está el principal, intenta la copia de respaldo
   const valorRespaldo = intentarParse(localStorage.getItem(respaldoKey))
   if (valorRespaldo !== null) {
     localStorage.setItem(key, JSON.stringify(valorRespaldo))
-    window.persistentState?.set?.(key, valorRespaldo)
+    // Intenta sincronizar con persistentState si está disponible
+    if (window.persistentState?.set) {
+      window.persistentState.set(key, valorRespaldo).catch(() => {})
+    }
     return valorRespaldo
+  }
+
+  // Si nada en localStorage, intenta desde persistentState (para compatibilidad)
+  const persistido = window.persistentState?.getCached?.(key)
+  if (persistido !== undefined) {
+    // Guarda en localStorage también para que no se pierda
+    try {
+      const serializado = JSON.stringify(persistido)
+      localStorage.setItem(key, serializado)
+      localStorage.setItem(respaldoKey, serializado)
+    } catch (_error) {
+      // Si no hay espacio, ignora
+    }
+    return persistido
   }
 
   return fallback
