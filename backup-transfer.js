@@ -223,6 +223,8 @@
         state[key] = normalized.runtimeState[key]
       } else if (normalized.persistentState && key in normalized.persistentState) {
         state[key] = normalized.persistentState[key]
+      } else if (normalized.localStorage && key in normalized.localStorage) {
+        state[key] = parseMaybeJson(normalized.localStorage[key])
       }
     })
     return { backupType: targetType, state }
