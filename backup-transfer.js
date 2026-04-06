@@ -11,27 +11,6 @@
     'documentosSidebarIds',
     'fondoImagenApp'
   ]
-  const SECTION_KEYS = {
-    horario: [
-      'horarioClases',
-      'horarioDiasActivos',
-      'horarioTitulo',
-      'mallaImagenHorario',
-      'mallaImagenBaseHorario',
-      'mallaOverlayHorario',
-      'mallaActivaHorario',
-      'mallaSizeHorario'
-    ],
-    articulos: [
-      'articulosGuardados',
-      'carpetasMaterias',
-      'materiasOrden',
-      'documentosSidebarIds',
-      'materiaActivaSeleccionada',
-      'materiaPreviewCerrada'
-    ],
-    documentos: ['documentosSubidos']
-  }
 
   function getAppSnapshot() {
     const localStorageState = {}
@@ -72,42 +51,6 @@
       persistentState,
       runtimeState
     }
-  }
-
-  function getSectionSnapshot(section) {
-    if (!SECTION_KEYS[section]) {
-      throw new Error('Tipo de respaldo no soportado.')
-    }
-
-    const runtimeState = collectRuntimeState()
-    const persistentState =
-      window.persistentState?.exportAll && typeof window.persistentState.exportAll === 'function'
-        ? window.persistentState.exportAll()
-        : {}
-    const state = {}
-
-    SECTION_KEYS[section].forEach(key => {
-      const resolved = resolveBestStateValue(key, runtimeState, persistentState)
-      if (resolved === undefined) return
-      state[key] = resolved
-    })
-
-    return {
-      app: 'Buen abogado',
-      schemaVersion: 3,
-      backupType: section,
-      exportedAt: new Date().toISOString(),
-      state
-    }
-  }
-
-  function resolveBestStateValue(key, runtimeState, persistentState) {
-    if (runtimeState && key in runtimeState) return runtimeState[key]
-    if (persistentState && key in persistentState) return persistentState[key]
-
-    const raw = readStorageValue(key)
-    if (typeof raw !== 'string') return undefined
-    return parseMaybeJson(raw)
   }
 
   function collectRuntimeState() {
@@ -199,37 +142,6 @@
     }
   }
 
-  function normalizeSectionSnapshot(snapshot, expectedType) {
-    if (!snapshot || typeof snapshot !== 'object') {
-      throw new Error('El archivo de respaldo no tiene un formato válido.')
-    }
-
-    if (snapshot.schemaVersion === 3 && snapshot.backupType && snapshot.state) {
-      if (expectedType && snapshot.backupType !== expectedType) {
-        throw new Error(`Este archivo corresponde a \"${snapshot.backupType}\" y no a \"${expectedType}\".`)
-      }
-      return {
-        backupType: snapshot.backupType,
-        state: snapshot.state && typeof snapshot.state === 'object' ? snapshot.state : {}
-      }
-    }
-
-    // Compatibilidad: permite cargar un respaldo completo en una sección.
-    const normalized = normalizeSnapshot(snapshot)
-    const targetType = expectedType || 'articulos'
-    const state = {}
-    ;(SECTION_KEYS[targetType] || []).forEach(key => {
-      if (normalized.runtimeState && key in normalized.runtimeState) {
-        state[key] = normalized.runtimeState[key]
-      } else if (normalized.persistentState && key in normalized.persistentState) {
-        state[key] = normalized.persistentState[key]
-      } else if (normalized.localStorage && key in normalized.localStorage) {
-        state[key] = parseMaybeJson(normalized.localStorage[key])
-      }
-    })
-    return { backupType: targetType, state }
-  }
-
   function isQuotaExceededError(error) {
     if (!error) return false
     return error.name === 'QuotaExceededError' || error.code === 22 || error.code === 1014
@@ -315,51 +227,6 @@
     localStorage.removeItem(chunkCountKey)
   }
 
-  async function applySectionSnapshot(snapshot, expectedType) {
-    const normalized = normalizeSectionSnapshot(snapshot, expectedType)
-    const keys = SECTION_KEYS[normalized.backupType] || []
-    const skippedLocalStorage = []
-    const skippedPersistent = []
-
-    for (const key of keys) {
-      localStorage.removeItem(key)
-      localStorage.removeItem(`${key}__backup`)
-      removeChunkedValue(key)
-      await window.persistentState?.remove?.(key)
-    }
-
-    for (const [key, value] of Object.entries(normalized.state || {})) {
-      if (!keys.includes(key)) continue
-
-      if (window.persistentState?.set) {
-        await window.persistentState.set(key, value).catch(() => {
-          if (!skippedPersistent.includes(key)) skippedPersistent.push(key)
-        })
-      }
-
-      let serialized = null
-      try {
-        serialized = typeof value === 'string' ? value : JSON.stringify(value)
-      } catch (_error) {
-        skippedLocalStorage.push(key)
-        continue
-      }
-
-      try {
-        localStorage.setItem(key, serialized)
-        if (WITH_BACKUP_COPY.has(key)) {
-          localStorage.setItem(`${key}__backup`, serialized)
-        }
-      } catch (error) {
-        if (!isQuotaExceededError(error) || !tryStoreChunkedValue(key, serialized)) {
-          if (!skippedLocalStorage.includes(key)) skippedLocalStorage.push(key)
-        }
-      }
-    }
-
-    return { skippedLocalStorage, skippedPersistent }
-  }
-
   async function applySnapshot(snapshot) {
     const normalized = normalizeSnapshot(snapshot)
     const keysToDelete = []
@@ -381,6 +248,10 @@
     localStorageEntries.forEach(([key, value]) => {
       try {
         localStorage.setItem(key, value)
+        // Si es una clave con backup, asegurar que también se guarde la copia
+        if (WITH_BACKUP_COPY.has(key)) {
+          localStorage.setItem(`${key}__backup`, value)
+        }
       } catch (error) {
         if (isQuotaExceededError(error) && tryStoreChunkedValue(key, value)) return
         skippedLocalStorage.push(key)
@@ -388,53 +259,8 @@
     })
 
     const skippedPersistent = []
-    const persistentEntries = Object.entries(normalized.persistentState || {})
-      .filter(([key]) => typeof key === 'string' && !key.startsWith(RESERVED_PREFIX))
-
-    for (const [key, value] of persistentEntries) {
-      try {
-        await window.persistentState?.set?.(key, value)
-      } catch (_error) {
-        skippedPersistent.push(key)
-      }
-    }
-
-    await applyRuntimeStateFallback(normalized.runtimeState, skippedLocalStorage, skippedPersistent)
 
     return { skippedLocalStorage, skippedPersistent }
-  }
-
-  async function applyRuntimeStateFallback(runtimeState, skippedLocalStorage, skippedPersistent) {
-    if (!runtimeState || typeof runtimeState !== 'object') return
-
-    for (const key of RUNTIME_PRIORITY_KEYS) {
-      if (!(key in runtimeState)) continue
-      const value = runtimeState[key]
-      let serialized = null
-      try {
-        serialized = typeof value === 'string' ? value : JSON.stringify(value)
-      } catch (_error) {
-        if (!skippedLocalStorage.includes(key)) skippedLocalStorage.push(key)
-        continue
-      }
-
-      if (window.persistentState?.set) {
-        await window.persistentState.set(key, value).catch(() => {
-          if (!skippedPersistent.includes(key)) skippedPersistent.push(key)
-        })
-      }
-
-      try {
-        localStorage.setItem(key, serialized)
-        if (WITH_BACKUP_COPY.has(key)) {
-          localStorage.setItem(`${key}__backup`, serialized)
-        }
-      } catch (error) {
-        if (!isQuotaExceededError(error) || !tryStoreChunkedValue(key, serialized)) {
-          if (!skippedLocalStorage.includes(key)) skippedLocalStorage.push(key)
-        }
-      }
-    }
   }
 
   function downloadBackupFile() {
@@ -453,22 +279,6 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
-  function downloadSectionBackupFile(section) {
-    const snapshot = getSectionSnapshot(section)
-    const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    const dateTag = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
-
-    a.href = url
-    a.download = `buen-abogado-respaldo-${section}-${dateTag}.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
-  }
-
   function addBackupUi() {
     const container = document.querySelector('.configuracion-body')
     if (!container) return
@@ -477,24 +287,12 @@
     section.className = 'config-section'
     section.innerHTML = `
       <div class="config-section-head">
-        <h4>Respaldo entre dispositivos</h4>
-        <p>Elige qué quieres respaldar: horario, artículos o documentos.</p>
+        <h4>Respaldo de la aplicación</h4>
+        <p>Respalda o restaura todos tus datos: artículos, carpetas y documentos.</p>
       </div>
       <div class="config-actions">
-        <button class="modo config-action" type="button" id="backupDownloadHorarioBtn">Descargar horario</button>
-        <button class="modo config-action" type="button" id="backupUploadHorarioBtn">Cargar horario</button>
-      </div>
-      <div class="config-actions">
-        <button class="modo config-action" type="button" id="backupDownloadArticulosBtn">Descargar artículos</button>
-        <button class="modo config-action" type="button" id="backupUploadArticulosBtn">Cargar artículos</button>
-      </div>
-      <div class="config-actions">
-        <button class="modo config-action" type="button" id="backupDownloadDocumentosBtn">Descargar documentos</button>
-        <button class="modo config-action" type="button" id="backupUploadDocumentosBtn">Cargar documentos</button>
-      </div>
-      <div class="config-actions">
-        <button class="modo config-action" type="button" id="backupDownloadBtn">Descargar respaldo completo</button>
-        <button class="modo config-action" type="button" id="backupUploadBtn">Cargar respaldo completo</button>
+        <button class="modo config-action" type="button" id="backupDownloadBtn">Descargar respaldo</button>
+        <button class="modo config-action" type="button" id="backupUploadBtn">Cargar respaldo</button>
         <button class="modo config-action" type="button" id="backupResetBtn">Restaurar app</button>
       </div>
       <input type="file" id="backupFileInput" accept="application/json,.json" hidden>
@@ -505,7 +303,6 @@
 
     const fileInput = document.getElementById('backupFileInput')
     const message = document.getElementById('backupMessage')
-    let uploadMode = 'full'
 
     function clearMessage() {
       message.textContent = ''
@@ -514,70 +311,32 @@
 
     function setErrorMessage(text) {
       message.textContent = text
+      message.className = 'backup-message error'
+      message.hidden = false
+    }
+
+    function setSuccessMessage(text) {
+      message.textContent = text
+      message.className = 'backup-message success'
       message.hidden = false
     }
 
     document.getElementById('backupDownloadBtn').addEventListener('click', () => {
       try {
         downloadBackupFile()
-        clearMessage()
+        setSuccessMessage('Respaldo descargado correctamente')
       } catch (error) {
         setErrorMessage(`No se pudo descargar el respaldo: ${error.message}`)
       }
     })
 
     document.getElementById('backupUploadBtn').addEventListener('click', () => {
-      uploadMode = 'full'
-      fileInput.value = ''
-      fileInput.click()
-    })
-
-    document.getElementById('backupDownloadHorarioBtn').addEventListener('click', () => {
-      try {
-        downloadSectionBackupFile('horario')
-        clearMessage()
-      } catch (error) {
-        setErrorMessage(`No se pudo descargar el respaldo de horario: ${error.message}`)
-      }
-    })
-
-    document.getElementById('backupDownloadArticulosBtn').addEventListener('click', () => {
-      try {
-        downloadSectionBackupFile('articulos')
-        clearMessage()
-      } catch (error) {
-        setErrorMessage(`No se pudo descargar el respaldo de artículos: ${error.message}`)
-      }
-    })
-
-    document.getElementById('backupDownloadDocumentosBtn').addEventListener('click', () => {
-      try {
-        downloadSectionBackupFile('documentos')
-        clearMessage()
-      } catch (error) {
-        setErrorMessage(`No se pudo descargar el respaldo de documentos: ${error.message}`)
-      }
-    })
-
-    document.getElementById('backupUploadHorarioBtn').addEventListener('click', () => {
-      uploadMode = 'horario'
-      fileInput.value = ''
-      fileInput.click()
-    })
-
-    document.getElementById('backupUploadArticulosBtn').addEventListener('click', () => {
-      uploadMode = 'articulos'
-      fileInput.value = ''
-      fileInput.click()
-    })
-
-    document.getElementById('backupUploadDocumentosBtn').addEventListener('click', () => {
-      uploadMode = 'documentos'
       fileInput.value = ''
       fileInput.click()
     })
 
     document.getElementById('backupResetBtn').addEventListener('click', async () => {
+      if (!confirm('¿Estás seguro? Esto borrará todos los datos de la aplicación.')) return
       try {
         const keys = []
         for (let index = 0; index < localStorage.length; index += 1) {
@@ -601,8 +360,7 @@
       try {
         const text = await file.text()
         const snapshot = JSON.parse(text)
-        const result =
-          uploadMode === 'full' ? await applySnapshot(snapshot) : await applySectionSnapshot(snapshot, uploadMode)
+        const result = await applySnapshot(snapshot)
         const skippedTotal = result.skippedLocalStorage.length + result.skippedPersistent.length
 
         if (skippedTotal > 0) {
@@ -619,10 +377,10 @@
 
           setErrorMessage(`Respaldo cargado parcialmente: faltaron ${skippedTotal} clave(s). ${detalles}`)
         } else {
-          clearMessage()
+          setSuccessMessage('Respaldo cargado correctamente. La aplicación se recargará en breve...')
         }
 
-        setTimeout(() => window.location.reload(), 500)
+        setTimeout(() => window.location.reload(), 1000)
       } catch (error) {
         setErrorMessage(`No se pudo cargar el respaldo: ${error.message}`)
       }
