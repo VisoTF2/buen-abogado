@@ -80,10 +80,10 @@ function guardarJSONConRespaldo(key, valor) {
 }
 
 let codigoActual = {}
-let articulos = cargarJSONConRespaldo("articulosGuardados", [])
+window.articulos = cargarJSONConRespaldo("articulosGuardados", [])
   .map(a => ({ ...a, contenidoHTML: a.contenidoHTML ?? null, abierto: Boolean(a.abierto) }))
-let materiasOrden = cargarJSONConRespaldo("materiasOrden", {})
-let carpetas = cargarJSONConRespaldo("carpetasMaterias", []).map(c => ({
+window.materiasOrden = cargarJSONConRespaldo("materiasOrden", {})
+window.carpetas = cargarJSONConRespaldo("carpetasMaterias", []).map(c => ({
   ...c,
   color: c.color || "#1e3a8a",
   semestre: (c.semestre || "Semestre").trim() || "Semestre",
@@ -132,7 +132,7 @@ let materiaArrastradaCarpetaId = null
 let documentoSeleccionadoEnCarpetaId = null
 let suprimirClickDocumentoSidebarHasta = 0
 const DOCUMENTOS_SIDEBAR_STORAGE_KEY = "documentosSidebarIds"
-let documentosSidebarIds = cargarDocumentosSidebarIds()
+window.documentosSidebarIds = cargarDocumentosSidebarIds()
 
 function cargarDocumentosSidebarIds() {
   try {

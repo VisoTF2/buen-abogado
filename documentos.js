@@ -17,10 +17,10 @@ let modalLecturaDocumentos = null
 
 document.body.appendChild(documentoReemplazoInput)
 
-let documentosCargados = cargarDocumentosGuardados()
+window.documentosCargados = cargarDocumentosGuardados()
 let documentoArrastradoId = null
 window.__backupExportDocumentosState = function __backupExportDocumentosState() {
-  return Array.isArray(documentosCargados) ? documentosCargados : []
+  return Array.isArray(window.documentosCargados) ? window.documentosCargados : []
 }
 
 if (typeof pdfjsLib !== "undefined") {
