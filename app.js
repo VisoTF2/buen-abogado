@@ -1,5 +1,12 @@
 function cargarJSONConRespaldo(key, fallback) {
   const respaldoKey = `${key}__backup`
+  const guardarRespaldoSilencioso = valor => {
+    try {
+      localStorage.setItem(respaldoKey, valor)
+    } catch (_error) {
+      // Si no hay espacio para duplicar respaldo, conservamos al menos el valor principal.
+    }
+  }
   const intentarParse = valor => {
     if (!valor) return null
     try {
@@ -11,7 +18,7 @@ function cargarJSONConRespaldo(key, fallback) {
 
   const valorPrincipal = intentarParse(localStorage.getItem(key))
   if (valorPrincipal !== null) {
-    localStorage.setItem(respaldoKey, JSON.stringify(valorPrincipal))
+    guardarRespaldoSilencioso(JSON.stringify(valorPrincipal))
     return valorPrincipal
   }
 
@@ -27,7 +34,11 @@ function cargarJSONConRespaldo(key, fallback) {
 function guardarJSONConRespaldo(key, valor) {
   const serializado = JSON.stringify(valor)
   localStorage.setItem(key, serializado)
-  localStorage.setItem(`${key}__backup`, serializado)
+  try {
+    localStorage.setItem(`${key}__backup`, serializado)
+  } catch (_error) {
+    // Evita romper guardado principal cuando no queda espacio para copia de respaldo.
+  }
 }
 
 let codigoActual = {}
