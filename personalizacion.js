@@ -55,6 +55,31 @@ let mallaPanStartY = 0
 let mallaPanScrollLeft = 0
 let mallaPanScrollTop = 0
 
+function isQuotaExceededError(error) {
+  if (!error) return false
+  return error.name === "QuotaExceededError" || error.code === 22 || error.code === 1014
+}
+
+function guardarDatoPreferente(key, value) {
+  try {
+    localStorage.setItem(key, value)
+  } catch (error) {
+    if (!isQuotaExceededError(error)) throw error
+  }
+  window.persistentState?.set?.(key, value)
+}
+
+function removerDatoPreferente(key) {
+  localStorage.removeItem(key)
+  window.persistentState?.remove?.(key)
+}
+
+function leerDatoPreferente(key, fallback = "") {
+  const cached = window.persistentState?.getCached?.(key)
+  if (typeof cached === "string") return cached
+  return localStorage.getItem(key) || fallback
+}
+
 function asegurarMallaPreviewEnBody() {
   if (!mallaPreviewBackdrop) return
   if (mallaPreviewBackdrop.parentElement === document.body) return
@@ -208,7 +233,7 @@ function aplicarFondo(src) {
 
 function restablecerFondo() {
   aplicarFondo("")
-  localStorage.removeItem(FONDO_STORAGE_KEY)
+  removerDatoPreferente(FONDO_STORAGE_KEY)
   if (fondoInput) fondoInput.value = ""
 }
 
@@ -221,7 +246,7 @@ fondoInput?.addEventListener("change", e => {
     const dataUrl = lector.result
     if (typeof dataUrl === "string") {
       aplicarFondo(dataUrl)
-      localStorage.setItem(FONDO_STORAGE_KEY, dataUrl)
+      guardarDatoPreferente(FONDO_STORAGE_KEY, dataUrl)
     }
   }
   lector.readAsDataURL(archivo)
@@ -813,7 +838,7 @@ if (!normalizarHexColor(accentColorGuardado) && accentColorGuardado) {
 aplicarColorAcentoGuardado()
 aplicarBanner(localStorage.getItem(BANNER_STORAGE_KEY) || "")
 aplicarFondoBannerActivo(localStorage.getItem(BANNER_FILL_ENABLED_KEY) !== "false")
-aplicarFondo(localStorage.getItem(FONDO_STORAGE_KEY) || "")
+aplicarFondo(leerDatoPreferente(FONDO_STORAGE_KEY, ""))
 const storedDisplayMalla = localStorage.getItem(MALLA_STORAGE_KEY) || ""
 const storedBaseMalla = localStorage.getItem(MALLA_BASE_KEY) || storedDisplayMalla
 if (storedBaseMalla && !localStorage.getItem(MALLA_BASE_KEY)) {
