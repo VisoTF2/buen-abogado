@@ -146,7 +146,7 @@
     setTimeout(() => URL.revokeObjectURL(url), 1000)
   }
 
-  function applySnapshot(snapshot) {
+  async function applySnapshot(snapshot) {
     if (!snapshot || typeof snapshot !== 'object') {
       throw new Error('El archivo de respaldo no tiene un formato válido.')
     }
@@ -162,6 +162,7 @@
     }
 
     keysToDelete.forEach(key => localStorage.removeItem(key))
+    await window.persistentState?.clear?.()
 
     const skippedByQuota = []
     const criticalState = buildPreferredCriticalState(snapshot)
@@ -187,11 +188,20 @@
         }
         throw error
       }
+
+      syncPersistentStateValue(key, safeValue)
     })
 
     return {
       skippedByQuota
     }
+  }
+
+  function syncPersistentStateValue(key, serializedValue) {
+    if (!window.persistentState?.set) return
+    const parsed = intentarParseJSON(serializedValue)
+    if (!parsed.ok) return
+    window.persistentState.set(key, parsed.value)
   }
 
   function buildPreferredCriticalState(snapshot) {
@@ -360,7 +370,7 @@
       try {
         const text = await file.text()
         const snapshot = JSON.parse(text)
-        const result = applySnapshot(snapshot)
+        const result = await applySnapshot(snapshot)
         if (result.skippedByQuota.length > 0) {
           setErrorMessage(
             `Respaldo cargado parcialmente: no hubo espacio para ${result.skippedByQuota.length} elemento(s) (${result.skippedByQuota.join(', ')}).`
