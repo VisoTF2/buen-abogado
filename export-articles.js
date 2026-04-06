@@ -23,13 +23,14 @@
       }
 
       const backup = {
-        version: '1.0',
+        version: '2.0',
         timestamp: new Date().toISOString(),
         cantidad: window.articulos.length,
-        articulos: window.articulos
+        articulos: window.articulos,
+        materiasOrden: window.materiasOrden || {}
       }
 
-      console.log('[ExportArticles] Exportando', backup.cantidad, 'artículos...')
+      console.log('[ExportArticles] Exportando', backup.cantidad, 'artículos con orden...')
 
       const jsonStr = JSON.stringify(backup, null, 2)
       const blob = new Blob([jsonStr], { type: 'application/json; charset=utf-8' })
@@ -94,10 +95,29 @@
           }
         })
 
+        // IMPORTANTE: Mergear el orden (materiasOrden)
+        if (datos.materiasOrden && typeof datos.materiasOrden === 'object') {
+          Object.keys(datos.materiasOrden).forEach(normativa => {
+            if (!window.materiasOrden[normativa]) {
+              window.materiasOrden[normativa] = {}
+            }
+            
+            // Mergear los órdenes de cada normativa
+            Object.keys(datos.materiasOrden[normativa]).forEach(materia => {
+              // Solo agregar si no existe la materia
+              if (typeof window.materiasOrden[normativa][materia] === 'undefined') {
+                window.materiasOrden[normativa][materia] = datos.materiasOrden[normativa][materia]
+              }
+            })
+          })
+          console.log('[ExportArticles] ✓ Órdenes mergeados')
+        }
+
         console.log('[ExportArticles] ✓ Agregados:', agregados, 'Duplicados:', duplicados)
 
-        // Guardar a localStorage e IndexedDB
+        // Guardar todo
         guardarJSONConRespaldo('articulosGuardados', window.articulos)
+        guardarJSONConRespaldo('materiasOrden', window.materiasOrden)
 
         // Redibujar la lista
         if (typeof ordenarYMostrar === 'function') {
