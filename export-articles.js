@@ -7,6 +7,7 @@
 
 (function() {
   'use strict'
+  const EXPORT_FOLDERS_TOGGLE_KEY = 'exportarArticulosConCarpetas'
 
   /**
    * Mostrar notificación temporal
@@ -74,16 +75,21 @@
         return
       }
 
+      const exportWithFoldersToggle = document.getElementById('exportWithFoldersToggle')
+      const incluirCarpetas = exportWithFoldersToggle ? exportWithFoldersToggle.checked : true
       const backup = {
         version: '3.0',
         timestamp: new Date().toISOString(),
         cantidad: window.articulos.length,
         articulos: window.articulos,
-        materiasOrden: window.materiasOrden || {},
-        carpetas: window.carpetas || []
+        materiasOrden: window.materiasOrden || {}
       }
 
-      console.log('[ExportArticles] Exportando', backup.cantidad, 'artículos con carpetas y orden...')
+      if (incluirCarpetas) {
+        backup.carpetas = window.carpetas || []
+      }
+
+      console.log('[ExportArticles] Exportando', backup.cantidad, 'artículos', incluirCarpetas ? 'con carpetas y orden...' : 'sin carpetas...')
 
       const jsonStr = JSON.stringify(backup, null, 2)
       const blob = new Blob([jsonStr], { type: 'application/json; charset=utf-8' })
@@ -234,6 +240,18 @@
     const btnExportar = document.getElementById('exportArticlesBtn')
     const btnImportar = document.getElementById('importArticlesBtn')
     const inputArchivo = document.getElementById('inputImportArticles')
+    const exportWithFoldersToggle = document.getElementById('exportWithFoldersToggle')
+
+    if (exportWithFoldersToggle) {
+      const preferenciaGuardada = localStorage.getItem(EXPORT_FOLDERS_TOGGLE_KEY)
+      if (preferenciaGuardada === 'false') {
+        exportWithFoldersToggle.checked = false
+      }
+
+      exportWithFoldersToggle.addEventListener('change', () => {
+        localStorage.setItem(EXPORT_FOLDERS_TOGGLE_KEY, exportWithFoldersToggle.checked ? 'true' : 'false')
+      })
+    }
 
     if (btnExportar) {
       btnExportar.addEventListener('click', exportarArticulos)
