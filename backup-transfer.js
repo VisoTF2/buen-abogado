@@ -176,19 +176,25 @@
 
     entries.forEach(([key, value]) => {
       const safeValue = typeof value === 'string' ? value : JSON.stringify(value)
+      let stored = false
 
       try {
         localStorage.setItem(key, safeValue)
+        stored = true
       } catch (error) {
         if (isQuotaExceededError(error)) {
           const storedAsChunks = tryStoreChunkedValue(key, safeValue)
-          if (storedAsChunks) return
-          skippedByQuota.push(key)
-          return
+          if (storedAsChunks) {
+            stored = true
+          } else {
+            skippedByQuota.push(key)
+          }
+        } else {
+          throw error
         }
-        throw error
       }
 
+      if (!stored) return
       syncPersistentStateValue(key, safeValue)
     })
 
@@ -233,19 +239,25 @@
     CRITICAL_STATE_KEYS.forEach(key => {
       if (!(key in fullState)) return
       const serialized = typeof fullState[key] === 'string' ? fullState[key] : JSON.stringify(fullState[key])
+      let stored = false
 
       try {
         localStorage.setItem(key, serialized)
+        stored = true
       } catch (error) {
         if (isQuotaExceededError(error)) {
           const storedAsChunks = tryStoreChunkedValue(key, serialized)
-          if (!storedAsChunks) skippedByQuota.push(key)
-          return
+          if (storedAsChunks) {
+            stored = true
+          } else {
+            skippedByQuota.push(key)
+          }
+        } else {
+          throw error
         }
-        throw error
       }
 
-      if (CRITICAL_WITH_BACKUP_COPY.has(key)) {
+      if (stored && CRITICAL_WITH_BACKUP_COPY.has(key)) {
         try {
           localStorage.setItem(`${key}__backup`, serialized)
         } catch (_error) {
