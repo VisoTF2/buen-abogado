@@ -9,6 +9,57 @@
   'use strict'
 
   /**
+   * Mostrar notificación temporal
+   */
+  function mostrarNotificacion(mensaje, tipo = 'info') {
+    // Crear elemento de notificación
+    const notif = document.createElement('div')
+    notif.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 16px 20px;
+      background: ${tipo === 'success' ? '#4caf50' : tipo === 'error' ? '#f44336' : '#2196F3'};
+      color: white;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      font-size: 14px;
+      z-index: 9999;
+      max-width: 300px;
+      animation: slideIn 0.3s ease-out;
+    `
+    notif.textContent = mensaje
+    document.body.appendChild(notif)
+
+    // Agregar animación si no existe
+    if (!document.querySelector('style[data-notif-anim-articles]')) {
+      const style = document.createElement('style')
+      style.setAttribute('data-notif-anim-articles', '')
+      style.textContent = `
+        @keyframes slideIn {
+          from { transform: translateX(400px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(400px); opacity: 0; }
+        }
+      `
+      document.head.appendChild(style)
+    }
+
+    // Auto-remover después de 4 segundos
+    setTimeout(() => {
+      notif.style.animation = 'slideOut 0.3s ease-out'
+      setTimeout(() => {
+        if (notif.parentElement) {
+          notif.parentElement.removeChild(notif)
+        }
+      }, 300)
+    }, 4000)
+  }
+
+  /**
    * EXPORTAR ARTÍCULOS
    * Descarga los artículos como archivo JSON
    */
@@ -19,6 +70,7 @@
       
       if (!window.articulos || !Array.isArray(window.articulos) || window.articulos.length === 0) {
         console.warn('[ExportArticles] No hay artículos para exportar')
+        mostrarNotificacion('✗ No hay artículos para exportar', 'error')
         return
       }
 
@@ -51,9 +103,11 @@
       URL.revokeObjectURL(url)
 
       console.log('[ExportArticles] ✓ Exportados', backup.cantidad, 'artículos')
+      mostrarNotificacion(`✓ ${backup.cantidad} artículos exportados`, 'success')
 
     } catch (error) {
       console.error('[ExportArticles] Error:', error)
+      mostrarNotificacion('✗ Error al exportar artículos', 'error')
     }
   }
 
@@ -153,13 +207,17 @@
           ordenarYMostrar()
         }
 
+        mostrarNotificacion(`✓ ${agregados} artículos importados`, 'success')
+
       } catch (error) {
         console.error('[ExportArticles] Error importando:', error)
+        mostrarNotificacion(`✗ Error: ${error.message}`, 'error')
       }
     }
 
     lector.onerror = function() {
       console.error('[ExportArticles] Error leyendo archivo')
+      mostrarNotificacion('✗ Error al leer archivo', 'error')
     }
 
     lector.readAsText(archivo)
